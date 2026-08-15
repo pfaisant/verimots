@@ -45,7 +45,7 @@ DATA SAFETY (Play Console) — à jour 3.0
 
 FICHE TECHNIQUE
 package : cc.pfa87.verimots
-version : 3.0 (versionCode 16)
+version : 3.0 (versionCode 17)
 confidentialité : https://s.pfa87.cc/confidentialite.html
 contact : hello@pfa87.cc
 AAB : android/ods9/app/build/outputs/bundle/release/app-release.aab

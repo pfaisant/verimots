@@ -43,7 +43,8 @@ cat > "$DEST/apk.json" <<EOF
 EOF
 if [[ -f "$AAB" ]]; then
   cp -f "$AAB" "$DEST/verimots-${VERSION}.aab"
-  echo "wrote $DEST/verimots.apk, $DEST/verimots-${VERSION}.apk ($(wc -c < "$DEST/verimots.apk") bytes) and $DEST/verimots-${VERSION}.aab"
+  cp -f "$AAB" "$DEST/verimots-${VERSION}-${CODE}.aab"
+  echo "wrote $DEST/verimots.apk, $DEST/verimots-${VERSION}.apk ($(wc -c < "$DEST/verimots.apk") bytes) and $DEST/verimots-${VERSION}-${CODE}.aab"
 else
   echo "wrote $DEST/verimots.apk and $DEST/verimots-${VERSION}.apk ($(wc -c < "$DEST/verimots.apk") bytes) — no AAB"
 fi
