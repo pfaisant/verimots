@@ -1,0 +1,20 @@
+<resources>
+    <color name="felt">#243d2e</color>
+    <color name="felt_dark">#0e1711</color>
+    <color name="felt_mid">#17241c</color>
+    <color name="felt_card">#1a2c22</color>
+    <color name="tile">#f6ead0</color>
+    <color name="tile_ink">#1a1408</color>
+    <color name="tile_edge">#c9b27a</color>
+    <color name="gold">#e8c56b</color>
+    <color name="gold_soft">#33e8c56b</color>
+    <color name="ink">#f7f2e8</color>
+    <color name="muted">#b9c6ba</color>
+    <color name="dim">#7d9183</color>
+    <color name="ok">#3dce8a</color>
+    <color name="ok_bg">#1a3dce8a</color>
+    <color name="no">#f07171</color>
+    <color name="no_bg">#1af07171</color>
+    <color name="line">#24f4efe4</color>
+    <color name="wa">#1f6b46</color>
+</resources>

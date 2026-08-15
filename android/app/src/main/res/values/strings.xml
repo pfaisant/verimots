@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Verimots</string>
+    <string name="brand_sub">Communautaire</string>
+    <string name="hint_check">Dans la liste ? Sans accents. Liste hors ligne.</string>
+    <string name="word_hint">Tapez un mot</string>
+    <string name="play_hint">Votre mot</string>
+    <string name="validate">Valider</string>
+    <string name="tab_check">Vérifier</string>
+    <string name="tab_game">Défi</string>
+    <string name="tab_about">Infos</string>
+    <string name="loading">Chargement de la liste…</string>
+    <string name="playable">Jouable · liste hors ligne</string>
+    <string name="not_in_list">Pas dans la liste</string>
+    <string name="def_need_net">Définition disponible avec une connexion.</string>
+    <string name="encore">Encore</string>
+    <string name="share">Partager</string>
+    <string name="wiki">Ouvrir dans le Wiktionnaire</string>
+    <string name="about_title">À propos de Verimots</string>
+    <string name="about_body">Version hors ligne : l’application contient la liste des mots (plus de 400 000 formes de 2 à 15 lettres, sans accents). Vérifier un mot et le défi fonctionnent sans réseau.\n\nUne connexion est nécessaire seulement pour les définitions automatiques (Wiktionnaire) et le partage.\n\nLa liste est maintenue par la communauté. Verimots n’est pas l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.</string>
+    <string name="privacy_title">Confidentialité</string>
+    <string name="privacy_body">Pas de publicité. L’historique local reste sur l’appareil. Connecté avec Google, les mots vérifiés et joués sont aussi enregistrés sur ton compte pour les retrouver sur le web et le téléphone.\n\nEn mode anonyme, seul le pourcentage (0 à 100) est envoyé pour le score moyen public. Mode compétition (optionnel) : identifiant Google, nom et photo pour le classement du jour. Les définitions passent par s.pfa87.cc vers le Wiktionnaire.</string>
+    <string name="hint_prefix">Mots de la liste qui commencent ainsi.</string>
+    <string name="hint_suffix">Mots de la liste qui finissent ainsi.</string>
+    <string name="hint_has">Mots de la liste qui contiennent ces lettres.</string>
+    <string name="hint_rack">Tapez A–Z. Touchez ? pour un joker.</string>
+    <string name="build_stamp">Version %1$s (%2$d)\nCompilé le %3$s</string>
+</resources>

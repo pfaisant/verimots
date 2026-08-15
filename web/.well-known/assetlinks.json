@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "cc.pfa87.verimots",
+      "sha256_cert_fingerprints": [
+        "8F:41:EA:BD:2C:42:3D:06:1A:BC:C8:E8:54:5C:E6:56:09:4F:D6:D7:67:45:E6:4D:0C:D0:0E:68:20:8E:25:B2"
+      ]
+    }
+  }
+]

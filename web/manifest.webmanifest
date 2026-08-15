@@ -1,0 +1,19 @@
+{
+  "name": "Verimots",
+  "short_name": "Verimots",
+  "description": "Vérificateur hors ligne. Liste communautaire. Définitions avec une connexion.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#142018",
+  "theme_color": "#142018",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

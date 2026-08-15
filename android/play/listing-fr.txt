@@ -1,0 +1,53 @@
+TITRE (30)
+Verimots
+
+DESCRIPTION COURTE (80)
+Vérificateur hors ligne : la liste des mots est incluse. Définitions avec connexion.
+
+DESCRIPTION LONGUE
+Verimots est une application Android native : vérificateur de mots et défi de lettres, en français.
+
+Version hors ligne
+L’application contient la liste des mots : plus de 400 000 formes de 2 à 15 lettres, sans accents. Vous pouvez vérifier un mot, chercher sur un tiroir (lettres + jokers) et jouer au défi sans connexion internet.
+
+Définitions automatiques
+Une connexion est nécessaire seulement pour afficher les définitions automatiques (Wiktionnaire) et pour partager un mot ou un défi.
+
+Liste maintenue par la communauté
+La liste n’est pas l’ouvrage officiel Larousse. Verimots n’est affilié ni à Mattel, ni à une fédération.
+
+Sans compte, sans publicité.
+
+Politique de confidentialité : https://s.pfa87.cc/confidentialite.html
+Privacy (EN) : https://s.pfa87.cc/privacy.html
+Support : https://s.pfa87.cc/support.html
+Site : https://s.pfa87.cc/
+Play answers : https://s.pfa87.cc/play-console.html
+
+CATÉGORIE
+Jeux · Mots
+
+PUBLIC
+PEGI 3 / Everyone — pas de contenu choquant, pas d’achats intégrés, pas de pubs.
+
+DATA SAFETY (Play Console)
+• Données collectées : score de défi (pourcentage 0–100), facultatif, pour un moyenne publique. Pas d’identité.
+• Données sur l’appareil : historique de session et graphique de scores (stockage local).
+• Pas de pub, pas de compte, pas de vente de données.
+• Permission Internet : définitions, moyenne publique, partage.
+
+DATA SAFETY (Play Console) — à jour 3.0
+• Défi anonyme : pourcentage 0–100 pour la moyenne publique. Pas d’identité.
+• Compétition optionnelle : connexion Google → identifiant (sub), nom, photo, pour le classement du jour et l’historique de compte.
+• Sur l’appareil : historique local et graphique de scores.
+• Pas de pub, pas de vente de données.
+• Permission Internet : définitions, moyenne, auth, classement.
+
+FICHE TECHNIQUE
+package : cc.pfa87.verimots
+version : 3.0 (versionCode 16)
+confidentialité : https://s.pfa87.cc/confidentialite.html
+contact : hello@pfa87.cc
+AAB : android/ods9/app/build/outputs/bundle/release/app-release.aab
+icon : android/ods9/play/icon-512.png
+feature : android/ods9/play/feature-1024x500.png
