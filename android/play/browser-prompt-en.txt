@@ -1,0 +1,66 @@
+You are filling the Google Play Console page that is already open: Grow users → Store presence → Store listings.
+
+Do not navigate away. Do not publish. Do not change the package, signing, or pricing. Only fill the English store listing, then stop and report what you uploaded and what is still red.
+
+Language
+- Open or add the English (United States) — en-US listing. If English is not there yet, use Add translation / Manage translations and add English (United States).
+- Stay on English (United States) until that locale is complete.
+- Do not overwrite the French (France) default listing.
+
+Local files (upload these exact files; if the file picker cannot see them, ask me to choose from this folder)
+Folder: /Users/paulfaisant/Dev/Verimots/android/play/en/
+
+Graphics — upload in this order
+1) App icon (required, 512×512, PNG, ≤1 MB) — shared brand icon
+   /Users/paulfaisant/Dev/Verimots/android/play/icon-512.png
+2) Feature graphic (required, 1024×500) — English version
+   /Users/paulfaisant/Dev/Verimots/android/play/en/feature-1024x500.png
+3) Phone screenshots (required, at least 2 — upload all 4, in this order)
+   /Users/paulfaisant/Dev/Verimots/android/play/en/phone-01-check.png
+   /Users/paulfaisant/Dev/Verimots/android/play/en/phone-02-rack.png
+   /Users/paulfaisant/Dev/Verimots/android/play/en/phone-03-challenge.png
+   /Users/paulfaisant/Dev/Verimots/android/play/en/phone-04-board.png
+4) 7-inch tablet screenshots
+   /Users/paulfaisant/Dev/Verimots/android/play/en/tablet7-01-check.png
+   /Users/paulfaisant/Dev/Verimots/android/play/en/tablet7-02-challenge.png
+5) 10-inch tablet screenshots
+   /Users/paulfaisant/Dev/Verimots/android/play/en/tablet10-01-check.png
+   /Users/paulfaisant/Dev/Verimots/android/play/en/tablet10-02-challenge.png
+6) Promo graphic if the field exists (180×120)
+   /Users/paulfaisant/Dev/Verimots/android/play/promo-180x120.png
+7) Promo video: leave empty.
+8) Google Play Games on PC logo: skip / leave empty.
+
+English text — paste exactly, do not rewrite
+App name (≤30):
+Verimots
+
+Short description (≤80):
+Offline French word checker. 400,000+ words included. Definitions when online.
+
+Full description:
+Verimots is a native Android app: a French word checker, a rack search, and a daily letter challenge.
+
+Offline first
+The word list is bundled: more than 400,000 unaccented forms from 2 to 15 letters. Check a word, search a rack (letters + blanks), and play the daily challenge with no internet connection.
+
+Automatic definitions
+A connection is needed only for automatic definitions (Wiktionnaire) and to share a word or a challenge.
+
+Daily challenge and optional competition
+Play a new letter rack every day. Stay anonymous, or sign in with Google to appear on the daily leaderboard. First score of the day counts.
+
+Community-maintained list
+The list is not the official Larousse dictionary. Verimots is not affiliated with Mattel or any federation.
+
+No ads. The checker and the anonymous challenge work without an account.
+
+Privacy policy: https://s.pfa87.cc/privacy.html
+Confidentialité (FR): https://s.pfa87.cc/confidentialite.html
+Support: https://s.pfa87.cc/support.html
+Website: https://s.pfa87.cc/
+
+Save
+- Click Save (or Save draft) after English graphics + copy.
+- If a field stays red, screenshot it and tell me which file or text it rejected.
+- Do not submit the app for review from this page.

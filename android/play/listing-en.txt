@@ -1,0 +1,53 @@
+TITLE (30)
+Verimots
+
+SHORT DESCRIPTION (80)
+Offline French word checker. 400,000+ words included. Definitions when online.
+
+FULL DESCRIPTION
+Verimots is a native Android app: a French word checker, a rack search, and a daily letter challenge.
+
+Offline first
+The word list is bundled: more than 400,000 unaccented forms from 2 to 15 letters. Check a word, search a rack (letters + blanks), and play the daily challenge with no internet connection.
+
+Automatic definitions
+A connection is needed only for automatic definitions (Wiktionnaire) and to share a word or a challenge.
+
+Daily challenge and optional competition
+Play a new letter rack every day. Stay anonymous, or sign in with Google to appear on the daily leaderboard. First score of the day counts.
+
+Community-maintained list
+The list is not the official Larousse dictionary. Verimots is not affiliated with Mattel or any federation.
+
+No ads. The checker and the anonymous challenge work without an account.
+
+Privacy policy: https://s.pfa87.cc/privacy.html
+Confidentialité (FR): https://s.pfa87.cc/confidentialite.html
+Support: https://s.pfa87.cc/support.html
+Website: https://s.pfa87.cc/
+
+CATEGORY
+Games · Word
+
+AUDIENCE
+PEGI 3 / Everyone — no shocking content, no in-app purchases, no ads.
+
+DATA SAFETY (Play Console)
+• Anonymous challenge: percent 0–100 for the public average. No identity.
+• Optional competition: Google sign-in → ID (sub), name, photo, for the daily board and account history.
+• On device: local history and score chart.
+• No ads, no data sale.
+• Internet permission: definitions, average, auth, leaderboard.
+
+TECH
+package: cc.pfa87.verimots
+version: 3.0 (versionCode 17)
+privacy: https://s.pfa87.cc/privacy.html
+contact: hello@pfa87.cc
+icon: android/play/icon-512.png
+feature: android/play/en/feature-1024x500.png
+promo: android/play/promo-180x120.png
+phone: android/play/en/phone-01-check.png … phone-04-board.png
+tablet7: android/play/en/tablet7-01-check.png, tablet7-02-challenge.png
+tablet10: android/play/en/tablet10-01-check.png, tablet10-02-challenge.png
+prompt: android/play/browser-prompt-en.txt

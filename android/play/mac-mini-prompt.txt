@@ -1,0 +1,57 @@
+You are on the Mac Mini that originally signed Verimots / ODS9.
+
+Goal
+1. Sync the GitHub repo pfaisant/verimots.
+2. Find the ORIGINAL release keystore (do not create a new one).
+3. Build a signed Android App Bundle with versionCode 17.
+4. Give me a file:// link to the .aab.
+
+Do not
+- Do not run keytool -genkeypair.
+- Do not create ~/.config/aiconglomerate/ods9.keystore if it is missing.
+- Do not overwrite an existing keystore.
+- Do not change applicationId, package, or signing alias.
+- Do not commit the keystore or passwords.
+
+Sync the repo
+- If ~/Dev/Verimots or ~/Dev/verimots already exists: git fetch && git pull --ff-only origin main
+- If it does not exist: git clone https://github.com/pfaisant/verimots.git into the Dev folder, then cd into it.
+- Confirm android/app/build.gradle has versionCode 17 and versionName "3.0".
+
+Find the original keystore
+Search, in this order:
+1. ~/.config/aiconglomerate/ods9.keystore
+2. mdfind 'kMDItemFSName == ods9.keystore'
+3. find ~ /Volumes -name 'ods9.keystore' -o -name '*.keystore' -o -name '*.jks' (skip Library/Caches)
+The original cert must match Play:
+  SHA1: 60:14:D1:85:5A:98:EB:CF:09:1A:BA:BB:1A:5B:FD:08:09:55:69:D2
+Verify with (JAVA_HOME must point at a real JDK):
+  keytool -list -v -keystore PATH_TO_KEYSTORE -alias ods9
+If the alias is not ods9, list aliases and use the one whose SHA1 matches.
+If no keystore matches that SHA1, STOP and report every path you found. Do not generate a key.
+
+Build
+- Point the project at that keystore. android/app/build.gradle already expects:
+  ~/.config/aiconglomerate/ods9.keystore
+  alias ods9
+  passwords from ODS9_KEYSTORE_PASS / ODS9_KEY_PASS, default ods9pfa87
+- If the original file is elsewhere, copy it to that path only if the destination does not already exist. If a WRONG keystore is already there (SHA1 starting 93:F1:82:C0), move the wrong file aside as ods9.keystore.WRONG and put the original in place.
+- Build:
+  export JAVA_HOME to a real JDK 17+ (java_home or Microsoft/Temurin/Homebrew)
+  export ANDROID_HOME to the Android SDK
+  cd android && ./gradlew bundleRelease
+- Output should be:
+  android/app/build/outputs/bundle/release/app-release.aab
+- Copy it to:
+  web/verimots-3.0-17.aab
+- Confirm signing:
+  apksigner verify --print-certs on the AAB, or keytool/jarsigner on META-INF/ODS9.RSA
+  SHA1 must be 60:14:D1:85:5A:98:EB:CF:09:1A:BA:BB:1A:5B:FD:08:09:55:69:D2
+
+When done
+Reply with:
+- keystore path used
+- SHA1 of the signing cert
+- file:// link to web/verimots-3.0-17.aab
+- file size
+Do not upload to Play yourself.

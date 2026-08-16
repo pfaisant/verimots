@@ -1,0 +1,95 @@
+You are filling the Google Play Console page that is already open: Grow users → Store presence → Store listings → Default store listing.
+
+Do not navigate away. Do not publish. Do not change the package, signing, or pricing. Only fill this listing page, then stop and report what you uploaded and what is still red.
+
+Language first
+- The default language must stay French (France) — fr-FR.
+- If a language picker shows errors, stay on Default – French (France) – fr-FR until that locale is complete.
+- After French is complete and saved, add English (United States) — en-US as a translation. Reuse the same graphics for English (Play falls back to default graphics if a locale has none).
+
+Local files (upload these exact files; if the file picker cannot see them, ask me to choose from this folder)
+Folder: /Users/paulfaisant/Dev/Verimots/android/play/
+
+Graphics — upload in this order
+1) App icon (required, 512×512, PNG, ≤1 MB)
+   /Users/paulfaisant/Dev/Verimots/android/play/icon-512.png
+2) Feature graphic (required, 1024×500)
+   /Users/paulfaisant/Dev/Verimots/android/play/feature-1024x500.png
+3) Phone screenshots (required, at least 2 — upload all 4, in this order)
+   /Users/paulfaisant/Dev/Verimots/android/play/phone-01-verifier.png
+   /Users/paulfaisant/Dev/Verimots/android/play/phone-02-tiroir.png
+   /Users/paulfaisant/Dev/Verimots/android/play/phone-03-defi.png
+   /Users/paulfaisant/Dev/Verimots/android/play/phone-04-classement.png
+4) 7-inch tablet screenshots
+   /Users/paulfaisant/Dev/Verimots/android/play/tablet7-01-verifier.png
+   /Users/paulfaisant/Dev/Verimots/android/play/tablet7-02-defi.png
+5) 10-inch tablet screenshots
+   /Users/paulfaisant/Dev/Verimots/android/play/tablet10-01-verifier.png
+   /Users/paulfaisant/Dev/Verimots/android/play/tablet10-02-defi.png
+6) Promo graphic if the field exists (180×120)
+   /Users/paulfaisant/Dev/Verimots/android/play/promo-180x120.png
+7) Promo video: leave empty.
+
+French (default) text — paste exactly, do not rewrite
+App name (≤30):
+Verimots
+
+Short description (≤80):
+Vérificateur hors ligne : 400 000 mots. Définitions avec connexion.
+
+Full description:
+Verimots est une application Android native : vérificateur de mots, recherche sur un tiroir et défi de lettres, en français.
+
+Version hors ligne
+L’application contient la liste des mots : plus de 400 000 formes de 2 à 15 lettres, sans accents. Vous pouvez vérifier un mot, chercher sur un tiroir (lettres + jokers) et jouer au défi sans connexion internet.
+
+Définitions automatiques
+Une connexion est nécessaire seulement pour afficher les définitions automatiques (Wiktionnaire) et pour partager un mot ou un défi.
+
+Défi du jour et compétition optionnelle
+Un nouveau tiroir chaque jour. Restez anonyme, ou connectez-vous avec Google pour le classement du jour. Le premier score compte.
+
+Liste maintenue par la communauté
+La liste n’est pas l’ouvrage officiel Larousse. Verimots n’est affilié ni à Mattel, ni à une fédération.
+
+Sans publicité. Le vérificateur et le défi anonyme fonctionnent sans compte.
+
+Politique de confidentialité : https://s.pfa87.cc/confidentialite.html
+Privacy (EN) : https://s.pfa87.cc/privacy.html
+Support : https://s.pfa87.cc/support.html
+Site : https://s.pfa87.cc/
+
+English (en-US) text — only after French is saved
+App name:
+Verimots
+
+Short description:
+Offline French word checker. 400,000+ words included. Definitions when online.
+
+Full description:
+Verimots is a native Android app: a French word checker, a rack search, and a daily letter challenge.
+
+Offline first
+The word list is bundled: more than 400,000 unaccented forms from 2 to 15 letters. Check a word, search a rack (letters + blanks), and play the daily challenge with no internet connection.
+
+Automatic definitions
+A connection is needed only for automatic definitions (Wiktionnaire) and to share a word or a challenge.
+
+Daily challenge and optional competition
+Play a new letter rack every day. Stay anonymous, or sign in with Google to appear on the daily leaderboard. First score of the day counts.
+
+Community-maintained list
+The list is not the official Larousse dictionary. Verimots is not affiliated with Mattel or any federation.
+
+No ads. The checker and the anonymous challenge work without an account.
+
+Privacy policy: https://s.pfa87.cc/privacy.html
+Confidentialité (FR): https://s.pfa87.cc/confidentialite.html
+Support: https://s.pfa87.cc/support.html
+Website: https://s.pfa87.cc/
+
+Save
+- Click Save (or Save draft) after French graphics + copy.
+- Click Save again after adding English.
+- If a field stays red, screenshot it and tell me which file or text it rejected.
+- Do not submit the app for review from this page.
