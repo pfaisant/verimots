@@ -207,8 +207,8 @@ public class MainActivity extends Activity {
     private void paintBuildStamp() {
         TextView stamp = findViewById(R.id.about_version);
         if (stamp == null) return;
-        String name = "3.0";
-        int code = 16;
+        String name = "3.1";
+        int code = 18;
         try {
             android.content.pm.PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
             if (pi.versionName != null) name = pi.versionName;
