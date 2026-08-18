@@ -3,15 +3,33 @@ import { loadHistory, rememberWord, mergeHistory, historyLabel } from './history
 import { isCompetitive, setCompetitive, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=33'
 import { initLang, setLang, getLang, t } from './i18n.js?v=33'
 
-const VALUES = {
+const FR_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
   J: 8, K: 10, L: 1, M: 2, N: 1, O: 1, P: 3, Q: 8, R: 1,
   S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10,
 }
-const COUNTS = {
+const EN_VALUES = {
+  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
+  J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
+  S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
+}
+const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
   J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
   S: 6, T: 6, U: 6, V: 2, W: 1, X: 1, Y: 1, Z: 1, '?': 2,
+}
+const EN_COUNTS = {
+  A: 9, B: 2, C: 2, D: 4, E: 12, F: 2, G: 3, H: 2, I: 9,
+  J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
+  S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1, '?': 2,
+}
+const VALUES = FR_VALUES
+const COUNTS = FR_COUNTS
+function letterValues() {
+  return getLang() === 'en' ? EN_VALUES : FR_VALUES
+}
+function letterCounts() {
+  return getLang() === 'en' ? EN_COUNTS : FR_COUNTS
 }
 
 const q = document.getElementById('q')
@@ -38,7 +56,7 @@ const histOut = document.getElementById('hist-out')
 const histClose = document.getElementById('hist-close')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=32')
+const worker = new Worker('worker.js?v=33')
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -87,7 +105,7 @@ function tilesHtml(word, jokers = [], opts = {}) {
   const tap = opts.tap
   return `<div class="tiles">${[...word].map((ch, i) => {
     const blank = jk.has(i) || ch === '?' || ch === '.' || ch === '*'
-    const pts = blank ? 0 : (VALUES[ch] || 0)
+    const pts = blank ? 0 : (letterValues()[ch] || 0)
     const glyph = blank ? '?' : ch
     const tag = tap ? 'button' : 'span'
     const extra = tap ? ` type="button" data-rack-i="${i}"` : ''
@@ -174,16 +192,18 @@ function defsHtml(payload) {
 
 async function loadDefinition(word, opts = {}) {
   const key = word.toUpperCase()
-  if (defCache.has(key)) return defCache.get(key)
+  const cacheKey = `${getLang()}:${key}`
+  if (defCache.has(cacheKey)) return defCache.get(cacheKey)
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return { ok: true, found: false, offline: true, word: key }
   }
   const mine = opts.stable ? defSeq : ++defSeq
   try {
-    const res = await fetch(`/api/define?w=${encodeURIComponent(key)}`)
+    const langQ = getLang() === 'en' ? '&lang=en' : ''
+    const res = await fetch(`/api/define?w=${encodeURIComponent(key)}${langQ}`)
     const data = await res.json()
     if (!opts.stable && mine !== defSeq) return null
-    if (data?.ok) defCache.set(key, data)
+    if (data?.ok) defCache.set(cacheKey, data)
     return data
   } catch {
     if (!opts.stable && mine !== defSeq) return null
@@ -560,11 +580,13 @@ function renderFind(words, query) {
 
 function renderLists() {
   if (listKind === 'values') {
-    const letters = Object.keys(VALUES)
+    const vals = letterValues()
+    const counts = letterCounts()
+    const letters = Object.keys(vals)
     listsOut.innerHTML = `<div class="values">${letters.map((ch) => `
       <div class="val">
-        <span class="tile">${ch}<small>${VALUES[ch]}</small></span>
-        ×${COUNTS[ch]}
+        <span class="tile">${ch}<small>${vals[ch]}</small></span>
+        ×${counts[ch]}
       </div>`).join('')}
       <div class="val">
         <span class="tile blank">?<small>0</small></span>
@@ -829,20 +851,43 @@ const game = initGame({
   },
 })
 
+async function loadMeta() {
+  const file = getLang() === 'en' ? 'data/meta-en.json' : 'data/meta.json'
+  meta = await (await fetch(file)).json()
+  setLive(t('word_count', meta.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+}
+
+async function reloadLexicon() {
+  ready = false
+  setLive(t('loading'))
+  const result = await ask('load', { lang: getLang() })
+  ready = true
+  setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+  if (nav === 'check' || nav === 'rack') run()
+  else if (nav === 'lists') renderLists()
+}
+
+async function switchLang(next) {
+  if (next === getLang()) return
+  setLang(next)
+  syncChrome()
+  try {
+    await loadMeta()
+  } catch {
+    /* keep previous meta */
+  }
+  try {
+    await reloadLexicon()
+  } catch (err) {
+    setLive(t('lex_fail'))
+    console.error(err)
+  }
+}
+
 async function boot() {
   initLang()
-  document.getElementById('lang-fr')?.addEventListener('click', () => {
-    setLang('fr')
-    syncChrome()
-    if (nav === 'check' || nav === 'rack') run()
-    else if (nav === 'lists') renderLists()
-  })
-  document.getElementById('lang-en')?.addEventListener('click', () => {
-    setLang('en')
-    syncChrome()
-    if (nav === 'check' || nav === 'rack') run()
-    else if (nav === 'lists') renderLists()
-  })
+  document.getElementById('lang-fr')?.addEventListener('click', () => switchLang('fr'))
+  document.getElementById('lang-en')?.addEventListener('click', () => switchLang('en'))
   readUrl()
   syncChrome()
   paintApkLink()
@@ -855,14 +900,13 @@ async function boot() {
   paintHistBtn()
   showPanel(nav)
   try {
-    meta = await (await fetch('data/meta.json')).json()
-    setLive(t('word_count', meta.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+    await loadMeta()
     renderLists()
   } catch {
     setLive(t('lex_fail'))
   }
   try {
-    const result = await ask('load')
+    const result = await ask('load', { lang: getLang() })
     ready = true
     setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
     if (nav === 'check' || nav === 'rack') run()

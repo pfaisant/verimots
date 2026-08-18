@@ -62,9 +62,14 @@ final class RemoteApi {
     }
 
     static void define(String word, DefCb cb) {
+        define(word, cb, "fr");
+    }
+
+    static void define(String word, DefCb cb, String lang) {
         IO.execute(() -> {
             try {
-                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/define?w=" + word).openConnection();
+                String langQ = "en".equals(lang) ? "&lang=en" : "";
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/define?w=" + word + langQ).openConnection();
                 c.setConnectTimeout(8000);
                 c.setReadTimeout(8000);
                 c.setRequestProperty("Accept", "application/json");

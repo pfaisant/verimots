@@ -1,16 +1,19 @@
-const CACHE = 'verimots-v32'
+const CACHE = 'verimots-v33'
 const SHELL = [
   './',
   './index.html',
-  './app.css?v=32',
-  './app.js?v=32',
-  './game.js?v=32',
+  './app.css?v=33',
+  './app.js?v=33',
+  './game.js?v=33',
   './history.js?v=32',
-  './worker.js?v=32',
+  './i18n.js?v=33',
+  './worker.js?v=33',
   './favicon.svg',
   './manifest.webmanifest',
   './data/meta.json',
+  './data/meta-en.json',
   './data/ods9.txt.gz',
+  './data/enable.txt.gz',
 ]
 
 self.addEventListener('install', (event) => {

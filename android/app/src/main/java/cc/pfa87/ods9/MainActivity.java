@@ -151,7 +151,7 @@ public class MainActivity extends Activity {
         setEnabled(false);
         new Thread(() -> {
             try {
-                lex = Lexicon.get(this);
+                lex = Lexicon.get(this, Lang.get(this));
                 runOnUiThread(() -> {
                     live.setText(getString(R.string.word_count, String.format(java.util.Locale.FRANCE, "%,d", lex.size()).replace('\u00a0', ' ')));
                     setEnabled(true);
@@ -428,6 +428,7 @@ public class MainActivity extends Activity {
         }
         if (immediateDef) rememberChecked(word, pts);
         final String wanted = word;
+        final String lang = Lang.get(this);
         final int seq = ++checkSeq;
         checkHandler.removeCallbacksAndMessages(null);
         Runnable fetch = () -> RemoteApi.define(wanted, new RemoteApi.DefCb() {
@@ -447,7 +448,7 @@ public class MainActivity extends Activity {
                 checkDef.setText(defMessage(message));
                 if (checkLemma != null) checkLemma.setVisibility(View.GONE);
             }
-        });
+        }, lang);
         if (immediateDef) fetch.run();
         else checkHandler.postDelayed(fetch, 180);
     }
@@ -1044,7 +1045,7 @@ public class MainActivity extends Activity {
                 gameDef.setText(defMessage(message));
                 if (gameLemma != null) gameLemma.setVisibility(View.GONE);
             }
-        });
+        }, Lang.get(this));
     }
 
     private void paintShare(Integer percent) {

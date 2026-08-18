@@ -24,7 +24,7 @@
     <string name="see_lemma">See %1$s</string>
     <string name="clear">Clear</string>
     <string name="about_title">About Verimots</string>
-    <string name="about_body">Offline first: the app includes the word list (more than 400,000 forms from 2 to 15 letters, unaccented). Checking a word and the challenge work with no network.\n\nA connection is needed only for automatic definitions (Wiktionary) and sharing.\n\nThe list is community-maintained. Verimots is not the Larousse dictionary, and is not affiliated with Mattel or any federation.</string>
+    <string name="about_body">Offline first: the English list is ENABLE (about 168,000 forms from 2 to 15 letters). Checking a word and the challenge work with no network.\n\nA connection is needed only for automatic definitions (Wiktionary) and sharing.\n\nNot affiliated with NASPA, Mattel or Hasbro. Switch to FR for the French community list.</string>
     <string name="privacy_title">Privacy</string>
     <string name="privacy_body">No ads. Local history stays on the device. Signed in with Google, checked and played words are also saved to your account so you can find them on the web and on the phone.\n\nIn anonymous mode only the percent (0 to 100) is sent for the public average. Optional competition: Google ID, name and photo for the daily board. Definitions go through s.pfa87.cc to Wiktionary.</string>
     <string name="hint_prefix">List words that start with this.</string>

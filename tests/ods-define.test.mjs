@@ -43,6 +43,36 @@ test('extractSenses reads French noun definitions and skips etymology', () => {
   assert.doesNotMatch(senses[0].defs.join(' '), /English|scuola|exemple/)
 })
 
+test('extractEnglishSenses reads English noun senses', () => {
+  const wiki = `==English==
+===Etymology===
+From old stuff.
+
+===Noun===
+{{en-noun}}
+# A [[small]] [[animal]].
+# {{lb|en|slang}} A [[person]].
+
+===Anagrams===
+* [[foo]]
+
+==French==
+===Noun===
+# pas ça
+`
+  const senses = extractSenses(wiki, 'en')
+  assert.equal(senses.length, 1)
+  assert.equal(senses[0].pos, 'noun')
+  assert.equal(senses[0].defs.length, 2)
+  assert.match(senses[0].defs[0], /animal/)
+  assert.match(senses[0].defs[1], /person/)
+  assert.doesNotMatch(senses[0].defs.join(' '), /pas ça|old stuff/)
+})
+
+test('cleanWikitext expands English plural-of templates', () => {
+  assert.match(cleanWikitext('{{plural of|en|keum}}'), /Plural of keum/)
+})
+
 test('rankTitles prefers the accented French lemma over a typo page', () => {
   const ranked = rankTitles('ECOLE', ['Ecole', 'école', 'écolé', 'School'])
   assert.equal(ranked[0], 'école')

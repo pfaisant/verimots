@@ -19,8 +19,14 @@ public final class Lexicon {
     public static final int[] VAL = {
         1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10
     };
+    private static final int[] VAL_EN = {
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10
+    };
     private static final int[] BAG = {
         9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1
+    };
+    private static final int[] BAG_EN = {
+        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1
     };
     private static final boolean[] HARD = new boolean[26];
 
@@ -59,6 +65,10 @@ public final class Lexicon {
     }
 
     private static Lexicon instance;
+    private static Lexicon instanceFr;
+    private static Lexicon instanceEn;
+    private final int[] val;
+    private final int[] bag;
     private final HashSet<String> set = new HashSet<>();
     @SuppressWarnings("unchecked")
     private final ArrayList<String>[] byLen = new ArrayList[16];
@@ -71,17 +81,30 @@ public final class Lexicon {
     private ArrayList<String> hard;
 
     public static synchronized Lexicon get(Context ctx) throws IOException {
-        if (instance == null) instance = new Lexicon(ctx.getApplicationContext());
-        return instance;
+        return get(ctx, "fr");
+    }
+
+    public static synchronized Lexicon get(Context ctx, String lang) throws IOException {
+        boolean en = "en".equals(lang);
+        if (en) {
+            if (instanceEn == null) instanceEn = new Lexicon(ctx.getApplicationContext(), true);
+            instance = instanceEn;
+            return instanceEn;
+        }
+        if (instanceFr == null) instanceFr = new Lexicon(ctx.getApplicationContext(), false);
+        instance = instanceFr;
+        return instanceFr;
     }
 
     public static synchronized boolean ready() {
         return instance != null;
     }
 
-    private Lexicon(Context ctx) throws IOException {
+    private Lexicon(Context ctx, boolean english) throws IOException {
+        this.val = english ? VAL_EN : VAL;
+        this.bag = english ? BAG_EN : BAG;
         for (int i = 0; i < byLen.length; i++) byLen[i] = new ArrayList<>();
-        InputStream raw = openLexicon(ctx);
+        InputStream raw = openLexicon(ctx, english);
         try (BufferedReader r = new BufferedReader(new InputStreamReader(raw, StandardCharsets.UTF_8), 64 * 1024)) {
             String line;
             while ((line = r.readLine()) != null) {
@@ -94,12 +117,13 @@ public final class Lexicon {
         buildPools();
     }
 
-    private static InputStream openLexicon(Context ctx) throws IOException {
+    private static InputStream openLexicon(Context ctx, boolean english) throws IOException {
+        String gz = english ? "data/enable.txt.gz" : "data/ods9.txt.gz";
+        String plain = english ? "data/enable.txt" : "data/ods9.txt";
         try {
-            InputStream in = ctx.getAssets().open("data/ods9.txt.gz");
-            return new GZIPInputStream(in);
-        } catch (IOException gz) {
-            return ctx.getAssets().open("data/ods9.txt");
+            return new GZIPInputStream(ctx.getAssets().open(gz));
+        } catch (IOException e) {
+            return ctx.getAssets().open(plain);
         }
     }
 
@@ -131,10 +155,22 @@ public final class Lexicon {
 
     public static int letterScore(char ch) {
         if (ch < 'A' || ch > 'Z') return 0;
-        return VAL[ch - 'A'];
+        int[] table = instance != null ? instance.val : VAL;
+        return table[ch - 'A'];
+    }
+
+    private int points(String word, Set<Integer> jokers) {
+        int n = 0;
+        for (int i = 0; i < word.length(); i++) {
+            if (jokers != null && jokers.contains(i)) continue;
+            char ch = word.charAt(i);
+            if (ch >= 'A' && ch <= 'Z') n += val[ch - 'A'];
+        }
+        return n;
     }
 
     public static int scoreWord(String word, Set<Integer> jokers) {
+        if (instance != null) return instance.points(word, jokers);
         int n = 0;
         for (int i = 0; i < word.length(); i++) {
             if (jokers != null && jokers.contains(i)) continue;
@@ -192,7 +228,7 @@ public final class Lexicon {
                 if (jokers == null) continue;
                 HashSet<Integer> jk = new HashSet<>();
                 for (int j : jokers) jk.add(j);
-                all.add(new Play(word, scoreWord(word, jk), jokers));
+                all.add(new Play(word, points(word, jk), jokers));
             }
         }
         Collections.sort(all, (a, b) -> {
@@ -230,11 +266,11 @@ public final class Lexicon {
         bingoRich = new ArrayList<>();
         longRich = new ArrayList<>();
         hard = new ArrayList<>();
-        for (String w : bingo) if (scoreWord(w, null) >= 12) bingoRich.add(w);
-        for (String w : longWords) if (scoreWord(w, null) >= 11) longRich.add(w);
+        for (String w : bingo) if (points(w, null) >= 12) bingoRich.add(w);
+        for (String w : longWords) if (points(w, null) >= 11) longRich.add(w);
         for (int len = 3; len <= 5; len++) {
             for (String w : byLen[len]) {
-                if (usesHard(w, null) && scoreWord(w, null) >= 11) hard.add(w);
+                if (usesHard(w, null) && points(w, null) >= 11) hard.add(w);
             }
         }
     }
@@ -331,7 +367,7 @@ public final class Lexicon {
         }
         StringBuilder bag = new StringBuilder(100);
         for (int i = 0; i < 26; i++) {
-            for (int k = have[i]; k < BAG[i]; k++) bag.append((char) ('A' + i));
+            for (int k = have[i]; k < this.bag[i]; k++) bag.append((char) ('A' + i));
         }
         StringBuilder out = new StringBuilder(n);
         for (int i = 0; i < n && bag.length() > 0; i++) {

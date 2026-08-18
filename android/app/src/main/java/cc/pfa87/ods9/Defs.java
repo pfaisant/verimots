@@ -16,6 +16,12 @@ final class Defs {
         Pattern.compile("singulier de\\s+" + WORD, FLAGS),
         Pattern.compile("participe (?:pass[eé]|pr[eé]sent)\\b(?:[^.]{0,40}?)(?:du verbe|de)\\s+" + WORD, FLAGS),
         Pattern.compile("forme(?:s)? de\\s+" + WORD, FLAGS),
+        Pattern.compile("plural of\\s+" + WORD, FLAGS),
+        Pattern.compile("(?:simple )?past(?: tense)? of\\s+" + WORD, FLAGS),
+        Pattern.compile("present participle of\\s+" + WORD, FLAGS),
+        Pattern.compile("(?:third-person singular|3rd.?person singular)(?: present)? of\\s+" + WORD, FLAGS),
+        Pattern.compile("(?:comparative|superlative)(?: form)? of\\s+" + WORD, FLAGS),
+        Pattern.compile("(?:alternative form|alt form|misspelling|abbreviation|initialism) of\\s+" + WORD, FLAGS),
     };
 
     private Defs() {}
