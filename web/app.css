@@ -101,6 +101,31 @@ body {
   gap: 8px;
   min-width: 0;
 }
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg2);
+}
+.lang-btn {
+  min-width: 32px;
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gold);
+  font: 700 11px/26px var(--sans);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.lang-btn[aria-pressed="true"] {
+  background: var(--gold);
+  color: #1c1408;
+}
 .hist-btn {
   position: relative;
   width: 36px;

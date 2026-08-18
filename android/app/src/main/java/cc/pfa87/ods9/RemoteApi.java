@@ -32,7 +32,7 @@ final class RemoteApi {
     }
 
     interface AvgCb {
-        void ok(String label);
+        void ok(boolean hasPlays, double average);
     }
 
     interface TrailCb {
@@ -73,14 +73,12 @@ final class RemoteApi {
                 JSONObject o = new JSONObject(raw);
                 if (!o.optBoolean("found", false)) {
                     boolean offline = o.optBoolean("offline", false);
-                    post(() -> cb.empty(offline
-                            ? "Définition disponible avec une connexion."
-                            : "Pas de définition Wiktionnaire."));
+                    post(() -> cb.empty(offline ? "offline" : "missing"));
                     return;
                 }
                 JSONArray senses = o.optJSONArray("senses");
                 if (senses == null || senses.length() == 0) {
-                    post(() -> cb.empty("Pas de définition Wiktionnaire."));
+                    post(() -> cb.empty("missing"));
                     return;
                 }
                 JSONObject s0 = senses.getJSONObject(0);
@@ -91,7 +89,7 @@ final class RemoteApi {
                 String lemma = o.optString("lemma", "");
                 post(() -> cb.ok(pos, def, url, lemma));
             } catch (Exception e) {
-                post(() -> cb.empty("Définition disponible avec une connexion."));
+                post(() -> cb.empty("offline"));
             }
         });
     }
@@ -106,13 +104,10 @@ final class RemoteApi {
                 JSONObject o = new JSONObject(read(c));
                 if (o.optBoolean("ok") && o.optInt("plays") > 0) {
                     double avg = o.optDouble("average");
-                    String label = avg == Math.rint(avg)
-                            ? "Score moyen " + String.valueOf((int) avg) + " %"
-                            : "Score moyen " + String.valueOf(avg).replace('.', ',') + " %";
-                    post(() -> cb.ok(label));
-                } else post(() -> cb.ok("Score moyen —"));
+                    post(() -> cb.ok(true, avg));
+                } else post(() -> cb.ok(false, 0));
             } catch (Exception e) {
-                post(() -> cb.ok("Score moyen —"));
+                post(() -> cb.ok(false, 0));
             }
         });
     }
@@ -133,11 +128,7 @@ final class RemoteApi {
                 }
                 JSONObject o = new JSONObject(read(c));
                 if (o.optBoolean("ok")) {
-                    double avg = o.optDouble("average");
-                    String label = avg == Math.rint(avg)
-                            ? "Score moyen " + String.valueOf((int) avg) + " %"
-                            : "Score moyen " + String.valueOf(avg).replace('.', ',') + " %";
-                    post(() -> cb.ok(label));
+                    post(() -> cb.ok(true, o.optDouble("average")));
                 }
             } catch (Exception ignored) {
             }

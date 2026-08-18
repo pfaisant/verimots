@@ -1,6 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn } from './game.js?v=32'
-import { loadHistory, rememberWord, mergeHistory, historyLabel } from './history.js?v=32'
-import { isCompetitive, setCompetitive, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=32'
+import { initGame, parseRack, linkifyDef, backBtn } from './game.js?v=33'
+import { loadHistory, rememberWord, mergeHistory, historyLabel } from './history.js?v=33'
+import { isCompetitive, setCompetitive, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=33'
+import { initLang, setLang, getLang, t } from './i18n.js?v=33'
 
 const VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
@@ -336,33 +337,37 @@ function readUrl() {
 
 function syncChrome() {
   const titles = {
-    check: advanced ? 'Vérifier un mot' : 'Communautaire',
-    rack: 'Lettres du chevalet',
-    lists: 'Listes utiles',
-    info: 'À propos',
-    game: 'Défi',
+    check: advanced ? t('title_check') : t('brand_sub'),
+    rack: t('title_rack'),
+    lists: t('title_lists'),
+    info: t('title_info'),
+    game: t('title_game'),
   }
   const placeholders = {
-    check: findMode === 'exact' ? 'Tapez un mot' : 'Ex. CHER',
-    rack: 'Ex. AERTIN?',
+    check: findMode === 'exact' ? t('placeholder') : t('placeholder_find'),
+    rack: t('placeholder_rack'),
   }
   const hints = {
-    exact: 'Dans la liste ? Sans accents. Liste hors ligne.',
-    prefix: 'Mots de la liste qui commencent ainsi.',
-    suffix: 'Mots de la liste qui finissent ainsi.',
-    has: 'Mots de la liste qui contiennent ces lettres dans l’ordre.',
+    exact: t('hint_exact'),
+    prefix: t('hint_prefix'),
+    suffix: t('hint_suffix'),
+    has: t('hint_has'),
   }
   const keepClosed = nav === 'game' && document.body.classList.contains('game-closed')
   document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}`
   brandSub.textContent = titles[nav] || titles.check
   document.title =
-    nav === 'game' ? 'Défi · Verimots' : nav === 'rack' ? 'Tiroir · Verimots' : document.title
+    nav === 'game' ? t('doc_game') : nav === 'rack' ? t('doc_rack') : t('title')
   const apk = document.querySelector('.apk-link')
   if (apk) apk.hidden = inApp
   document.querySelectorAll('.legal-link').forEach((el) => {
     el.hidden = nav === 'game'
+    const href = el.getAttribute('href') || ''
+    if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy'))) {
+      el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : '/confidentialite.html')
+    }
   })
-  advToggle.textContent = advanced ? 'Mode simple' : 'Mode avancé'
+  advToggle.textContent = advanced ? t('simple') : t('advanced')
   advNav.hidden = !advanced || nav === 'game'
   search.hidden = nav === 'game' || nav === 'lists' || nav === 'info'
   document.querySelectorAll('.fab[data-fab]').forEach((btn) => {
@@ -371,7 +376,7 @@ function syncChrome() {
       (nav !== 'game' && btn.dataset.fab === 'check')
     btn.setAttribute('aria-current', on ? 'page' : 'false')
   })
-  qLabel.textContent = nav === 'rack' ? 'Lettres de votre tiroir' : 'Mot à vérifier'
+  qLabel.textContent = nav === 'rack' ? t('q_label_rack') : t('q_label')
   q.placeholder = placeholders[nav] || placeholders.check
   q.maxLength = nav === 'rack' ? 16 : 15
   if (qJoker) qJoker.hidden = nav !== 'rack'
@@ -477,7 +482,7 @@ function renderCheck(word, result) {
   verdict.hidden = false
   if (!ready) {
     verdict.className = 'verdict idle'
-    verdict.innerHTML = `<p class="pending">Dictionnaire en cours de chargement…</p>`
+    verdict.innerHTML = `<p class="pending">${t('loading_lex')}</p>`
     return
   }
   lastShare = {
@@ -491,12 +496,12 @@ function renderCheck(word, result) {
     verdict.className = 'verdict ok'
     verdict.innerHTML = `
       ${back}
-      <div class="status">Jouable · liste hors ligne</div>
+      <div class="status">${t('playable')}</div>
       <p class="word">${result.word}</p>
       ${tilesHtml(result.word)}
       <div class="meta-line">
-        <span>${result.word.length} lettres · ${result.score} pt${result.score > 1 ? 's' : ''}</span>
-        <a href="${wikiUrl(result.word)}" target="_blank" rel="noopener noreferrer">Wiktionnaire</a>
+        <span>${t('letters_pts', result.word.length, result.score)}</span>
+        <a href="${wikiUrl(result.word)}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
       </div>
       ${shareHtml(lastShare)}
       ${defsHtml(result.definition)}`
@@ -504,9 +509,9 @@ function renderCheck(word, result) {
     verdict.className = 'verdict no'
     verdict.innerHTML = `
       ${back}
-      <div class="status">Pas dans la liste</div>
+      <div class="status">${t('not_in_list')}</div>
       <p class="word">${word}</p>
-      <p class="empty">Ce mot n'est pas une forme admise (2 à 15 lettres, sans accents).</p>
+      <p class="empty">${t('not_a_form')}</p>
       ${shareHtml(lastShare)}`
   }
 }
@@ -825,6 +830,19 @@ const game = initGame({
 })
 
 async function boot() {
+  initLang()
+  document.getElementById('lang-fr')?.addEventListener('click', () => {
+    setLang('fr')
+    syncChrome()
+    if (nav === 'check' || nav === 'rack') run()
+    else if (nav === 'lists') renderLists()
+  })
+  document.getElementById('lang-en')?.addEventListener('click', () => {
+    setLang('en')
+    syncChrome()
+    if (nav === 'check' || nav === 'rack') run()
+    else if (nav === 'lists') renderLists()
+  })
   readUrl()
   syncChrome()
   paintApkLink()
@@ -838,21 +856,21 @@ async function boot() {
   showPanel(nav)
   try {
     meta = await (await fetch('data/meta.json')).json()
-    setLive(`${meta.count.toLocaleString('fr-FR')} formes`)
+    setLive(t('word_count', meta.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
     renderLists()
   } catch {
-    setLive('Méta indisponible')
+    setLive(t('lex_fail'))
   }
   try {
     const result = await ask('load')
     ready = true
-    setLive(`${result.count.toLocaleString('fr-FR')} mots`)
+    setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
     if (nav === 'check' || nav === 'rack') run()
     else if (nav === 'lists') renderLists()
     else if (nav === 'game') game.open(challengeFromUrl())
   } catch (err) {
-    setLive('Échec du chargement')
-    if (hint) hint.textContent = 'Impossible de charger le lexique. Rechargez la page.'
+    setLive(t('lex_fail'))
+    if (hint) hint.textContent = t('lex_fail')
     console.error(err)
   }
 }

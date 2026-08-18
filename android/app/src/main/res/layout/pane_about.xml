@@ -62,7 +62,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:text="Compte Google"
+                android:text="@string/google_account"
                 android:textColor="@color/ink"
                 android:textSize="16sp" />
 
@@ -71,7 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Connecte-toi pour le classement du jour. Le défi anonyme reste possible."
+                android:text="@string/sign_in_hint"
                 android:textColor="@color/muted"
                 android:textSize="14sp" />
 
@@ -83,7 +83,7 @@
                 android:background="@drawable/bg_gold_btn"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:text="Se connecter avec Google"
+                android:text="@string/sign_in_google"
                 android:textColor="@color/tile_ink" />
 
             <TextView
@@ -93,7 +93,7 @@
                 android:layout_marginTop="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:text="Se déconnecter"
+                android:text="@string/sign_out"
                 android:textColor="@color/gold"
                 android:visibility="gone" />
 
@@ -133,7 +133,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Mode avancé"
+                    android:text="@string/advanced_mode"
                     android:textColor="@color/ink"
                     android:textSize="16sp" />
 
@@ -141,7 +141,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Tiroir, début, fin et contient sur Vérifier."
+                    android:text="@string/advanced_help"
                     android:textColor="@color/muted"
                     android:textSize="13sp" />
             </LinearLayout>

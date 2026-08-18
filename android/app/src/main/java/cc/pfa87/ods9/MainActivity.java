@@ -1,6 +1,7 @@
 package cc.pfa87.ods9;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -111,6 +112,11 @@ public class MainActivity extends Activity {
     private String waText;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(Lang.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(Color.parseColor("#142018"));
@@ -133,6 +139,7 @@ public class MainActivity extends Activity {
         competitiveMode = new CompetitiveMode(this);
         advanced = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("advanced", false);
         paintBuildStamp();
+        bindLang();
         bindCheck();
         bindGame();
         bindAuth();
@@ -146,16 +153,16 @@ public class MainActivity extends Activity {
             try {
                 lex = Lexicon.get(this);
                 runOnUiThread(() -> {
-                    live.setText(String.format("%,d mots", lex.size()).replace(',', ' '));
+                    live.setText(getString(R.string.word_count, String.format(java.util.Locale.FRANCE, "%,d", lex.size()).replace('\u00a0', ' ')));
                     setEnabled(true);
                     applyIntent(getIntent());
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> live.setText("Liste indisponible"));
+                runOnUiThread(() -> live.setText(R.string.lex_unavailable));
             }
         }).start();
         showTab(0);
-        RemoteApi.fetchAverage(label -> gameAvg.setText(label));
+        RemoteApi.fetchAverage((has, avg) -> gameAvg.setText(fmtAvg(has, avg)));
     }
 
     @Override
@@ -215,7 +222,7 @@ public class MainActivity extends Activity {
         TextView stamp = findViewById(R.id.about_version);
         if (stamp == null) return;
         String name = "3.1";
-        int code = 18;
+        int code = 20;
         try {
             android.content.pm.PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
             if (pi.versionName != null) name = pi.versionName;
@@ -223,6 +230,54 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
         stamp.setText(getString(R.string.build_stamp, name, code, BuildConfig.BUILD_TIME));
+    }
+
+    private void bindLang() {
+        TextView fr = findViewById(R.id.lang_fr);
+        TextView en = findViewById(R.id.lang_en);
+        if (fr == null || en == null) return;
+        paintLangToggle(fr, en);
+        fr.setOnClickListener(v -> setLang(Lang.FR));
+        en.setOnClickListener(v -> setLang(Lang.EN));
+    }
+
+    private void paintLangToggle(TextView fr, TextView en) {
+        boolean english = Lang.isEn(this);
+        styleLangChip(fr, !english);
+        styleLangChip(en, english);
+    }
+
+    private void styleLangChip(TextView chip, boolean on) {
+        chip.setTextColor(getColor(on ? R.color.tile_ink : R.color.gold));
+        chip.setBackgroundResource(on ? R.drawable.bg_gold_btn : 0);
+        chip.setContentDescription(getString(R.string.lang_switch) + " " + chip.getText());
+    }
+
+    private void setLang(String lang) {
+        if (lang.equals(Lang.get(this))) return;
+        Lang.set(this, lang);
+        recreate();
+    }
+
+    private String fmtAvg(boolean has, double avg) {
+        if (!has) return getString(R.string.avg_empty);
+        String n = avg == Math.rint(avg)
+                ? String.valueOf((int) avg)
+                : String.format(Lang.isEn(this) ? java.util.Locale.US : java.util.Locale.FRANCE, "%.1f", avg);
+        return getString(R.string.avg_score, n);
+    }
+
+    private String defMessage(String key) {
+        if ("offline".equals(key)) return getString(R.string.def_need_net);
+        if ("missing".equals(key)) return getString(R.string.def_missing);
+        return key == null || key.isEmpty() ? getString(R.string.def_need_net) : key;
+    }
+
+    private String categoryLabel(String cat) {
+        if ("bingo".equals(cat)) return getString(R.string.cat_bingo);
+        if ("long".equals(cat)) return getString(R.string.cat_long);
+        if ("hard".equals(cat)) return getString(R.string.cat_hard);
+        return getString(R.string.challenge);
     }
 
     private void showTab(int which) {
@@ -233,7 +288,9 @@ public class MainActivity extends Activity {
         styleTab(tabCheck, which == 0);
         styleTab(tabGame, which == 1);
         styleTab(tabAbout, which == 2);
-        brandSub.setText(which == 1 ? (isCompetitiveMode ? "Compétition" : "Défi") : which == 2 ? "À propos" : getString(R.string.brand_sub));
+        brandSub.setText(which == 1
+                ? getString(isCompetitiveMode ? R.string.competition : R.string.challenge)
+                : which == 2 ? getString(R.string.tab_about_sub) : getString(R.string.brand_sub));
         if (which == 1 && lex != null && deal == null) {
             if (isCompetitiveMode) {
                 // Competitive mode: fetch daily trail
@@ -356,15 +413,15 @@ public class MainActivity extends Activity {
         checkStatus.setTextColor(getColor(ok ? R.color.ok : R.color.no));
         checkWord.setText(word);
         Tiles.fill(checkTiles, word, null, null);
-        checkMeta.setText(ok ? word.length() + " lettres · " + pts + " pt" + (pts > 1 ? "s" : "") : "");
+        checkMeta.setText(ok ? getString(R.string.letters_pts, word.length(), pts, pts > 1 ? "s" : "") : "");
         checkPos.setText("");
-        checkDef.setText(ok ? "Définition…" : "Ce mot n'est pas une forme admise (2 à 15 lettres, sans accents).");
+        checkDef.setText(ok ? R.string.def_pending : R.string.not_a_form);
         if (checkLemma != null) checkLemma.setVisibility(View.GONE);
         checkWiki.setVisibility(View.GONE);
         checkShare.setVisibility(View.VISIBLE);
         lastShare = ok
-                ? "Verimots\n\n*" + word + "* est dans la liste\n" + word.length() + " lettres · " + pts + " pts\nhttps://s.pfa87.cc/?w=" + word
-                : "Verimots\n\n*" + word + "* n'est pas dans la liste\nhttps://s.pfa87.cc/?w=" + word;
+                ? getString(R.string.share_check_ok, word, word.length(), pts)
+                : getString(R.string.share_check_no, word);
         if (!ok) {
             checkHandler.removeCallbacksAndMessages(null);
             return;
@@ -387,7 +444,7 @@ public class MainActivity extends Activity {
             public void empty(String message) {
                 if (seq != checkSeq) return;
                 checkPos.setText("");
-                checkDef.setText(message);
+                checkDef.setText(defMessage(message));
                 if (checkLemma != null) checkLemma.setVisibility(View.GONE);
             }
         });
@@ -434,13 +491,13 @@ public class MainActivity extends Activity {
         boolean on = competitiveMode.loggedIn();
         if (authStatus != null) {
             authStatus.setText(on
-                    ? ("Connecté · " + competitiveMode.userName())
-                    : "Connecte-toi pour le classement du jour. Le défi anonyme reste possible.");
+                    ? getString(R.string.signed_in, competitiveMode.userName())
+                    : getString(R.string.sign_in_hint));
         }
         if (authGoogle != null) authGoogle.setVisibility(on ? View.GONE : View.VISIBLE);
         if (authLogout != null) authLogout.setVisibility(on ? View.VISIBLE : View.GONE);
         if (gameMode != null) {
-            gameMode.setText(isCompetitiveMode ? "Compétition · on" : "Compétition");
+            gameMode.setText(isCompetitiveMode ? R.string.competition_on : R.string.competition);
         }
         paintHistory();
     }
@@ -499,11 +556,11 @@ public class MainActivity extends Activity {
         if (checkModes == null) return;
         checkModes.removeAllViews();
         String[][] modes = {
-                {"exact", "Exact"},
-                {"prefix", "Début"},
-                {"suffix", "Fin"},
-                {"has", "Contient"},
-                {"rack", "Tiroir"}
+                {"exact", getString(R.string.mode_exact)},
+                {"prefix", getString(R.string.mode_prefix)},
+                {"suffix", getString(R.string.mode_suffix)},
+                {"has", getString(R.string.mode_has)},
+                {"rack", getString(R.string.mode_rack)}
         };
         for (String[] mode : modes) {
             TextView chip = new TextView(this);
@@ -532,7 +589,7 @@ public class MainActivity extends Activity {
         if (!on || checkLens == null) return;
         checkLens.removeAllViews();
         int[] lens = {0, 2, 3, 4, 5, 6, 7};
-        String[] labels = {"Toutes", "2", "3", "4", "5", "6", "7"};
+        String[] labels = {getString(R.string.len_all), "2", "3", "4", "5", "6", "7"};
         for (int i = 0; i < lens.length; i++) {
             TextView chip = new TextView(this);
             boolean sel = rackLen == lens[i];
@@ -565,9 +622,9 @@ public class MainActivity extends Activity {
                 for (int i = 0; i < rack.length(); i++) if (rack.charAt(i) == '?') blanks++;
                 checkRackCap.setVisibility(View.VISIBLE);
                 checkRackCap.setText(rack.isEmpty()
-                        ? "Tapez A–Z ou posez un ?"
-                        : rack.length() + " lettre" + (rack.length() > 1 ? "s" : "")
-                        + (blanks > 0 ? " · " + blanks + " joker" + (blanks > 1 ? "s" : "") : ""));
+                        ? getString(R.string.rack_type_hint)
+                        : getString(R.string.rack_cap, rack.length(), rack.length() > 1 ? "s" : "",
+                                blanks > 0 ? getString(R.string.jokers_bit, blanks, blanks > 1 ? "s" : "") : ""));
             } else checkRackCap.setVisibility(View.GONE);
         }
         if (checkJoker != null) {
@@ -628,14 +685,14 @@ public class MainActivity extends Activity {
                 total++;
             }
             TextView sum = new TextView(this);
-            sum.setText(total + " mot" + (total > 1 ? "s" : "") + " jouable" + (total > 1 ? "s" : "") + " · ? = joker");
+            sum.setText(getString(R.string.playable_count, total, total > 1 ? "s" : "", total > 1 ? "s" : ""));
             sum.setTextColor(getColor(R.color.muted));
             sum.setTextSize(13);
             sum.setPadding(0, 0, 0, 10);
             checkMatches.addView(sum);
             if (total == 0) {
                 TextView emptyMsg = new TextView(this);
-                emptyMsg.setText("Aucun mot de la liste avec ces lettres.");
+                emptyMsg.setText(R.string.no_rack_words);
                 emptyMsg.setTextColor(getColor(R.color.dim));
                 checkMatches.addView(emptyMsg);
                 return;
@@ -643,7 +700,7 @@ public class MainActivity extends Activity {
             for (int len = 15; len >= 2; len--) {
                 if (by[len] == null || by[len].isEmpty()) continue;
                 TextView head = new TextView(this);
-                head.setText(len + " lettres · " + by[len].size());
+                head.setText(getString(R.string.letters_n, len) + " · " + by[len].size());
                 head.setTextColor(getColor(R.color.gold));
                 head.setTextSize(13);
                 head.setPadding(0, 14, 0, 8);
@@ -663,7 +720,7 @@ public class MainActivity extends Activity {
         checkMatches.setVisibility(View.VISIBLE);
         List<String> hits = lex.find(mode, query, 40);
         TextView count = new TextView(this);
-        count.setText(hits.size() + (hits.size() >= 40 ? "+" : "") + " mot" + (hits.size() > 1 ? "s" : ""));
+        count.setText(getString(R.string.word_count_label, hits.size() >= 40 ? hits.size() + "+" : String.valueOf(hits.size()), hits.size() > 1 ? "s" : ""));
         count.setTextColor(getColor(R.color.dim));
         checkMatches.addView(count);
         FlowLayout row = new FlowLayout(this);
@@ -778,7 +835,7 @@ public class MainActivity extends Activity {
         List<HistoryStore.Row> rows = HistoryStore.load(this);
         if (rows.isEmpty()) return;
         TextView title = new TextView(this);
-        title.setText(competitiveMode.loggedIn() ? "Historique du compte" : "Historique local");
+        title.setText(competitiveMode.loggedIn() ? R.string.hist_account : R.string.hist_local);
         title.setTextColor(getColor(R.color.gold));
         title.setTextSize(12);
         title.setPadding(0, 8, 0, 6);
@@ -787,7 +844,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < n; i++) {
             HistoryStore.Row row = rows.get(i);
             TextView line = new TextView(this);
-            line.setText(row.word + "  " + row.pts + "  ·  " + ("defi".equals(row.src) ? "Défi" : "Dico"));
+            line.setText(row.word + "  " + row.pts + "  ·  " + getString("defi".equals(row.src) ? R.string.src_game : R.string.src_check));
             line.setTextColor(getColor(R.color.muted));
             line.setTextSize(14);
             line.setPadding(0, 8, 0, 8);
@@ -856,7 +913,7 @@ public class MainActivity extends Activity {
         gameLive.setText("");
         gameResult.setVisibility(View.GONE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
-        gameCat.setText(Lexicon.categoryLabel(next.category));
+        gameCat.setText(categoryLabel(next.category));
         paintRack();
         paintShare(null);
     }
@@ -904,10 +961,10 @@ public class MainActivity extends Activity {
         }
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
         if (hit != null) {
-            gameLive.setText(hit.pts() + " pts");
+            gameLive.setText(getString(R.string.pts_n, hit.pts()));
             gameLive.setTextColor(getColor(R.color.ok));
         } else if (word.length() >= 2) {
-            gameLive.setText("Pas avec ces lettres");
+            gameLive.setText(R.string.not_on_rack);
             gameLive.setTextColor(getColor(R.color.no));
         } else gameLive.setText("");
     }
@@ -917,7 +974,7 @@ public class MainActivity extends Activity {
         String word = Lexicon.normalize(gameQ.getText().toString());
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
         if (hit == null) {
-            gameLive.setText(word.length() < 2 ? "Un mot, le plus cher." : "Pas jouable sur ce tirage.");
+            gameLive.setText(word.length() < 2 ? R.string.need_best : R.string.not_playable);
             gameLive.setTextColor(getColor(R.color.no));
             return;
         }
@@ -929,9 +986,9 @@ public class MainActivity extends Activity {
         Lexicon.Play best = deal.catalog.isEmpty() ? hit : deal.catalog.get(0);
         int percent = Math.min(100, Math.round(100f * hit.pts() / Math.max(1, best.pts())));
         boolean same = best.word.equals(hit.word);
-        String vs = same ? "Le meilleur mot" : percent >= 100
-                ? "À égalité · " + best.word + " " + best.pts()
-                : "Top " + best.word + " " + best.pts();
+        String vs = same ? getString(R.string.best_word) : percent >= 100
+                ? getString(R.string.tied, best.word, best.pts())
+                : getString(R.string.top_word, best.word, best.pts());
         gamePct.setText(percent + "%");
         gameBreak.setText(hit.word + " " + hit.pts());
         gameVs.setText(vs);
@@ -945,7 +1002,7 @@ public class MainActivity extends Activity {
         List<Integer> scores = ScoreStore.add(this, percent);
         paintChart(scores);
         paintShare(percent);
-        RemoteApi.postScore(percent, label -> gameAvg.setText(label));
+        RemoteApi.postScore(percent, (has, avg) -> gameAvg.setText(fmtAvg(has, avg)));
         HistoryStore.remember(this, hit.word, hit.pts(), "defi");
         if (competitiveMode.loggedIn()) RemoteApi.saveHistory(hit.word, hit.pts(), "defi");
         paintHistory();
@@ -972,7 +1029,7 @@ public class MainActivity extends Activity {
 
     private void showDef(String word) {
         gamePos.setText("");
-        gameDef.setText("Définition…");
+        gameDef.setText(R.string.def_pending);
         if (gameLemma != null) gameLemma.setVisibility(View.GONE);
         RemoteApi.define(word, new RemoteApi.DefCb() {
             @Override
@@ -984,7 +1041,7 @@ public class MainActivity extends Activity {
             @Override
             public void empty(String message) {
                 gamePos.setText("");
-                gameDef.setText(message);
+                gameDef.setText(defMessage(message));
                 if (gameLemma != null) gameLemma.setVisibility(View.GONE);
             }
         });
@@ -1000,9 +1057,8 @@ public class MainActivity extends Activity {
             if (i > 0) tiles.append(' ');
             tiles.append(deal.rack.charAt(i));
         }
-        String score = percent != null ? "\nJ'ai fait " + percent + " %.\n" : "\n";
-        waText = "Verimots — Défi\n\nTrouve le mot le plus cher avec :\n" + tiles + "\n" + score
-                + "https://s.pfa87.cc/?vue=jeu&d=" + deal.rack + "&c=" + deal.category;
+        String score = percent != null ? getString(R.string.share_game_score, percent) : "\n";
+        waText = getString(R.string.share_game, tiles.toString(), score, deal.rack, deal.category);
         gameWa.setVisibility(View.VISIBLE);
     }
 

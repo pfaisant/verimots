@@ -69,11 +69,11 @@ final class CompetitiveMode {
 
                         @Override
                         public void onError(GetCredentialException e) {
-                            ui.post(() -> Toast.makeText(activity, "Connexion Google annulée", Toast.LENGTH_SHORT).show());
+                            ui.post(() -> Toast.makeText(activity, activity.getString(R.string.google_cancel), Toast.LENGTH_SHORT).show());
                         }
                     });
         } catch (Exception e) {
-            Toast.makeText(activity, "Connexion Google indisponible", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, activity.getString(R.string.google_unavailable), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -96,7 +96,7 @@ final class CompetitiveMode {
                 @Override
                 public void ok(JSONObject user, String sessionToken) {
                     Session.save(activity, sessionToken, user);
-                    Toast.makeText(activity, "Connecté · " + user.optString("name"), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(activity, activity.getString(R.string.signed_in, user.optString("name")), Toast.LENGTH_SHORT).show();
                     if (onSuccess != null) onSuccess.run();
                 }
 
@@ -106,7 +106,7 @@ final class CompetitiveMode {
                 }
             });
         } catch (Exception e) {
-            ui.post(() -> Toast.makeText(activity, "Jeton Google invalide", Toast.LENGTH_SHORT).show());
+            ui.post(() -> Toast.makeText(activity, activity.getString(R.string.google_bad_token), Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -146,7 +146,7 @@ final class CompetitiveMode {
             return;
         }
         container.setVisibility(android.view.View.VISIBLE);
-        if (title != null) title.setText("Classement du jour");
+        if (title != null) title.setText(activity.getString(R.string.daily_board));
         container.removeAllViews();
         if (title != null) container.addView(title);
         for (int i = 0; i < Math.min(10, top.length()); i++) {
@@ -167,12 +167,12 @@ final class CompetitiveMode {
         RemoteApi.compete(percent, word, new RemoteApi.CompeteCb() {
             @Override
             public void ok() {
-                Toast.makeText(activity, "Score classé", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, activity.getString(R.string.score_ranked), Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void alreadySubmitted() {
-                Toast.makeText(activity, "Déjà classé aujourd'hui", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, activity.getString(R.string.already_ranked), Toast.LENGTH_SHORT).show();
             }
 
             @Override

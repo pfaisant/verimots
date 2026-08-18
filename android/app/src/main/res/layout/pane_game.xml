@@ -18,7 +18,7 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.14"
-            android:text="Défi"
+            android:text="@string/challenge"
             android:textAllCaps="true"
             android:textColor="@color/gold"
             android:textSize="12sp" />
@@ -32,7 +32,7 @@
             android:fontFamily="sans-serif-medium"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:text="Compétition"
+            android:text="@string/competition"
             android:textColor="@color/gold"
             android:textSize="12sp" />
 
@@ -44,7 +44,7 @@
             android:fontFamily="sans-serif-medium"
             android:paddingHorizontal="10dp"
             android:paddingVertical="4dp"
-            android:text="Score moyen —"
+            android:text="@string/avg_empty"
             android:textColor="@color/dim"
             android:textSize="11sp" />
     </LinearLayout>
@@ -206,7 +206,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Classement du jour"
+                    android:text="@string/daily_board"
                     android:textColor="@color/gold"
                     android:textSize="12sp" />
             </LinearLayout>

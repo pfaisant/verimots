@@ -18,30 +18,34 @@
   <meta property="og:description" content="Liste de mots hors ligne, maintenue par la communauté. Définitions automatiques avec une connexion." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=32" />
+  <link rel="stylesheet" href="app.css?v=33" />
 </head>
 <body class="simple">
-  <a class="skip" href="#q">Aller à la saisie</a>
+  <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
   <header class="top">
     <div class="brand">
       <span class="mark" aria-hidden="true">V</span>
       <div>
         <h1>Verimots</h1>
-        <p id="brand-sub">Communautaire</p>
+        <p id="brand-sub" data-i18n="brand_sub">Communautaire</p>
       </div>
     </div>
     <div class="top-tools">
-      <button type="button" class="hist-btn" id="hist-btn" aria-label="Historique de la session" aria-expanded="false">
+      <div class="lang-toggle" role="group" data-i18n-aria="lang" aria-label="Langue">
+        <button type="button" id="lang-fr" class="lang-btn" aria-pressed="true">FR</button>
+        <button type="button" id="lang-en" class="lang-btn" aria-pressed="false">EN</button>
+      </div>
+      <button type="button" class="hist-btn" id="hist-btn" data-i18n-aria="hist" aria-label="Historique de la session" aria-expanded="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 3a9 9 0 1 0 8.5 12h-2.1A7 7 0 1 1 13 5v4.6l3.4 2-1 1.7L11 10.2V3h2z"/></svg>
         <span class="hist-count" id="hist-count" hidden>0</span>
       </button>
-      <p class="live" id="live" aria-live="polite">Chargement…</p>
+      <p class="live" id="live" aria-live="polite" data-i18n="loading">Chargement…</p>
     </div>
   </header>
 
   <main>
     <section class="search" id="search" aria-label="Saisie">
-      <label class="sr" for="q" id="q-label">Mot à vérifier</label>
+      <label class="sr" for="q" id="q-label" data-i18n="q_label">Mot à vérifier</label>
       <div class="field">
         <input
           id="q"
@@ -54,30 +58,31 @@
           maxlength="15"
           inputmode="text"
           placeholder="Tapez un mot"
+          data-i18n-placeholder="placeholder"
         />
-        <button type="button" class="joker-key" id="q-joker" hidden aria-label="Ajouter un joker">?</button>
-        <button type="button" class="clear" id="clear" hidden aria-label="Effacer">×</button>
+        <button type="button" class="joker-key" id="q-joker" hidden data-i18n-aria="add_blank" aria-label="Ajouter un joker">?</button>
+        <button type="button" class="clear" id="clear" hidden data-i18n-aria="clear" aria-label="Effacer">×</button>
       </div>
       <div id="rack-preview" class="rack-preview" hidden></div>
     </section>
 
     <section class="panel" id="panel-check" data-panel="check">
-      <div class="find-tools adv-only" role="group" aria-label="Type de recherche" hidden>
-        <button type="button" data-find="exact" aria-pressed="true">Ce mot</button>
-        <button type="button" data-find="prefix" aria-pressed="false">Commence</button>
-        <button type="button" data-find="suffix" aria-pressed="false">Finit</button>
-        <button type="button" data-find="has" aria-pressed="false">Contient</button>
+      <div class="find-tools adv-only" role="group" data-i18n-aria="find_type" aria-label="Type de recherche" hidden>
+        <button type="button" data-find="exact" aria-pressed="true" data-i18n="find_exact">Ce mot</button>
+        <button type="button" data-find="prefix" aria-pressed="false" data-i18n="find_prefix">Commence</button>
+        <button type="button" data-find="suffix" aria-pressed="false" data-i18n="find_suffix">Finit</button>
+        <button type="button" data-find="has" aria-pressed="false" data-i18n="find_has">Contient</button>
       </div>
-      <p class="hint" id="hint">Dans la liste ? Sans accents. Liste hors ligne.</p>
+      <p class="hint" id="hint" data-i18n="hint_exact">Dans la liste ? Sans accents. Liste hors ligne.</p>
       <div id="verdict" class="verdict idle" hidden></div>
       <div id="find-out" class="results" hidden></div>
     </section>
 
     <section class="panel" id="panel-rack" data-panel="rack" hidden>
       <div class="rack-help" id="rack-help">
-        <p class="game-kicker">Tiroir</p>
-        <h2>Que pouvez-vous jouer ?</h2>
-        <p>Tapez vos lettres. Un blanc se note <strong>?</strong> — jusqu’à deux. Touchez <kbd>?</kbd> pour en poser un.</p>
+        <p class="game-kicker" data-i18n="rack_kicker">Tiroir</p>
+        <h2 data-i18n="rack_title">Que pouvez-vous jouer ?</h2>
+        <p data-i18n="rack_help">Tapez vos lettres. Un blanc se note ? — jusqu’à deux. Touchez ? pour en poser un.</p>
         <p>Exemple : <button type="button" class="text-ex" data-example="AERTIN?">AERTIN?</button></p>
       </div>
       <div class="rack-bar">
@@ -190,11 +195,11 @@
     <div class="game-chart" id="game-chart" role="img" aria-label="Vos scores sur 100"></div>
   </div>
 
-  <div class="fabs" role="navigation" aria-label="Pages">
-    <button type="button" class="fab" id="fab-dict" data-fab="check" aria-label="Dictionnaire" aria-current="page">
+  <div class="fabs" role="navigation" data-i18n-aria="pages" aria-label="Pages">
+    <button type="button" class="fab" id="fab-dict" data-fab="check" data-i18n-aria="dict" aria-label="Dictionnaire" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 3h9a3 3 0 0 1 3 3v14.2a.8.8 0 0 1-1.2.7L13 19l-3.8 1.9A.8.8 0 0 1 8 20.2V6a1 1 0 0 0-1-1H6zm2.5 5.2h7v1.4h-7zm0 3h7v1.4h-7z"/></svg>
     </button>
-    <button type="button" class="fab" id="fab-game" data-fab="game" aria-label="Défi">
+    <button type="button" class="fab" id="fab-game" data-fab="game" data-i18n-aria="game" aria-label="Défi">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h6v6H5zm8 0h6v6h-6zM5 14h6v6H5zm9.2 1.2 1.3-1.3 1.3 1.3 1.3-1.3 1.3 1.3-1.3 1.3 1.3 1.3-1.3 1.3-1.3-1.3-1.3 1.3-1.3-1.3 1.3-1.3z"/></svg>
     </button>
   </div>
@@ -202,19 +207,19 @@
   <footer class="foot">
     <div class="foot-links">
       <a class="apk-link" href="verimots-3.1.apk" download="verimots-3.1.apk" title="Télécharger verimots-3.1.apk">verimots-3.1.apk</a>
-      <a class="legal-link" href="/confidentialite.html">Confidentialité</a>
-      <button type="button" class="legal-link" id="about-link">À propos</button>
+      <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
+      <button type="button" class="legal-link" id="about-link" data-i18n="about">À propos</button>
     </div>
-    <nav class="adv-nav" id="adv-nav" hidden aria-label="Mode avancé">
-      <button type="button" data-nav="check" aria-current="page">Vérifier</button>
-      <button type="button" data-nav="rack">Tiroir</button>
-      <button type="button" data-nav="lists">Listes</button>
-      <button type="button" data-nav="info">Infos</button>
+    <nav class="adv-nav" id="adv-nav" hidden data-i18n-aria="advanced" aria-label="Mode avancé">
+      <button type="button" data-nav="check" aria-current="page" data-i18n="nav_check">Vérifier</button>
+      <button type="button" data-nav="rack" data-i18n="nav_rack">Tiroir</button>
+      <button type="button" data-nav="lists" data-i18n="nav_lists">Listes</button>
+      <button type="button" data-nav="info" data-i18n="nav_info">Infos</button>
     </nav>
-    <button type="button" class="adv-toggle" id="adv-toggle">Mode avancé</button>
+    <button type="button" class="adv-toggle" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
   </footer>
 
-  <script src="app.js?v=32" type="module"></script>
+  <script src="app.js?v=33" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
