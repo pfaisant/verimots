@@ -9,7 +9,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowInsets;
@@ -51,6 +56,7 @@ public class MainActivity extends Activity {
     private TextView checkMeta;
     private TextView checkPos;
     private TextView checkDef;
+    private TextView checkLemma;
     private TextView checkWiki;
     private TextView checkShare;
     private TextView checkHint;
@@ -94,6 +100,7 @@ public class MainActivity extends Activity {
     private FlowLayout gameTop;
     private TextView gamePos;
     private TextView gameDef;
+    private TextView gameLemma;
     private ImageButton gameWa;
     private ScoreChartView gameChart;
     private TextView gameLast;
@@ -267,6 +274,7 @@ public class MainActivity extends Activity {
         checkMeta = findViewById(R.id.check_meta);
         checkPos = findViewById(R.id.check_pos);
         checkDef = findViewById(R.id.check_def);
+        checkLemma = findViewById(R.id.check_lemma);
         checkWiki = findViewById(R.id.check_wiki);
         checkShare = findViewById(R.id.check_share);
         checkHint = findViewById(R.id.check_hint);
@@ -351,6 +359,7 @@ public class MainActivity extends Activity {
         checkMeta.setText(ok ? word.length() + " lettres · " + pts + " pt" + (pts > 1 ? "s" : "") : "");
         checkPos.setText("");
         checkDef.setText(ok ? "Définition…" : "Ce mot n'est pas une forme admise (2 à 15 lettres, sans accents).");
+        if (checkLemma != null) checkLemma.setVisibility(View.GONE);
         checkWiki.setVisibility(View.GONE);
         checkShare.setVisibility(View.VISIBLE);
         lastShare = ok
@@ -366,10 +375,10 @@ public class MainActivity extends Activity {
         checkHandler.removeCallbacksAndMessages(null);
         Runnable fetch = () -> RemoteApi.define(wanted, new RemoteApi.DefCb() {
             @Override
-            public void ok(String pos, String text, String url) {
+            public void ok(String pos, String text, String url, String lemma) {
                 if (seq != checkSeq) return;
                 checkPos.setText(pos);
-                checkDef.setText(text);
+                paintDef(checkDef, checkLemma, text, lemma, wanted);
                 checkWiki.setVisibility(View.VISIBLE);
                 checkWiki.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
             }
@@ -379,6 +388,7 @@ public class MainActivity extends Activity {
                 if (seq != checkSeq) return;
                 checkPos.setText("");
                 checkDef.setText(message);
+                if (checkLemma != null) checkLemma.setVisibility(View.GONE);
             }
         });
         if (immediateDef) fetch.run();
@@ -673,6 +683,60 @@ public class MainActivity extends Activity {
         doCheck(true);
     }
 
+    private void openLemma(String lemma) {
+        String word = Lexicon.normalize(lemma);
+        if (word.length() < 2) return;
+        showTab(0);
+        openExact(word);
+    }
+
+    private void paintDef(TextView def, TextView see, String text, String apiLemma, String current) {
+        if (def == null) return;
+        String extracted = Defs.extractFormOf(text);
+        if (extracted.isEmpty() && apiLemma != null && !apiLemma.isEmpty()) {
+            String folded = Lexicon.normalize(apiLemma);
+            if (!folded.isEmpty() && current != null && !folded.equals(Lexicon.normalize(current))) extracted = apiLemma;
+        }
+        final String form = extracted;
+        if (form.isEmpty()) {
+            def.setText(text);
+            def.setMovementMethod(null);
+            if (see != null) see.setVisibility(View.GONE);
+            return;
+        }
+        SpannableString span = new SpannableString(text);
+        String hay = text.toLowerCase(java.util.Locale.FRENCH);
+        String needle = form.toLowerCase(java.util.Locale.FRENCH);
+        int at = hay.lastIndexOf(needle);
+        if (at >= 0) {
+            final String go = form;
+            span.setSpan(
+                    new ClickableSpan() {
+                        @Override
+                        public void onClick(View widget) {
+                            openLemma(go);
+                        }
+
+                        @Override
+                        public void updateDrawState(TextPaint ds) {
+                            ds.setColor(getColor(R.color.gold));
+                            ds.setUnderlineText(true);
+                        }
+                    },
+                    at,
+                    at + form.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        def.setText(span);
+        def.setMovementMethod(LinkMovementMethod.getInstance());
+        def.setHighlightColor(getColor(R.color.gold_soft));
+        if (see != null) {
+            see.setVisibility(View.VISIBLE);
+            see.setText(getString(R.string.see_lemma, form));
+            see.setOnClickListener(v -> openLemma(form));
+        }
+    }
+
     private void rememberChecked(String word, int pts) {
         HistoryStore.remember(this, word, pts, "dico");
         if (competitiveMode.loggedIn()) RemoteApi.saveHistory(word, pts, "dico");
@@ -753,6 +817,7 @@ public class MainActivity extends Activity {
         gameTop = findViewById(R.id.game_top);
         gamePos = findViewById(R.id.game_pos);
         gameDef = findViewById(R.id.game_def);
+        gameLemma = findViewById(R.id.game_lemma);
         gameWa = findViewById(R.id.game_wa);
         gameChart = findViewById(R.id.game_chart);
         gameLast = findViewById(R.id.game_last);
@@ -908,17 +973,19 @@ public class MainActivity extends Activity {
     private void showDef(String word) {
         gamePos.setText("");
         gameDef.setText("Définition…");
+        if (gameLemma != null) gameLemma.setVisibility(View.GONE);
         RemoteApi.define(word, new RemoteApi.DefCb() {
             @Override
-            public void ok(String pos, String text, String url) {
+            public void ok(String pos, String text, String url, String lemma) {
                 gamePos.setText(pos);
-                gameDef.setText(text);
+                paintDef(gameDef, gameLemma, text, lemma, word);
             }
 
             @Override
             public void empty(String message) {
                 gamePos.setText("");
                 gameDef.setText(message);
+                if (gameLemma != null) gameLemma.setVisibility(View.GONE);
             }
         });
     }

@@ -271,6 +271,19 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/check_lemma"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_pill"
+                android:fontFamily="sans-serif-medium"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
+                android:textColor="@color/gold"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/check_wiki"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

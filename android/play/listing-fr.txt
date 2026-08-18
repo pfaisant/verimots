@@ -41,7 +41,7 @@ DATA SAFETY (Play Console)
 
 FICHE TECHNIQUE
 package : cc.pfa87.verimots
-version : 3.1 (versionCode 18) · targetSdk 36
+version : 3.1 (versionCode 19) · targetSdk 36
 confidentialité : https://s.pfa87.cc/confidentialite.html
 contact : hello@pfa87.cc
 icon : android/play/icon-512.png

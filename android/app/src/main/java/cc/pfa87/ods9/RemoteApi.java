@@ -26,7 +26,7 @@ final class RemoteApi {
     }
 
     interface DefCb {
-        void ok(String pos, String text, String url);
+        void ok(String pos, String text, String url, String lemma);
 
         void empty(String message);
     }
@@ -88,7 +88,8 @@ final class RemoteApi {
                 String pos = s0.optString("pos", "");
                 String def = defs != null && defs.length() > 0 ? defs.getString(0) : "";
                 String url = o.optString("url", "https://fr.wiktionary.org/wiki/" + word.toLowerCase());
-                post(() -> cb.ok(pos, def, url));
+                String lemma = o.optString("lemma", "");
+                post(() -> cb.ok(pos, def, url, lemma));
             } catch (Exception e) {
                 post(() -> cb.empty("Définition disponible avec une connexion."));
             }

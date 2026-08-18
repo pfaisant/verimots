@@ -78,6 +78,8 @@ test('inflection glosses expose the source lemma', () => {
     'taler'
   )
   assert.equal(extractFormOf('Pluriel de chat.'), 'chat')
+  assert.equal(extractFormOf('Pluriel de keum.'), 'keum')
+  assert.equal(extractFormOf('Masculin pluriel de keum.'), 'keum')
   assert.equal(extractFormOf("Sorte de table sur laquelle les bouchers débitent la viande."), '')
   assert.equal(isInflectionDef("Deuxième personne du pluriel de l’impératif du verbe taler."), true)
   assert.equal(isInflectionDef('Sorte de table sur laquelle les bouchers débitent la viande.'), false)

@@ -15,6 +15,7 @@
     <string name="encore">Encore</string>
     <string name="share">Partager</string>
     <string name="wiki">Ouvrir dans le Wiktionnaire</string>
+    <string name="see_lemma">Voir %1$s</string>
     <string name="about_title">À propos de Verimots</string>
     <string name="about_body">Version hors ligne : l’application contient la liste des mots (plus de 400 000 formes de 2 à 15 lettres, sans accents). Vérifier un mot et le défi fonctionnent sans réseau.\n\nUne connexion est nécessaire seulement pour les définitions automatiques (Wiktionnaire) et le partage.\n\nLa liste est maintenue par la communauté. Verimots n’est pas l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.</string>
     <string name="privacy_title">Confidentialité</string>
