@@ -7,6 +7,7 @@
     <string name="validate">Play</string>
     <string name="tab_check">Check</string>
     <string name="tab_game">Challenge</string>
+    <string name="tab_board">Board</string>
     <string name="tab_about">About</string>
     <string name="loading">Loading the list…</string>
     <string name="lex_unavailable">List unavailable</string>
@@ -18,15 +19,15 @@
     <string name="def_missing">No Wiktionary definition.</string>
     <string name="not_a_form">Not a valid form (2 to 15 letters, no accents).</string>
     <string name="letters_pts">%1$d letters · %2$d pt%3$s</string>
-    <string name="encore">Again</string>
+    <string name="encore">Next</string>
     <string name="share">Share</string>
     <string name="wiki">Open in Wiktionary</string>
     <string name="see_lemma">See %1$s</string>
     <string name="clear">Clear</string>
     <string name="about_title">About Verimots</string>
-    <string name="about_body">Offline first: the English list is ENABLE (about 168,000 forms from 2 to 15 letters). Checking a word and the challenge work with no network.\n\nA connection is needed only for automatic definitions (Wiktionary) and sharing.\n\nNot affiliated with NASPA, Mattel or Hasbro. Switch to FR for the French community list.</string>
+    <string name="about_body">Offline first: the English list is YAWL (257,218 forms from 2 to 15 letters). Checking a word and the challenge work with no network.\n\nA connection is needed only for automatic definitions (Wiktionary) and sharing.\n\nNot affiliated with NASPA, Mattel or Hasbro. Switch to FR for the French community list.</string>
     <string name="privacy_title">Privacy</string>
-    <string name="privacy_body">No ads. Local history stays on the device. Signed in with Google, checked and played words are also saved to your account so you can find them on the web and on the phone.\n\nIn anonymous mode only the percent (0 to 100) is sent for the public average. Optional competition: Google ID, name and photo for the daily board. Definitions go through s.pfa87.cc to Wiktionary.</string>
+    <string name="privacy_body">No ads. Local history stays on the device. Signed in with Google, checked and played words are also saved to your account so you can find them on the web and on the phone.\n\nIn anonymous mode only the percent (0 to 100) is sent for the public average. Optional competition: Google ID, name and photo for this week’s board. Definitions go through s.pfa87.cc to Wiktionary.</string>
     <string name="hint_prefix">List words that start with this.</string>
     <string name="hint_suffix">List words that end with this.</string>
     <string name="hint_has">List words that contain these letters.</string>
@@ -56,7 +57,7 @@
     <string name="word_count_n">%1$d word%2$s</string>
     <string name="word_count_label">%1$s word%2$s</string>
     <string name="signed_in">Signed in · %1$s</string>
-    <string name="sign_in_hint">Sign in for the daily board. The anonymous challenge still works.</string>
+    <string name="sign_in_hint">Sign in for this week’s board. The anonymous challenge still works.</string>
     <string name="google_account">Google account</string>
     <string name="sign_in_google">Sign in with Google</string>
     <string name="sign_out">Sign out</string>
@@ -78,12 +79,13 @@
     <string name="not_on_rack">Not with these letters</string>
     <string name="need_best">One word, the dearest.</string>
     <string name="not_playable">Not playable on this rack.</string>
-    <string name="daily_board">Today\'s board</string>
+    <string name="daily_board">This week\'s board</string>
+    <string name="board_empty">No scores yet. Play to take 1st.</string>
     <string name="google_cancel">Google sign-in cancelled</string>
     <string name="google_unavailable">Google sign-in unavailable</string>
     <string name="google_bad_token">Invalid Google token</string>
     <string name="score_ranked">Score ranked</string>
-    <string name="already_ranked">Already ranked today</string>
+    <string name="already_ranked">Already ranked this week</string>
     <string name="share_check_ok">Verimots\n\n*%1$s* is in the list\n%2$d letters · %3$d pts\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="share_check_no">Verimots\n\n*%1$s* is not in the list\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="share_game">Verimots — Challenge\n\nFind the dearest word with:\n%1$s\n%2$shttps://s.pfa87.cc/?vue=jeu&amp;d=%3$s&amp;c=%4$s</string>
@@ -91,4 +93,31 @@
     <string name="board_unavailable">Board unavailable</string>
     <string name="trail_unavailable">Challenge unavailable</string>
     <string name="need_connection">Connection required</string>
+    <string name="mode_kids">Kids</string>
+    <string name="kids_hint">Hint</string>
+    <string name="kids_hint_letter">A word starts with %1$s</string>
+    <string name="kids_hint_word">Try %1$s</string>
+    <string name="kids_bravo">Well done</string>
+    <string name="kids_need">A word with these letters.</string>
+    <string name="kids_cat">Find a word</string>
+    <string name="board_general">General</string>
+    <string name="kids_board">Kids</string>
+    <string name="kids_board_empty">No kids scores yet.</string>
+    <string name="hist_open">History</string>
+    <string name="hist_clear">Clear history</string>
+    <string name="hist_clear_confirm">Clear all history?</string>
+    <string name="hist_kind">Type</string>
+    <string name="hist_when">Date</string>
+    <string name="hist_word">Word</string>
+    <string name="hist_pts">Pts</string>
+    <string name="hist_empty">No words yet.</string>
+    <string name="feedback">Feedback</string>
+    <string name="feedback_title">A comment</string>
+    <string name="feedback_help">A word, a bug, an idea — it lands in my inbox.</string>
+    <string name="feedback_placeholder">Your message</string>
+    <string name="feedback_email">Email (if you want a reply)</string>
+    <string name="feedback_send">Send</string>
+    <string name="feedback_ok">Thanks, it\'s sent.</string>
+    <string name="feedback_err">Could not send. Try again.</string>
+    <string name="feedback_need">Write a short message.</string>
 </resources>

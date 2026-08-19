@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots hors ligne, maintenue par la communauté. Définitions automatiques avec une connexion." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=33" />
+  <link rel="stylesheet" href="app.css?v=60" />
 </head>
 <body class="simple">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -110,22 +110,25 @@
 
     <section class="panel" id="panel-info" data-panel="info" hidden>
       <article class="info">
-        <h2>À propos de Verimots</h2>
-        <p>
-          Version <strong>hors ligne</strong> : l’application contient la liste des mots
-          (407&nbsp;128 formes de 2 à 15 lettres, sans accents). Vérifier un mot, le tiroir
+        <h2 data-i18n="about_title">À propos de Verimots</h2>
+        <p data-i18n="about_p1">
+          Version hors ligne : l’application contient la liste des mots
+          (407 128 formes de 2 à 15 lettres, sans accents). Vérifier un mot, le tiroir
           et le défi fonctionnent sans réseau.
         </p>
-        <p>
-          Une <strong>connexion</strong> est nécessaire seulement pour les définitions
+        <p data-i18n="about_p2">
+          Une connexion est nécessaire seulement pour les définitions
           automatiques (Wiktionnaire) et le partage.
         </p>
-        <p>
-          La liste est <strong>maintenue par la communauté</strong>. Verimots n’est pas
+        <p data-i18n="about_p3">
+          La liste est maintenue par la communauté. Verimots n’est pas
           l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.
         </p>
-        <p>
+        <p data-i18n="about_p4">
           Mode simple : vérifier et partager. Mode avancé : tiroir, motifs et listes.
+        </p>
+        <p>
+          <button type="button" class="about-hist" id="about-hist" data-i18n="hist_open">Historique</button>
         </p>
         <p class="fine">
           <a href="/confidentialite.html">Politique de confidentialité</a>
@@ -135,47 +138,53 @@
 
     <section class="panel" id="panel-game" data-panel="game" hidden>
       <div class="game-head">
-        <p class="game-kicker" id="game-cat">Défi</p>
+        <p class="game-kicker" id="game-cat" data-i18n="cat_defi">Défi</p>
         <div class="game-tools">
           <p class="game-meta" id="game-global">Score moyen —</p>
         </div>
       </div>
       <div class="game-mode-switch" id="game-mode-switch">
-        <button type="button" id="mode-defi" class="mode-btn" data-mode="defi" aria-pressed="true">Défi</button>
-        <button type="button" id="mode-comp" class="mode-btn" data-mode="competitive" aria-pressed="false">Compétition</button>
+        <button type="button" id="mode-defi" class="mode-btn" data-mode="defi" aria-pressed="true" data-i18n="mode_defi">Défi</button>
+        <button type="button" id="mode-comp" class="mode-btn" data-mode="competitive" aria-pressed="false" data-i18n="mode_comp">Compétition</button>
+        <button type="button" id="mode-kids" class="mode-btn" data-mode="kids" aria-pressed="false" data-i18n="mode_kids">Enfant</button>
       </div>
       <div id="game-auth" class="game-auth" hidden>
         <div id="google-signin-btn" class="google-signin-area"></div>
-        <p class="auth-help">Connecte-toi pour être classé</p>
+        <p class="auth-help" data-i18n="auth_help">Connecte-toi pour être classé</p>
       </div>
       <div id="game-user" class="game-user" hidden>
         <div class="user-card">
-          <img id="user-pic" class="user-pic" alt="" width="32" height="32" />
+          <img id="user-pic" class="user-pic" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden />
           <span class="user-who">
             <span id="user-name" class="user-name"></span>
             <span id="user-stats" class="user-stats"></span>
           </span>
-          <button type="button" id="logout-btn" class="logout-btn">Se déconnecter</button>
+          <button type="button" id="logout-btn" class="logout-btn" data-i18n="sign_out">Se déconnecter</button>
         </div>
       </div>
-      <div id="game-board" class="game-board" hidden></div>
       <div id="game-rack" class="game-rack" aria-label="Lettres du tirage"></div>
       <form id="game-form" class="game-form">
-        <label class="sr" for="game-q">Votre meilleur mot</label>
-        <input id="game-q" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Votre mot" />
+        <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
+        <input id="game-q" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Votre mot" data-i18n-placeholder="play_hint" />
         <button type="submit" aria-label="Valider">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.2 16.6 4.8 12.2l1.4-1.4 3 3 8.6-8.6 1.4 1.4z"/></svg>
         </button>
       </form>
+      <button type="button" class="game-hint" id="game-hint" hidden data-i18n="kids_hint">Indice</button>
       <p class="game-live" id="game-live" aria-live="polite"></p>
       <div id="game-result" class="game-result" hidden></div>
     </section>
+
+    <aside class="panel panel-board" id="panel-board" data-panel="board" hidden>
+      <div id="game-board" class="game-board"></div>
+    </aside>
   </main>
 
   <div id="hist-sheet" class="hist-sheet" hidden>
     <div class="hist-card" role="dialog" aria-labelledby="hist-title">
       <div class="hist-bar">
         <h2 id="hist-title">Historique</h2>
+        <button type="button" class="hist-clear" id="hist-clear" hidden data-i18n="hist_clear">Effacer l’historique</button>
         <button type="button" class="hist-close" id="hist-close" aria-label="Fermer">×</button>
       </div>
       <div id="hist-out" class="hist-out"></div>
@@ -195,18 +204,43 @@
     <div class="game-chart" id="game-chart" role="img" aria-label="Vos scores sur 100"></div>
   </div>
 
+  <div id="feedback-sheet" class="hist-sheet" hidden>
+    <form class="hist-card feedback-card" id="feedback-form" autocomplete="on">
+      <div class="hist-bar">
+        <h2 id="feedback-title" data-i18n="feedback_title">Un commentaire</h2>
+        <button type="button" class="hist-close" id="feedback-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="feedback-body">
+        <p class="feedback-help" data-i18n="feedback_help">Un mot, un bug, une idée — ça arrive dans ma boîte mail.</p>
+        <label class="sr" for="feedback-msg" data-i18n="feedback_placeholder">Votre message</label>
+        <textarea id="feedback-msg" name="message" required maxlength="2000" rows="5" data-i18n-placeholder="feedback_placeholder" placeholder="Votre message"></textarea>
+        <label class="sr" for="feedback-email" data-i18n="feedback_email">Email (si vous voulez une réponse)</label>
+        <input id="feedback-email" name="email" type="email" maxlength="120" autocomplete="email" data-i18n-placeholder="feedback_email" placeholder="Email (si vous voulez une réponse)" />
+        <input id="feedback-hp" class="hp" type="text" name="website" tabindex="-1" autocomplete="off" />
+        <p class="feedback-status" id="feedback-status" hidden></p>
+        <button type="submit" class="feedback-send" id="feedback-send" data-i18n="feedback_send">Envoyer</button>
+      </div>
+    </form>
+  </div>
+
   <div class="fabs" role="navigation" data-i18n-aria="pages" aria-label="Pages">
+    <button type="button" class="fab fab-feedback" id="fab-feedback" data-i18n-aria="feedback" aria-label="Avis" aria-expanded="false" aria-controls="feedback-sheet">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm3 4v2h10V8H7zm0 4v2h7v-2H7z"/></svg>
+    </button>
     <button type="button" class="fab" id="fab-dict" data-fab="check" data-i18n-aria="dict" aria-label="Dictionnaire" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 3h9a3 3 0 0 1 3 3v14.2a.8.8 0 0 1-1.2.7L13 19l-3.8 1.9A.8.8 0 0 1 8 20.2V6a1 1 0 0 0-1-1H6zm2.5 5.2h7v1.4h-7zm0 3h7v1.4h-7z"/></svg>
     </button>
     <button type="button" class="fab" id="fab-game" data-fab="game" data-i18n-aria="game" aria-label="Défi">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h6v6H5zm8 0h6v6h-6zM5 14h6v6H5zm9.2 1.2 1.3-1.3 1.3 1.3 1.3-1.3 1.3 1.3-1.3 1.3 1.3 1.3-1.3 1.3-1.3-1.3-1.3 1.3-1.3-1.3 1.3-1.3z"/></svg>
     </button>
+    <button type="button" class="fab fab-board" id="fab-board" data-fab="board" data-i18n-aria="board" aria-label="Classement" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4h10v3h3v4c0 2.2-1.8 4-4 4h-1.1c-.5 1.2-1.6 2.1-2.9 2.4V20h3v2H9v-2h3v-2.6c-1.3-.3-2.4-1.2-2.9-2.4H8c-2.2 0-4-1.8-4-4V7h3V4zm2 2v1h6V6H9zM6 9v2c0 1.1.9 2 2 2h.3C8.1 12.4 8 11.7 8 11V9H6zm10 2c0 .7-.1 1.4-.3 2H16c1.1 0 2-.9 2-2V9h-2v2z"/></svg>
+    </button>
   </div>
 
   <footer class="foot">
     <div class="foot-links">
-      <a class="apk-link" href="verimots-3.1.apk" download="verimots-3.1.apk" title="Télécharger verimots-3.1.apk">verimots-3.1.apk</a>
+      <a class="apk-link" href="verimots-3.19.apk" download="verimots-3.19.apk" title="Télécharger verimots-3.19.apk">verimots-3.19.apk</a>
       <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
       <button type="button" class="legal-link" id="about-link" data-i18n="about">À propos</button>
     </div>
@@ -219,7 +253,7 @@
     <button type="button" class="adv-toggle" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
   </footer>
 
-  <script src="app.js?v=33" type="module"></script>
+  <script src="app.js?v=56" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

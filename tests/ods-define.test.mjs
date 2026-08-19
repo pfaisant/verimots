@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { cleanWikitext, extractSenses, rankTitles } from '../scripts/ods-define.mjs'
+import { cleanWikitext, extractSenses, rankTitles, lookupQuery } from '../scripts/ods-define.mjs'
 
 test('cleanWikitext strips links and keeps useful labels', () => {
   const text = cleanWikitext("{{en particulier}} [[établissement|Établissement]] où l’on [[enseigner|enseigne]].")
@@ -76,6 +76,18 @@ test('cleanWikitext expands English plural-of templates', () => {
 test('rankTitles prefers the accented French lemma over a typo page', () => {
   const ranked = rankTitles('ECOLE', ['Ecole', 'école', 'écolé', 'School'])
   assert.equal(ranked[0], 'école')
+})
+
+test('rankTitles maps a hyphenated compound to the last segment', () => {
+  const ranked = rankTitles('faires', ['faires', 'faire', 'savoir-faires', 'affaires'])
+  assert.ok(ranked.indexOf('savoir-faires') < ranked.indexOf('faire'))
+  assert.ok(ranked.indexOf('savoir-faires') < ranked.indexOf('affaires'))
+})
+
+test('lookupQuery keeps hyphens for Wiktionary titles', () => {
+  assert.equal(lookupQuery('savoir-faire'), 'savoir-faire')
+  assert.equal(lookupQuery('SAVOIR-FAIRES'), 'savoir-faires')
+  assert.equal(lookupQuery('FAIRES'), 'faires')
 })
 
 test('rankTitles prefers QI the abbreviation over qi the energy', () => {

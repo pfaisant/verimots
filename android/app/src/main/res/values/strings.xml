@@ -7,6 +7,7 @@
     <string name="validate">Valider</string>
     <string name="tab_check">Vérifier</string>
     <string name="tab_game">Défi</string>
+    <string name="tab_board">Classement</string>
     <string name="tab_about">Infos</string>
     <string name="loading">Chargement de la liste…</string>
     <string name="lex_unavailable">Liste indisponible</string>
@@ -18,7 +19,7 @@
     <string name="def_missing">Pas de définition Wiktionnaire.</string>
     <string name="not_a_form">Ce mot n\'est pas une forme admise (2 à 15 lettres, sans accents).</string>
     <string name="letters_pts">%1$d lettres · %2$d pt%3$s</string>
-    <string name="encore">Encore</string>
+    <string name="encore">Suivant</string>
     <string name="share">Partager</string>
     <string name="wiki">Ouvrir dans le Wiktionnaire</string>
     <string name="see_lemma">Voir %1$s</string>
@@ -26,7 +27,7 @@
     <string name="about_title">À propos de Verimots</string>
     <string name="about_body">Version hors ligne : l’application contient la liste des mots (plus de 400 000 formes de 2 à 15 lettres, sans accents). Vérifier un mot et le défi fonctionnent sans réseau.\n\nUne connexion est nécessaire seulement pour les définitions automatiques (Wiktionnaire) et le partage.\n\nLa liste est maintenue par la communauté. Verimots n’est pas l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.</string>
     <string name="privacy_title">Confidentialité</string>
-    <string name="privacy_body">Pas de publicité. L’historique local reste sur l’appareil. Connecté avec Google, les mots vérifiés et joués sont aussi enregistrés sur ton compte pour les retrouver sur le web et le téléphone.\n\nEn mode anonyme, seul le pourcentage (0 à 100) est envoyé pour le score moyen public. Mode compétition (optionnel) : identifiant Google, nom et photo pour le classement du jour. Les définitions passent par s.pfa87.cc vers le Wiktionnaire.</string>
+    <string name="privacy_body">Pas de publicité. L’historique local reste sur l’appareil. Connecté avec Google, les mots vérifiés et joués sont aussi enregistrés sur ton compte pour les retrouver sur le web et le téléphone.\n\nEn mode anonyme, seul le pourcentage (0 à 100) est envoyé pour le score moyen public. Mode compétition (optionnel) : identifiant Google, nom et photo pour le classement de la semaine. Les définitions passent par s.pfa87.cc vers le Wiktionnaire.</string>
     <string name="hint_prefix">Mots de la liste qui commencent ainsi.</string>
     <string name="hint_suffix">Mots de la liste qui finissent ainsi.</string>
     <string name="hint_has">Mots de la liste qui contiennent ces lettres.</string>
@@ -56,7 +57,7 @@
     <string name="word_count_n">%1$d mot%2$s</string>
     <string name="word_count_label">%1$s mot%2$s</string>
     <string name="signed_in">Connecté · %1$s</string>
-    <string name="sign_in_hint">Connecte-toi pour le classement du jour. Le défi anonyme reste possible.</string>
+    <string name="sign_in_hint">Connecte-toi pour le classement de la semaine. Le défi anonyme reste possible.</string>
     <string name="google_account">Compte Google</string>
     <string name="sign_in_google">Se connecter avec Google</string>
     <string name="sign_out">Se déconnecter</string>
@@ -78,12 +79,13 @@
     <string name="not_on_rack">Pas avec ces lettres</string>
     <string name="need_best">Un mot, le plus cher.</string>
     <string name="not_playable">Pas jouable sur ce tirage.</string>
-    <string name="daily_board">Classement du jour</string>
+    <string name="daily_board">Classement de la semaine</string>
+    <string name="board_empty">Aucun score pour l’instant. Joue pour être 1er.</string>
     <string name="google_cancel">Connexion Google annulée</string>
     <string name="google_unavailable">Connexion Google indisponible</string>
     <string name="google_bad_token">Jeton Google invalide</string>
     <string name="score_ranked">Score classé</string>
-    <string name="already_ranked">Déjà classé aujourd\'hui</string>
+    <string name="already_ranked">Déjà classé cette semaine</string>
     <string name="share_check_ok">Verimots\n\n*%1$s* est dans la liste\n%2$d lettres · %3$d pts\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="share_check_no">Verimots\n\n*%1$s* n\'est pas dans la liste\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="share_game">Verimots — Défi\n\nTrouve le mot le plus cher avec :\n%1$s\n%2$shttps://s.pfa87.cc/?vue=jeu&amp;d=%3$s&amp;c=%4$s</string>
@@ -91,4 +93,31 @@
     <string name="board_unavailable">Classement non disponible</string>
     <string name="trail_unavailable">Trail non disponible</string>
     <string name="need_connection">Connexion requise</string>
+    <string name="mode_kids">Enfant</string>
+    <string name="kids_hint">Indice</string>
+    <string name="kids_hint_letter">Un mot commence par %1$s</string>
+    <string name="kids_hint_word">Essaie %1$s</string>
+    <string name="kids_bravo">Bravo</string>
+    <string name="kids_need">Un mot avec ces lettres.</string>
+    <string name="kids_cat">Trouve un mot</string>
+    <string name="board_general">Général</string>
+    <string name="kids_board">Enfants</string>
+    <string name="kids_board_empty">Aucun score enfant pour l’instant.</string>
+    <string name="hist_open">Historique</string>
+    <string name="hist_clear">Effacer l’historique</string>
+    <string name="hist_clear_confirm">Effacer tout l’historique ?</string>
+    <string name="hist_kind">Type</string>
+    <string name="hist_when">Date</string>
+    <string name="hist_word">Mot</string>
+    <string name="hist_pts">Pts</string>
+    <string name="hist_empty">Aucun mot pour l’instant.</string>
+    <string name="feedback">Avis</string>
+    <string name="feedback_title">Un commentaire</string>
+    <string name="feedback_help">Un mot, un bug, une idée — ça arrive dans ma boîte mail.</string>
+    <string name="feedback_placeholder">Votre message</string>
+    <string name="feedback_email">Email (si vous voulez une réponse)</string>
+    <string name="feedback_send">Envoyer</string>
+    <string name="feedback_ok">Merci, c’est envoyé.</string>
+    <string name="feedback_err">Impossible d’envoyer. Réessayez.</string>
+    <string name="feedback_need">Écrivez un petit message.</string>
 </resources>

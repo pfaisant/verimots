@@ -9,16 +9,16 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="$ROOT/android"
 KS="$HOME/.config/aiconglomerate/ods9.keystore"
 if [[ ! -f "$KS" ]]; then
-  mkdir -p "$(dirname "$KS")"
-  keytool -genkeypair -keystore "$KS" -alias ods9 -keyalg RSA -keysize 2048 -validity 10000 \
-    -storepass "${ODS9_KEYSTORE_PASS:-ods9pfa87}" -keypass "${ODS9_KEY_PASS:-ods9pfa87}" \
-    -dname "CN=ODS9, OU=pfa87, O=pfa87, L=Paris, C=FR"
-  chmod 600 "$KS"
+  echo "missing keystore $KS — refusing to genkeypair" >&2
+  exit 1
 fi
 DATA="$APP/app/src/main/assets/data"
 mkdir -p "$DATA"
 rm -rf "$APP/app/src/main/assets/www"
 cp -f "$ROOT/web/data/ods9.txt.gz" "$DATA/ods9.txt.gz"
+cp -f "$ROOT/web/data/yawl.txt.gz" "$DATA/yawl.txt.gz"
+cp -f "$ROOT/web/data/meta-en.json" "$DATA/meta-en.json"
+cp -f "$ROOT/web/data/meta.json" "$DATA/meta.json"
 cd "$APP"
 ./gradlew assembleRelease bundleRelease --offline --quiet || ./gradlew assembleRelease bundleRelease
 OUT="$APP/app/build/outputs/apk/release/app-release.apk"

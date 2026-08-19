@@ -2,10 +2,10 @@ TITRE (30)
 Verimots
 
 DESCRIPTION COURTE (80)
-Vérificateur hors ligne : 400 000 mots. Définitions avec connexion.
+Vérificateur hors ligne : la liste des mots est incluse. Définitions avec connexion.
 
 DESCRIPTION LONGUE
-Verimots est une application Android native : vérificateur de mots, recherche sur un tiroir et défi de lettres, en français.
+Verimots est une application Android native : vérificateur de mots et défi de lettres, en français.
 
 Version hors ligne
 L’application contient la liste des mots : plus de 400 000 formes de 2 à 15 lettres, sans accents. Vous pouvez vérifier un mot, chercher sur un tiroir (lettres + jokers) et jouer au défi sans connexion internet.
@@ -13,18 +13,16 @@ L’application contient la liste des mots : plus de 400 000 formes de 2 à 15 l
 Définitions automatiques
 Une connexion est nécessaire seulement pour afficher les définitions automatiques (Wiktionnaire) et pour partager un mot ou un défi.
 
-Défi du jour et compétition optionnelle
-Un nouveau tiroir chaque jour. Restez anonyme, ou connectez-vous avec Google pour le classement du jour. Le premier score compte.
-
 Liste maintenue par la communauté
 La liste n’est pas l’ouvrage officiel Larousse. Verimots n’est affilié ni à Mattel, ni à une fédération.
 
-Sans publicité. Le vérificateur et le défi anonyme fonctionnent sans compte.
+Sans compte, sans publicité.
 
 Politique de confidentialité : https://s.pfa87.cc/confidentialite.html
 Privacy (EN) : https://s.pfa87.cc/privacy.html
 Support : https://s.pfa87.cc/support.html
 Site : https://s.pfa87.cc/
+Play answers : https://s.pfa87.cc/play-console.html
 
 CATÉGORIE
 Jeux · Mots
@@ -33,6 +31,12 @@ PUBLIC
 PEGI 3 / Everyone — pas de contenu choquant, pas d’achats intégrés, pas de pubs.
 
 DATA SAFETY (Play Console)
+• Données collectées : score de défi (pourcentage 0–100), facultatif, pour un moyenne publique. Pas d’identité.
+• Données sur l’appareil : historique de session et graphique de scores (stockage local).
+• Pas de pub, pas de compte, pas de vente de données.
+• Permission Internet : définitions, moyenne publique, partage.
+
+DATA SAFETY (Play Console) — à jour 3.0
 • Défi anonyme : pourcentage 0–100 pour la moyenne publique. Pas d’identité.
 • Compétition optionnelle : connexion Google → identifiant (sub), nom, photo, pour le classement du jour et l’historique de compte.
 • Sur l’appareil : historique local et graphique de scores.
@@ -41,12 +45,9 @@ DATA SAFETY (Play Console)
 
 FICHE TECHNIQUE
 package : cc.pfa87.verimots
-version : 3.1 (versionCode 19) · targetSdk 36
+version : 3.19 (versionCode 39)
 confidentialité : https://s.pfa87.cc/confidentialite.html
-contact : hello@pfa87.cc
-icon : android/play/icon-512.png
-feature : android/play/feature-1024x500.png
-promo : android/play/promo-180x120.png
-phone : android/play/phone-01-verifier.png … phone-04-classement.png
-tablet7 : android/play/tablet7-01-verifier.png, tablet7-02-defi.png
-tablet10 : android/play/tablet10-01-verifier.png, tablet10-02-defi.png
+contact : pfanokif@gmail.com
+AAB : android/ods9/app/build/outputs/bundle/release/app-release.aab
+icon : android/ods9/play/icon-512.png
+feature : android/ods9/play/feature-1024x500.png

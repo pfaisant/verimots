@@ -1,11 +1,12 @@
 package cc.pfa87.ods9;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
+import android.text.format.DateFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,18 +19,26 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowInsets;
 import android.view.inputmethod.EditorInfo;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import android.widget.EditText;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,9 +47,11 @@ public class MainActivity extends Activity {
     private Lexicon lex;
     private View paneCheck;
     private View paneGame;
+    private View paneBoard;
     private View paneAbout;
     private TextView tabCheck;
     private TextView tabGame;
+    private TextView tabBoard;
     private TextView tabAbout;
     private TextView live;
     private TextView brandSub;
@@ -48,6 +59,10 @@ public class MainActivity extends Activity {
     
     private CompetitiveMode competitiveMode;
     private boolean isCompetitiveMode = false;
+    private boolean isKidsMode = false;
+    private TextView gameKids;
+    private TextView gameHint;
+    private int hintLevel;
 
     private EditText checkQ;
     private View checkCard;
@@ -74,7 +89,10 @@ public class MainActivity extends Activity {
     private int rackLen;
     private Switch advancedToggle;
     private TextView authStats;
-    private LinearLayout authHistory;
+    private TextView histOpen;
+    private Dialog historyDialog;
+    private TableLayout historyTable;
+    private boolean officialDeal;
     private boolean advanced;
     private String findMode = "exact";
     private String lastShare;
@@ -87,6 +105,9 @@ public class MainActivity extends Activity {
     private TextView gameMode;
     private LinearLayout gameBoard;
     private TextView gameBoardTitle;
+    private TextView boardTabGeneral;
+    private TextView boardTabKids;
+    private boolean boardKidsTab;
 
     private LinearLayout gameRack;
     private LinearLayout gameForm;
@@ -106,7 +127,10 @@ public class MainActivity extends Activity {
     private ScoreChartView gameChart;
     private TextView gameLast;
     private TextView gameLastUnit;
+    private ScoreChartView boardChart;
+    private TextView boardChartLast;
     private View gameSpacer;
+    private View gameDock;
     private Lexicon.Deal deal;
     private boolean closed;
     private String waText;
@@ -119,22 +143,27 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.parseColor("#142018"));
-        getWindow().setNavigationBarColor(Color.parseColor("#142018"));
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat bars = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        bars.setAppearanceLightStatusBars(false);
+        bars.setAppearanceLightNavigationBars(false);
         setContentView(R.layout.activity_main);
         applySystemInsets();
 
         paneCheck = findViewById(R.id.pane_check);
         paneGame = findViewById(R.id.pane_game);
+        paneBoard = findViewById(R.id.pane_board);
         paneAbout = findViewById(R.id.pane_about);
         tabCheck = findViewById(R.id.tab_check);
         tabGame = findViewById(R.id.tab_game);
+        tabBoard = findViewById(R.id.tab_board);
         tabAbout = findViewById(R.id.tab_about);
         live = findViewById(R.id.live);
         brandSub = findViewById(R.id.brand_sub);
         tabCheck.setOnClickListener(v -> showTab(0));
         tabGame.setOnClickListener(v -> showTab(1));
-        tabAbout.setOnClickListener(v -> showTab(2));
+        tabBoard.setOnClickListener(v -> showTab(2));
+        tabAbout.setOnClickListener(v -> showTab(3));
         
         competitiveMode = new CompetitiveMode(this);
         advanced = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("advanced", false);
@@ -144,6 +173,7 @@ public class MainActivity extends Activity {
         bindGame();
         bindAuth();
         bindAdvanced();
+        bindFeedback();
         paintAuth();
         paintHistory();
         if (competitiveMode.loggedIn()) syncHistory();
@@ -173,8 +203,21 @@ public class MainActivity extends Activity {
     }
 
     private void applyIntent(Intent intent) {
-        if (intent == null || intent.getData() == null || lex == null) return;
+        if (intent == null || intent.getData() == null) return;
         Uri u = intent.getData();
+        String token = u.getQueryParameter("token");
+        if (token == null || token.isEmpty()) token = u.getQueryParameter("app_auth");
+        String path = u.getPath() == null ? "" : u.getPath();
+        boolean appAuth = ("verimots".equals(u.getScheme()) && "auth".equals(u.getHost()))
+                || path.contains("auth-android");
+        if (appAuth && token != null && !token.isEmpty()) {
+            competitiveMode.finishWebSignIn(token, () -> {
+                paintAuth();
+                syncHistory();
+            });
+            return;
+        }
+        if (lex == null) return;
         String vue = u.getQueryParameter("vue");
         String w = Lexicon.normalize(u.getQueryParameter("w"));
         String d = Lexicon.normalize(u.getQueryParameter("d"));
@@ -201,21 +244,13 @@ public class MainActivity extends Activity {
         if (root == null) return;
         int extraTop = root.getPaddingTop();
         int extraBottom = root.getPaddingBottom();
-        root.setOnApplyWindowInsetsListener((v, insets) -> {
-            int top;
-            int bottom;
-            if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
-                top = bars.top;
-                bottom = bars.bottom;
-            } else {
-                top = insets.getSystemWindowInsetTop();
-                bottom = insets.getSystemWindowInsetBottom();
-            }
-            v.setPadding(v.getPaddingLeft(), top + extraTop, v.getPaddingRight(), bottom + extraBottom);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
+            v.setPadding(v.getPaddingLeft(), bars.top + extraTop, v.getPaddingRight(), bars.bottom + extraBottom);
             return insets;
         });
-        root.requestApplyInsets();
+        ViewCompat.requestApplyInsets(root);
     }
 
     private void paintBuildStamp() {
@@ -261,9 +296,7 @@ public class MainActivity extends Activity {
 
     private String fmtAvg(boolean has, double avg) {
         if (!has) return getString(R.string.avg_empty);
-        String n = avg == Math.rint(avg)
-                ? String.valueOf((int) avg)
-                : String.format(Lang.isEn(this) ? java.util.Locale.US : java.util.Locale.FRANCE, "%.1f", avg);
+        String n = String.format(Lang.isEn(this) ? java.util.Locale.US : java.util.Locale.FRANCE, "%.1f", avg);
         return getString(R.string.avg_score, n);
     }
 
@@ -277,6 +310,7 @@ public class MainActivity extends Activity {
         if ("bingo".equals(cat)) return getString(R.string.cat_bingo);
         if ("long".equals(cat)) return getString(R.string.cat_long);
         if ("hard".equals(cat)) return getString(R.string.cat_hard);
+        if ("kids".equals(cat)) return getString(R.string.kids_cat);
         return getString(R.string.challenge);
     }
 
@@ -284,29 +318,86 @@ public class MainActivity extends Activity {
         tab = which;
         paneCheck.setVisibility(which == 0 ? View.VISIBLE : View.GONE);
         paneGame.setVisibility(which == 1 ? View.VISIBLE : View.GONE);
-        paneAbout.setVisibility(which == 2 ? View.VISIBLE : View.GONE);
+        paneBoard.setVisibility(which == 2 ? View.VISIBLE : View.GONE);
+        paneAbout.setVisibility(which == 3 ? View.VISIBLE : View.GONE);
         styleTab(tabCheck, which == 0);
         styleTab(tabGame, which == 1);
-        styleTab(tabAbout, which == 2);
+        styleTab(tabBoard, which == 2);
+        styleTab(tabAbout, which == 3);
         brandSub.setText(which == 1
-                ? getString(isCompetitiveMode ? R.string.competition : R.string.challenge)
-                : which == 2 ? getString(R.string.tab_about_sub) : getString(R.string.brand_sub));
+                ? getString(isKidsMode ? R.string.mode_kids : isCompetitiveMode ? R.string.competition : R.string.challenge)
+                : which == 2 ? getString(R.string.daily_board)
+                : which == 3 ? getString(R.string.tab_about_sub) : getString(R.string.brand_sub));
+        if (which == 2) {
+            boardKidsTab = isKidsMode;
+            styleBoardTabs();
+            competitiveMode.fetchBoards(gameBoard, gameBoardTitle, boardKidsTab);
+        }
         if (which == 1 && lex != null && deal == null) {
-            if (isCompetitiveMode) {
-                // Competitive mode: fetch daily trail
+            if (isKidsMode) {
+                competitiveMode.fetchTrail(true, new CompetitiveMode.TrailCallback() {
+                    @Override
+                    public void onTrail(String trailId, String category, String rack) {
+                        onTrail(trailId, category, rack, "");
+                    }
+                    @Override
+                    public void onTrail(String trailId, String category, String rack, String seed) {
+                        RemoteApi.fetchBoard(trailId, Lang.get(MainActivity.this), true, new RemoteApi.BoardCb() {
+                            @Override
+                            public void ok(org.json.JSONArray top, org.json.JSONObject me) {
+                                if (me != null) {
+                                    officialDeal = false;
+                                    startDeal(lex.kidsDeal());
+                                } else {
+                                    officialDeal = true;
+                                    startDeal(lex.fromRack(rack, seed));
+                                }
+                            }
+                            @Override
+                            public void error(String message) {
+                                officialDeal = true;
+                                startDeal(lex.fromRack(rack, seed));
+                            }
+                        });
+                    }
+                    @Override
+                    public void onError(String message) {
+                        officialDeal = false;
+                        startDeal(lex.kidsDeal());
+                    }
+                });
+            } else if (isCompetitiveMode) {
                 competitiveMode.fetchTrail(new CompetitiveMode.TrailCallback() {
                     @Override
                     public void onTrail(String trailId, String category, String rack) {
-                        startDeal(lex.fromRack(rack));
+                        RemoteApi.fetchBoard(trailId, Lang.get(MainActivity.this), new RemoteApi.BoardCb() {
+                            @Override
+                            public void ok(org.json.JSONArray top, org.json.JSONObject me) {
+                                if (me != null) {
+                                    officialDeal = false;
+                                    startDeal(lex.challenge());
+                                } else {
+                                    officialDeal = true;
+                                    startDeal(lex.fromRack(rack));
+                                }
+                            }
+
+                            @Override
+                            public void error(String message) {
+                                officialDeal = true;
+                                startDeal(lex.fromRack(rack));
+                            }
+                        });
                     }
                     @Override
                     public void onError(String message) {
                         Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                        officialDeal = false;
                         startDeal(lex.challenge());
                     }
                 });
             } else {
-                // Anonymous: use local challenge
+                officialDeal = false;
                 startDeal(lex.challenge());
             }
         }
@@ -407,7 +498,7 @@ public class MainActivity extends Activity {
             return;
         }
         boolean ok = lex.has(word);
-        int pts = ok ? Lexicon.scoreWord(word, null) : 0;
+        int pts = ok ? lex.score(word, null) : 0;
         checkCard.setVisibility(View.VISIBLE);
         checkStatus.setText(ok ? R.string.playable : R.string.not_in_list);
         checkStatus.setTextColor(getColor(ok ? R.color.ok : R.color.no));
@@ -458,8 +549,22 @@ public class MainActivity extends Activity {
         authGoogle = findViewById(R.id.auth_google);
         authLogout = findViewById(R.id.auth_logout);
         gameMode = findViewById(R.id.game_mode);
+        gameKids = findViewById(R.id.game_kids);
+        gameHint = findViewById(R.id.game_hint);
         gameBoard = findViewById(R.id.game_board);
         gameBoardTitle = findViewById(R.id.game_board_title);
+        boardTabGeneral = findViewById(R.id.board_tab_general);
+        boardTabKids = findViewById(R.id.board_tab_kids);
+        if (boardTabGeneral != null) boardTabGeneral.setOnClickListener(v -> {
+            boardKidsTab = false;
+            styleBoardTabs();
+            competitiveMode.showBoardTab(false);
+        });
+        if (boardTabKids != null) boardTabKids.setOnClickListener(v -> {
+            boardKidsTab = true;
+            styleBoardTabs();
+            competitiveMode.showBoardTab(true);
+        });
         if (authGoogle != null) authGoogle.setOnClickListener(v -> competitiveMode.signIn(() -> {
             paintAuth();
             syncHistory();
@@ -470,6 +575,8 @@ public class MainActivity extends Activity {
             paintAuth();
             paintHistory();
         });
+        histOpen = findViewById(R.id.hist_open);
+        if (histOpen != null) histOpen.setOnClickListener(v -> showHistoryDialog());
         if (gameMode != null) gameMode.setOnClickListener(v -> {
             if (!isCompetitiveMode && !competitiveMode.loggedIn()) {
                 competitiveMode.signIn(() -> {
@@ -482,10 +589,37 @@ public class MainActivity extends Activity {
                 return;
             }
             isCompetitiveMode = !isCompetitiveMode;
+            if (isCompetitiveMode) isKidsMode = false;
             deal = null;
             paintAuth();
             showTab(1);
         });
+        if (gameKids != null) gameKids.setOnClickListener(v -> {
+            isKidsMode = !isKidsMode;
+            if (isKidsMode) isCompetitiveMode = false;
+            deal = null;
+            hintLevel = 0;
+            paintAuth();
+            showTab(1);
+        });
+        if (gameHint != null) gameHint.setOnClickListener(v -> giveKidsHint());
+    }
+
+    private void giveKidsHint() {
+        if (deal == null || !isKidsMode || closed) return;
+        String target = deal.seed;
+        if (target == null || target.isEmpty()) {
+            target = deal.catalog.isEmpty() ? "" : deal.catalog.get(0).word;
+        }
+        if (target.isEmpty()) return;
+        hintLevel = Math.min(2, hintLevel + 1);
+        gameLive.setVisibility(View.VISIBLE);
+        if (hintLevel == 1) gameLive.setText(getString(R.string.kids_hint_letter, target.substring(0, 1)));
+        else {
+            gameLive.setText(getString(R.string.kids_hint_word, target));
+            gameHint.setEnabled(false);
+        }
+        gameLive.setTextColor(getColor(R.color.ok));
     }
 
     private void paintAuth() {
@@ -500,7 +634,78 @@ public class MainActivity extends Activity {
         if (gameMode != null) {
             gameMode.setText(isCompetitiveMode ? R.string.competition_on : R.string.competition);
         }
+        if (gameKids != null) {
+            gameKids.setText(isKidsMode ? R.string.kids_cat : R.string.mode_kids);
+        }
+        if (gameAvg != null) gameAvg.setVisibility(isKidsMode ? View.GONE : View.VISIBLE);
         paintHistory();
+    }
+
+    private void styleBoardTabs() {
+        if (boardTabGeneral != null) {
+            boolean on = !boardKidsTab;
+            boardTabGeneral.setBackgroundResource(on ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
+            boardTabGeneral.setTextColor(getColor(on ? R.color.tile_ink : R.color.ink));
+        }
+        if (boardTabKids != null) {
+            boolean on = boardKidsTab;
+            boardTabKids.setBackgroundResource(on ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
+            boardTabKids.setTextColor(getColor(on ? R.color.tile_ink : R.color.ink));
+        }
+        paintChart();
+    }
+
+    private void bindFeedback() {
+        View fab = findViewById(R.id.feedback_fab);
+        if (fab != null) fab.setOnClickListener(v -> showFeedbackDialog());
+    }
+
+    private void showFeedbackDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_feedback, null);
+        EditText msg = view.findViewById(R.id.feedback_msg);
+        EditText email = view.findViewById(R.id.feedback_email);
+        TextView status = view.findViewById(R.id.feedback_status);
+        TextView send = view.findViewById(R.id.feedback_send);
+        TextView close = view.findViewById(R.id.feedback_close);
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(view);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(R.color.felt_card);
+            int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.92f);
+            dialog.getWindow().setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        if (close != null) close.setOnClickListener(v -> dialog.dismiss());
+        if (send != null) send.setOnClickListener(v -> {
+            String text = msg == null ? "" : msg.getText().toString().trim();
+            if (text.length() < 4) {
+                if (status != null) {
+                    status.setVisibility(View.VISIBLE);
+                    status.setTextColor(getColor(R.color.no));
+                    status.setText(R.string.feedback_need);
+                }
+                return;
+            }
+            send.setEnabled(false);
+            RemoteApi.sendFeedback(text, email == null ? "" : email.getText().toString().trim(), Lang.get(this), new RemoteApi.FeedbackCb() {
+                @Override
+                public void ok() {
+                    Toast.makeText(MainActivity.this, R.string.feedback_ok, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void error(String message) {
+                    send.setEnabled(true);
+                    if (status != null) {
+                        status.setVisibility(View.VISIBLE);
+                        status.setTextColor(getColor(R.color.no));
+                        status.setText(R.string.feedback_err);
+                    }
+                }
+            });
+        });
+        dialog.show();
+        if (msg != null) msg.requestFocus();
     }
 
     private void bindAdvanced() {
@@ -726,7 +931,7 @@ public class MainActivity extends Activity {
         checkMatches.addView(count);
         FlowLayout row = new FlowLayout(this);
         for (String hit : hits) {
-            TextView chip = Tiles.resultChip(this, hit, Lexicon.scoreWord(hit, null), null);
+            TextView chip = Tiles.resultChip(this, hit, lex.score(hit, null), null);
             chip.setOnClickListener(v -> openExact(hit));
             row.addView(chip);
         }
@@ -742,6 +947,34 @@ public class MainActivity extends Activity {
     }
 
     private void openLemma(String lemma) {
+        if (lemma != null && lemma.matches(".*[-'’].*")) {
+            String lang = Lang.get(this);
+            boolean onGame = tab == 1;
+            RemoteApi.define(lemma, new RemoteApi.DefCb() {
+                @Override
+                public void ok(String pos, String text, String url, String foundLemma) {
+                    if (onGame) {
+                        gamePos.setText(pos);
+                        paintDef(gameDef, gameLemma, text, foundLemma, lemma);
+                    } else {
+                        checkPos.setText(pos);
+                        paintDef(checkDef, checkLemma, text, foundLemma, lemma);
+                    }
+                }
+
+                @Override
+                public void empty(String message) {
+                    if (onGame) {
+                        gamePos.setText("");
+                        gameDef.setText(defMessage(message));
+                    } else {
+                        checkPos.setText("");
+                        checkDef.setText(defMessage(message));
+                    }
+                }
+            }, lang);
+            return;
+        }
         String word = Lexicon.normalize(lemma);
         if (word.length() < 2) return;
         showTab(0);
@@ -829,27 +1062,61 @@ public class MainActivity extends Activity {
     }
 
     private void paintHistory() {
-        authStats = findViewById(R.id.auth_stats);
-        authHistory = findViewById(R.id.auth_history);
-        if (authHistory == null) return;
-        authHistory.removeAllViews();
+        if (historyDialog != null && historyDialog.isShowing() && historyTable != null) {
+            fillHistoryTable(historyTable, historyDialog.findViewById(R.id.hist_clear));
+        }
+    }
+
+    private void showHistoryDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_history, null);
+        TextView title = view.findViewById(R.id.hist_dialog_title);
+        TextView close = view.findViewById(R.id.hist_dialog_close);
+        TextView clear = view.findViewById(R.id.hist_clear);
+        historyTable = view.findViewById(R.id.hist_table);
+        if (title != null) {
+            title.setText(competitiveMode.loggedIn() ? R.string.hist_account : R.string.hist_local);
+        }
+        fillHistoryTable(historyTable, clear);
+        historyDialog = new Dialog(this);
+        historyDialog.setContentView(view);
+        if (historyDialog.getWindow() != null) {
+            historyDialog.getWindow().setBackgroundDrawableResource(R.color.felt_card);
+            int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.92f);
+            int height = Math.round(getResources().getDisplayMetrics().heightPixels * 0.72f);
+            historyDialog.getWindow().setLayout(width, height);
+        }
+        if (close != null) close.setOnClickListener(v -> historyDialog.dismiss());
+        if (clear != null) clear.setOnClickListener(v -> confirmClearHistory());
+        historyDialog.show();
+    }
+
+    private void fillHistoryTable(TableLayout table, TextView clear) {
+        if (table == null) return;
+        table.removeAllViews();
         List<HistoryStore.Row> rows = HistoryStore.load(this);
-        if (rows.isEmpty()) return;
-        TextView title = new TextView(this);
-        title.setText(competitiveMode.loggedIn() ? R.string.hist_account : R.string.hist_local);
-        title.setTextColor(getColor(R.color.gold));
-        title.setTextSize(12);
-        title.setPadding(0, 8, 0, 6);
-        authHistory.addView(title);
-        int n = Math.min(12, rows.size());
-        for (int i = 0; i < n; i++) {
-            HistoryStore.Row row = rows.get(i);
-            TextView line = new TextView(this);
-            line.setText(row.word + "  " + row.pts + "  ·  " + getString("defi".equals(row.src) ? R.string.src_game : R.string.src_check));
-            line.setTextColor(getColor(R.color.muted));
-            line.setTextSize(14);
-            line.setPadding(0, 8, 0, 8);
+        if (clear != null) clear.setVisibility(rows.isEmpty() ? View.GONE : View.VISIBLE);
+        TableRow head = new TableRow(this);
+        head.addView(histCell(getString(R.string.hist_word), true, false));
+        head.addView(histCell(getString(R.string.hist_pts), true, false));
+        head.addView(histCell(getString(R.string.hist_kind), true, false));
+        head.addView(histCell(getString(R.string.hist_when), true, false));
+        table.addView(head);
+        if (rows.isEmpty()) {
+            TableRow empty = new TableRow(this);
+            TextView cell = histCell(getString(R.string.hist_empty), false, false);
+            empty.addView(cell);
+            table.addView(empty);
+            return;
+        }
+        java.text.DateFormat df = DateFormat.getMediumDateFormat(this);
+        for (HistoryStore.Row row : rows) {
+            TableRow line = new TableRow(this);
+            line.addView(histCell(row.word, false, true));
+            line.addView(histCell(String.valueOf(row.pts), false, false));
+            line.addView(histCell(getString("defi".equals(row.src) ? R.string.src_game : R.string.src_check), false, false));
+            line.addView(histCell(row.at > 0 ? df.format(new Date(row.at)) : "", false, false));
             line.setOnClickListener(v -> {
+                if (historyDialog != null) historyDialog.dismiss();
                 showTab(0);
                 findMode = "exact";
                 paintModes();
@@ -857,8 +1124,46 @@ public class MainActivity extends Activity {
                 checkQ.setSelection(row.word.length());
                 doCheck(true);
             });
-            authHistory.addView(line);
+            table.addView(line);
         }
+    }
+
+    private TextView histCell(String text, boolean header, boolean word) {
+        TextView cell = new TextView(this);
+        cell.setText(text);
+        cell.setPadding(8, 10, 8, 10);
+        cell.setTextSize(header ? 11 : 14);
+        cell.setTextColor(getColor(header ? R.color.dim : word ? R.color.ink : R.color.muted));
+        if (header) cell.setAllCaps(true);
+        if (word && !header) {
+            cell.setTypeface(cell.getTypeface(), android.graphics.Typeface.BOLD);
+            cell.setTextColor(getColor(R.color.gold));
+        }
+        return cell;
+    }
+
+    private void confirmClearHistory() {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.hist_clear_confirm)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    HistoryStore.clear(this);
+                    if (competitiveMode.loggedIn()) {
+                        RemoteApi.clearHistory(new RemoteApi.HistoryCb() {
+                            @Override
+                            public void ok(org.json.JSONArray history, org.json.JSONObject stats) {
+                                paintHistory();
+                            }
+
+                            @Override
+                            public void error(String message) {
+                                paintHistory();
+                            }
+                        });
+                    }
+                    paintHistory();
+                })
+                .show();
     }
 
     private void bindGame() {
@@ -880,12 +1185,15 @@ public class MainActivity extends Activity {
         gameChart = findViewById(R.id.game_chart);
         gameLast = findViewById(R.id.game_last);
         gameLastUnit = findViewById(R.id.game_last_unit);
+        boardChart = findViewById(R.id.board_chart);
+        boardChartLast = findViewById(R.id.board_chart_last);
         gameSpacer = findViewById(R.id.game_spacer);
+        gameDock = findViewById(R.id.game_dock);
         findViewById(R.id.game_go).setOnClickListener(v -> submitPlay());
         findViewById(R.id.game_again).setOnClickListener(v -> {
             if (lex == null) return;
-            deal = null;
-            showTab(1);
+            officialDeal = false;
+            startDeal(isKidsMode ? lex.kidsDeal() : lex.challenge());
         });
         gameQ.setOnEditorActionListener((v, a, e) -> {
             if (a == EditorInfo.IME_ACTION_DONE) {
@@ -915,8 +1223,16 @@ public class MainActivity extends Activity {
         gameResult.setVisibility(View.GONE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
         gameCat.setText(categoryLabel(next.category));
+        hintLevel = 0;
+        if (gameHint != null) {
+            boolean kids = isKidsMode || "kids".equals(next.category);
+            gameHint.setVisibility(kids ? View.VISIBLE : View.GONE);
+            gameHint.setEnabled(true);
+        }
+        if (gameDock != null) gameDock.setVisibility(View.VISIBLE);
         paintRack();
         paintShare(null);
+        paintChart();
     }
 
     private Set<Integer> usedTiles(String word) {
@@ -975,7 +1291,9 @@ public class MainActivity extends Activity {
         String word = Lexicon.normalize(gameQ.getText().toString());
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
         if (hit == null) {
-            gameLive.setText(word.length() < 2 ? R.string.need_best : R.string.not_playable);
+            gameLive.setText(word.length() < 2
+                    ? (isKidsMode ? R.string.kids_need : R.string.need_best)
+                    : R.string.not_playable);
             gameLive.setTextColor(getColor(R.color.no));
             return;
         }
@@ -1000,17 +1318,30 @@ public class MainActivity extends Activity {
         for (int i = 0; i < tops.size(); i++) if (tops.get(i).word.equals(hit.word)) start = i;
         paintTops(tops, start, hit.word);
         showDef(tops.get(start).word);
-        List<Integer> scores = ScoreStore.add(this, percent);
+        List<Integer> scores = ScoreStore.add(this, percent, isKidsMode);
         paintChart(scores);
-        paintShare(percent);
-        RemoteApi.postScore(percent, (has, avg) -> gameAvg.setText(fmtAvg(has, avg)));
+        if (!isKidsMode) {
+            paintShare(percent);
+            RemoteApi.postScore(percent, (has, avg) -> gameAvg.setText(fmtAvg(has, avg)));
+        }
         HistoryStore.remember(this, hit.word, hit.pts(), "defi");
         if (competitiveMode.loggedIn()) RemoteApi.saveHistory(hit.word, hit.pts(), "defi");
         paintHistory();
-        if (isCompetitiveMode && competitiveMode.loggedIn()) {
-            competitiveMode.submitScore(percent, hit.word);
-            competitiveMode.fetchBoard(gameBoard, gameBoardTitle);
+        if (isKidsMode && competitiveMode.loggedIn()) {
+            competitiveMode.submitScore(percent, hit.word, true, deal != null ? deal.rack : null, this::refreshBoards);
+            officialDeal = false;
+        } else if (isCompetitiveMode && competitiveMode.loggedIn() && officialDeal) {
+            competitiveMode.submitScore(percent, hit.word, false, null, this::refreshBoards);
+            officialDeal = false;
+        } else if (isCompetitiveMode || isKidsMode) {
+            refreshBoards();
         }
+    }
+
+    private void refreshBoards() {
+        boardKidsTab = isKidsMode;
+        styleBoardTabs();
+        competitiveMode.fetchBoards(gameBoard, gameBoardTitle, boardKidsTab);
     }
 
     private void paintTops(List<Lexicon.Play> tops, int selected, String mine) {
@@ -1060,18 +1391,22 @@ public class MainActivity extends Activity {
         }
         String score = percent != null ? getString(R.string.share_game_score, percent) : "\n";
         waText = getString(R.string.share_game, tiles.toString(), score, deal.rack, deal.category);
-        gameWa.setVisibility(View.VISIBLE);
+        gameWa.setVisibility(isKidsMode ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void paintChart() {
-        paintChart(ScoreStore.load(this));
+        boolean kids = tab == 2 ? boardKidsTab : isKidsMode;
+        paintChart(ScoreStore.load(this, kids));
     }
 
     private void paintChart(List<Integer> scores) {
-        gameChart.setScores(scores);
         boolean has = scores != null && !scores.isEmpty();
-        if (gameLast != null) gameLast.setText(has ? String.valueOf(scores.get(scores.size() - 1)) : "");
+        String last = has ? String.valueOf(scores.get(scores.size() - 1)) : "";
+        if (gameChart != null) gameChart.setScores(scores);
+        if (gameLast != null) gameLast.setText(last);
         if (gameLastUnit != null) gameLastUnit.setVisibility(has ? View.VISIBLE : View.GONE);
+        if (boardChart != null) boardChart.setScores(scores);
+        if (boardChartLast != null) boardChartLast.setText(last);
     }
 
     private void share(String text) {

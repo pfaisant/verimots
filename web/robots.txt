@@ -1,3 +1,9 @@
 User-agent: *
 Allow: /
-Sitemap: https://s.pfa87.cc/
+Disallow: /api/
+Disallow: /data/
+Disallow: /*.apk$
+Disallow: /*.aab$
+
+Sitemap: https://s.pfa87.cc/sitemap.xml
+Sitemap: https://s.pfa87.cc/sitemap.txt

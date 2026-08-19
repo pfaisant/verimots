@@ -1,0 +1,12 @@
+Verimots 3.6 (versionCode 26) · targetSdk 36
+package: cc.pfa87.verimots
+AAB: https://s.pfa87.cc/verimots-3.6-26.aab
+
+Play Console → Create release → upload this AAB.
+This build already targets API 36 (Android 16) and handles edge-to-edge insets.
+
+--- FR ---
+Cible Android 16 (API 36). Affichage bord à bord : les barres système n’écrasent plus le contenu. Français et anglais, classements séparés, onglet Classement.
+
+--- EN ---
+Targets Android 16 (API 36). Edge-to-edge: system bars no longer cover the UI. French and English, separate leaderboards, Board tab.

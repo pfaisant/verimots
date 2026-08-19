@@ -208,15 +208,29 @@ function isWeak(senses) {
 
 const FRENCH_LETTERS = /[àâäéèêëïîôùûüçœæ]/i
 
+function lettersOnly(value) {
+  return foldKey(value).replace(/[^a-z]/g, '')
+}
+
+export function lookupQuery(word) {
+  return foldKey(word)
+    .replace(/[^a-z'-]/g, '')
+    .replace(/^[-']+|[-']+$/g, '')
+}
+
 export function rankTitles(query, titles) {
   const q = foldKey(query)
+  const qLetters = lettersOnly(query)
   return [...new Set(titles)]
     .filter((t) => t && !t.startsWith('-') && !t.includes(':'))
     .map((title, index) => {
       const folded = foldKey(title)
+      const last = folded.split(/[-\s/]+/).filter(Boolean).pop() || ''
       let score = 0
-      if (folded === q) score += 100
+      if (folded === q || lettersOnly(title) === qLetters) score += 100
       else if (folded.startsWith(q) && folded.length <= q.length + 2) score += 20
+      if (foldKey(last) === q) score += 55
+      if (folded.endsWith('-' + q) || folded.endsWith(' ' + q)) score += 35
       if (title === query || title.toUpperCase() === q) score += 16
       if (title === title.toLowerCase()) score += 10
       if (FRENCH_LETTERS.test(title)) score += 8
@@ -304,10 +318,12 @@ async function parsePage(title, wiki = WIKI_FR) {
 }
 
 export async function lookupDefinition(word, lang = 'fr') {
-  const key = foldKey(word).toUpperCase()
-  if (!/^[A-Z]{2,15}$/.test(key)) return { ok: false, error: 'invalid word' }
+  const query = lookupQuery(word)
+  const letters = query.replace(/[-']/g, '')
+  if (letters.length < 2 || letters.length > 30) return { ok: false, error: 'invalid word' }
+  const key = letters.toUpperCase()
   const english = lang === 'en'
-  const cacheKey = (english ? 'en:' : 'fr:') + key
+  const cacheKey = (english ? 'en:' : 'fr:') + query
   const cached = cacheGet(cacheKey)
   if (cached) return cached
   const wiki = english ? WIKI_EN : WIKI_FR
@@ -316,8 +332,8 @@ export async function lookupDefinition(word, lang = 'fr') {
 
   let titles = []
   try {
-    const lemma = key.toLowerCase()
-    titles = rankTitles(key, [lemma, ...await searchTitles(lemma, wiki)])
+    const lemma = query.toLowerCase()
+    titles = rankTitles(query, [lemma, ...await searchTitles(lemma, wiki)])
   } catch {
     return { ok: true, found: false, word: key, source }
   }

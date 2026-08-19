@@ -57,10 +57,17 @@ public final class Lexicon {
         public final String rack;
         public final List<Play> catalog;
 
+        public final String seed;
+
         Deal(String category, String rack, List<Play> catalog) {
+            this(category, rack, catalog, "");
+        }
+
+        Deal(String category, String rack, List<Play> catalog, String seed) {
             this.category = category;
             this.rack = rack;
             this.catalog = catalog;
+            this.seed = seed == null ? "" : seed;
         }
     }
 
@@ -118,8 +125,8 @@ public final class Lexicon {
     }
 
     private static InputStream openLexicon(Context ctx, boolean english) throws IOException {
-        String gz = english ? "data/enable.txt.gz" : "data/ods9.txt.gz";
-        String plain = english ? "data/enable.txt" : "data/ods9.txt";
+        String gz = english ? "data/yawl.txt.gz" : "data/ods9.txt.gz";
+        String plain = english ? "data/yawl.txt" : "data/ods9.txt";
         try {
             return new GZIPInputStream(ctx.getAssets().open(gz));
         } catch (IOException e) {
@@ -167,6 +174,10 @@ public final class Lexicon {
             if (ch >= 'A' && ch <= 'Z') n += val[ch - 'A'];
         }
         return n;
+    }
+
+    public int score(String word, Set<Integer> jokers) {
+        return points(word, jokers);
     }
 
     public static int scoreWord(String word, Set<Integer> jokers) {
@@ -329,11 +340,21 @@ public final class Lexicon {
         return new Deal("bingo", rack, anagrams(rack, 2, rack.length()));
     }
 
+    public Deal kidsDeal() {
+        String seed = Kids.pickLong(this.val == VAL_EN, rng);
+        String rack = shuffle(seed);
+        return new Deal("kids", rack, anagrams(rack, 2, rack.length()), seed);
+    }
+
     public Deal fromRack(String rack) {
+        return fromRack(rack, "");
+    }
+
+    public Deal fromRack(String rack, String seed) {
         String tiles = normalize(rack);
         if (tiles.length() < 2) return challenge();
         if (tiles.length() > 7) tiles = tiles.substring(0, 7);
-        return new Deal(guessCategory(tiles), tiles, anagrams(tiles, 2, tiles.length()));
+        return new Deal(seed.isEmpty() ? guessCategory(tiles) : "kids", tiles, anagrams(tiles, 2, tiles.length()), seed);
     }
 
     private String guessCategory(String tiles) {

@@ -1,19 +1,20 @@
-const CACHE = 'verimots-v33'
+const CACHE = 'verimots-v60'
 const SHELL = [
   './',
   './index.html',
-  './app.css?v=33',
-  './app.js?v=33',
-  './game.js?v=33',
-  './history.js?v=32',
-  './i18n.js?v=33',
-  './worker.js?v=33',
+  './app.css?v=60',
+  './app.js?v=56',
+  './game.js?v=56',
+  './history.js?v=45',
+  './i18n.js?v=56',
+  './worker.js?v=47',
+  './kids.js?v=47',
   './favicon.svg',
   './manifest.webmanifest',
   './data/meta.json',
   './data/meta-en.json',
   './data/ods9.txt.gz',
-  './data/enable.txt.gz',
+  './data/yawl.txt.gz',
 ]
 
 self.addEventListener('install', (event) => {
@@ -34,6 +35,11 @@ self.addEventListener('fetch', (event) => {
   const req = event.request
   if (req.method !== 'GET') return
   const url = new URL(req.url)
+  if (url.origin !== self.location.origin) return
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(req))
+    return
+  }
   if (url.pathname.endsWith('.apk') || url.pathname.endsWith('/apk.json')) {
     event.respondWith(fetch(req))
     return

@@ -1,18 +1,8 @@
-import { initGame, parseRack, linkifyDef, backBtn } from './game.js?v=33'
-import { loadHistory, rememberWord, mergeHistory, historyLabel } from './history.js?v=33'
-import { isCompetitive, setCompetitive, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=33'
-import { initLang, setLang, getLang, t } from './i18n.js?v=33'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues } from './game.js?v=56'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=56'
+import { isCompetitive, isKids, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=56'
+import { initLang, setLang, getLang, t } from './i18n.js?v=56'
 
-const FR_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 2, N: 1, O: 1, P: 3, Q: 8, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10,
-}
-const EN_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
-}
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
   J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
@@ -23,10 +13,8 @@ const EN_COUNTS = {
   J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
   S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1, '?': 2,
 }
-const VALUES = FR_VALUES
-const COUNTS = FR_COUNTS
 function letterValues() {
-  return getLang() === 'en' ? EN_VALUES : FR_VALUES
+  return tileValues(getLang())
 }
 function letterCounts() {
   return getLang() === 'en' ? EN_COUNTS : FR_COUNTS
@@ -56,7 +44,7 @@ const histOut = document.getElementById('hist-out')
 const histClose = document.getElementById('hist-close')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=33')
+const worker = new Worker('worker.js?v=56', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -77,9 +65,10 @@ const WA_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6
 
 function ask(type, payload = {}) {
   const id = ++seq
+  const lang = getLang()
   return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject })
-    worker.postMessage({ type, id, ...payload })
+    pending.set(id, { resolve, reject, lang })
+    worker.postMessage({ type, id, lang, ...payload })
   })
 }
 
@@ -114,7 +103,13 @@ function tilesHtml(word, jokers = [], opts = {}) {
 }
 
 function wikiUrl(word, lemma) {
-  return `https://fr.wiktionary.org/wiki/${encodeURIComponent(lemma || word.toLowerCase())}`
+  const title = lemma || String(word || '').toLowerCase()
+  const host = getLang() === 'en' ? 'en.wiktionary.org' : 'fr.wiktionary.org'
+  return `https://${host}/wiki/${encodeURIComponent(title)}`
+}
+
+function isCompoundLemma(value) {
+  return /[-'’]/.test(String(value || ''))
 }
 
 const defCache = new Map()
@@ -156,7 +151,7 @@ function waHref(share) {
 
 function shareHtml(share) {
   if (!share?.word) return ''
-  const label = share.ok ? 'Partager sur WhatsApp' : 'Partager ce refus'
+  const label = share.ok ? t('share_wa') : t('share_refuse')
   return `<div class="share-row">
     <a class="wa-share" href="${escapeHtml(waHref(share))}" target="_blank" rel="noopener noreferrer">${WA_ICON}${label}</a>
   </div>`
@@ -167,15 +162,15 @@ function firstDef(payload) {
 }
 
 function defsHtml(payload) {
-  if (!payload) return `<div class="defs" id="defs"><p class="pending">Définition…</p></div>`
+  if (!payload) return `<div class="defs" id="defs"><p class="pending">${t('def_pending')}</p></div>`
   if (!payload.found || !payload.senses?.length) {
     return `<div class="defs" id="defs">
-      <h3>Définition</h3>
-      <p class="empty">${payload.offline ? 'Définition disponible avec une connexion.' : 'Pas de définition Wiktionnaire pour cette forme.'}</p>
+      <h3>${t('def_heading')}</h3>
+      <p class="empty">${payload.offline ? t('def_need_net') : t('def_missing')}</p>
     </div>`
   }
   const lemma = payload.lemma && foldKeyClient(payload.lemma) !== foldKeyClient(payload.word)
-    ? `<p class="lemma">Entrée : <button type="button" class="form-of" data-form-of="${escapeHtml(payload.lemma)}">${escapeHtml(payload.lemma)}</button></p>`
+    ? `<p class="lemma">${t('lemma_entry')} <button type="button" class="form-of" data-form-of="${escapeHtml(payload.lemma)}">${escapeHtml(payload.lemma)}</button></p>`
     : ''
   const blocks = payload.senses.slice(0, 2).map((sense) => `
     <div class="sense">
@@ -183,16 +178,17 @@ function defsHtml(payload) {
       <ol>${sense.defs.slice(0, 4).map((d) => `<li>${linkifyDef(d, escapeHtml)}</li>`).join('')}</ol>
     </div>`).join('')
   return `<div class="defs" id="defs">
-    <h3>Définition</h3>
+    <h3>${t('def_heading')}</h3>
     ${lemma}
     ${blocks}
-    <p class="defs-src">Définition : <a href="${escapeHtml(payload.url || wikiUrl(payload.word, payload.lemma))}" target="_blank" rel="noopener noreferrer">Wiktionnaire</a> (connexion requise).</p>
+    <p class="defs-src">${t('def_src')} <a href="${escapeHtml(payload.url || wikiUrl(payload.word, payload.lemma))}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a> ${t('wiki_need_net')}</p>
   </div>`
 }
 
 async function loadDefinition(word, opts = {}) {
-  const key = word.toUpperCase()
-  const cacheKey = `${getLang()}:${key}`
+  const key = String(word || '').trim()
+  if (!key) return { ok: true, found: false, word: '' }
+  const cacheKey = `${getLang()}:${foldKeyClient(key)}`
   if (defCache.has(cacheKey)) return defCache.get(cacheKey)
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return { ok: true, found: false, offline: true, word: key }
@@ -235,23 +231,27 @@ function renderHistory() {
   const rows = loadHistory()
   if (!histOut) return
   const title = document.getElementById('hist-title')
-  if (title) title.textContent = getCurrentUser() ? 'Historique · compte' : 'Historique'
+  const clearBtn = document.getElementById('hist-clear')
+  if (title) title.textContent = getCurrentUser() ? t('hist_account') : t('hist_local')
+  if (clearBtn) {
+    clearBtn.hidden = !rows.length
+    clearBtn.textContent = t('hist_clear')
+  }
   if (!rows.length) {
     histOut.innerHTML = `<p class="empty">${
-      getCurrentUser()
-        ? 'Les mots vérifiés et joués restent sur ton compte.'
-        : 'Connecte-toi pour garder l’historique. Les mots de cette session restent ici.'
+      getCurrentUser() ? t('hist_empty_user') : t('hist_empty_guest')
     }</p>`
     return
   }
   histOut.innerHTML = `<table class="hist-table">
-    <thead><tr><th>Mot</th><th>Pts</th><th></th></tr></thead>
+    <thead><tr><th>${t('hist_word')}</th><th>${t('hist_pts')}</th><th>${t('hist_kind')}</th><th>${t('hist_when')}</th></tr></thead>
     <tbody>${rows
       .map(
         (row) => `<tr data-word="${escapeHtml(row.word)}">
       <td class="hist-word">${escapeHtml(row.word)}</td>
       <td class="hist-pts">${row.pts}</td>
       <td class="hist-src">${historyLabel(row.src)}</td>
+      <td class="hist-when">${escapeHtml(historyWhen(row.at))}</td>
     </tr>`
       )
       .join('')}</tbody>
@@ -272,7 +272,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=32').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=56').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -281,7 +281,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=32')
+    const { fetchHistory } = await import('./competitive.js?v=56')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -289,7 +289,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=32')
+    const { saveHistoryWord } = await import('./competitive.js?v=56')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -298,10 +298,27 @@ async function syncCloudHistory() {
   }
 }
 
+function isDesk() {
+  return window.matchMedia('(min-width: 900px)').matches
+}
+
+function boardSplit() {
+  return isDesk() && (isCompetitive() || isKids()) && (nav === 'game' || nav === 'board')
+}
+
 function showPanel(name) {
+  const split = boardSplit()
   document.querySelectorAll('[data-panel]').forEach((el) => {
-    el.hidden = el.dataset.panel !== name
+    const key = el.dataset.panel
+    if (split && (key === 'game' || key === 'board')) {
+      el.hidden = false
+      return
+    }
+    el.hidden = key !== name
   })
+  document.body.classList.toggle('game-split', split)
+  const fabBoard = document.getElementById('fab-board')
+  if (fabBoard) fabBoard.hidden = isDesk() || !(isCompetitive() || isKids())
 }
 
 function writeUrl() {
@@ -314,6 +331,7 @@ function writeUrl() {
     if (gameRack) p.set('d', gameRack)
     if (gameCat) p.set('c', gameCat)
   }
+  if (nav === 'board') p.set('vue', 'classement')
   if (nav === 'rack') p.set('vue', 'tiroir')
   if (nav === 'info') p.set('vue', 'info')
   if (advanced) {
@@ -332,7 +350,7 @@ function writeUrl() {
   history.replaceState(null, '', next)
   writingUrl = false
   document.title =
-    nav === 'game' ? 'Défi · Verimots' : nav === 'rack' ? 'Tiroir · Verimots' : word ? `${word} · Verimots` : 'Verimots — Vérificateur hors ligne'
+    nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : word ? `${word} · Verimots` : t('title')
 }
 
 function readUrl() {
@@ -343,12 +361,14 @@ function readUrl() {
   nav =
     vue === 'jeu'
       ? 'game'
-      : vue === 'tiroir'
-        ? 'rack'
-        : ['check', 'lists', 'info', 'rack', 'game'].includes(vue)
-          ? vue
-          : 'check'
-  if (!advanced && nav !== 'game' && nav !== 'info') nav = 'check'
+      : vue === 'classement'
+        ? 'board'
+        : vue === 'tiroir'
+          ? 'rack'
+          : ['check', 'lists', 'info', 'rack', 'game', 'board'].includes(vue)
+            ? vue
+            : 'check'
+  if (!advanced && nav !== 'game' && nav !== 'info' && nav !== 'board') nav = 'check'
   findMode = ['prefix', 'suffix', 'has', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
   if (p.get('len') && /^\d+$/.test(p.get('len'))) rackLen = p.get('len')
   if (word) q.value = word
@@ -362,6 +382,7 @@ function syncChrome() {
     lists: t('title_lists'),
     info: t('title_info'),
     game: t('title_game'),
+    board: t('title_board'),
   }
   const placeholders = {
     check: findMode === 'exact' ? t('placeholder') : t('placeholder_find'),
@@ -374,26 +395,29 @@ function syncChrome() {
     has: t('hint_has'),
   }
   const keepClosed = nav === 'game' && document.body.classList.contains('game-closed')
-  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}`
+  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}`
   brandSub.textContent = titles[nav] || titles.check
   document.title =
-    nav === 'game' ? t('doc_game') : nav === 'rack' ? t('doc_rack') : t('title')
+    nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : t('title')
   const apk = document.querySelector('.apk-link')
   if (apk) apk.hidden = inApp
   document.querySelectorAll('.legal-link').forEach((el) => {
-    el.hidden = nav === 'game'
+    el.hidden = nav === 'game' || nav === 'board'
     const href = el.getAttribute('href') || ''
     if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy'))) {
       el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : '/confidentialite.html')
     }
   })
   advToggle.textContent = advanced ? t('simple') : t('advanced')
-  advNav.hidden = !advanced || nav === 'game'
-  search.hidden = nav === 'game' || nav === 'lists' || nav === 'info'
+  advNav.hidden = !advanced || nav === 'game' || nav === 'board'
+  search.hidden = nav === 'game' || nav === 'board' || nav === 'lists' || nav === 'info'
+  const fabBoard = document.getElementById('fab-board')
+  if (fabBoard) fabBoard.hidden = isDesk() || !(isCompetitive() || isKids())
   document.querySelectorAll('.fab[data-fab]').forEach((btn) => {
     const on =
+      (nav === 'board' && btn.dataset.fab === 'board') ||
       (nav === 'game' && btn.dataset.fab === 'game') ||
-      (nav !== 'game' && btn.dataset.fab === 'check')
+      (nav !== 'game' && nav !== 'board' && btn.dataset.fab === 'check')
     btn.setAttribute('aria-current', on ? 'page' : 'false')
   })
   qLabel.textContent = nav === 'rack' ? t('q_label_rack') : t('q_label')
@@ -440,6 +464,7 @@ function setNav(name) {
   showPanel(name)
   if (name === 'lists') renderLists()
   if (name === 'game') game?.open(challengeFromUrl())
+  if (name === 'board') game?.showBoard?.()
   if (name === 'check' || name === 'rack') {
     renderRackPreview()
     run()
@@ -521,7 +546,7 @@ function renderCheck(word, result) {
       ${tilesHtml(result.word)}
       <div class="meta-line">
         <span>${t('letters_pts', result.word.length, result.score)}</span>
-        <a href="${wikiUrl(result.word)}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
+        <a href="${escapeHtml(result.definition?.url || wikiUrl(result.word, result.definition?.lemma))}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
       </div>
       ${shareHtml(lastShare)}
       ${defsHtml(result.definition)}`
@@ -616,7 +641,7 @@ async function run() {
   if (qJoker) qJoker.disabled = blankCount(raw) >= 2 || raw.length >= 16
   writeUrl()
 
-  if (nav === 'lists' || nav === 'info' || nav === 'game') return
+  if (nav === 'lists' || nav === 'info' || nav === 'game' || nav === 'board') return
 
   if (nav === 'check' && findMode === 'exact') {
     findOut.hidden = true
@@ -629,6 +654,7 @@ async function run() {
       return
     }
     const result = await ask('check', { word: raw })
+    if (result.lang && result.lang !== getLang()) return
     if (normalize(q.value) !== raw || nav !== 'check' || findMode !== 'exact') return
     renderCheck(raw, result)
     if (result.ok) {
@@ -653,6 +679,7 @@ async function run() {
       return
     }
     const result = await ask('find', { mode: findMode, q: raw })
+    if (result.lang && result.lang !== getLang()) return
     if (normalize(q.value) === raw && nav === 'check') renderFind(result.words, raw)
     return
   }
@@ -670,6 +697,7 @@ async function run() {
     const max = rackLen === 'all' ? raw.length : Number(rackLen)
     const min = rackLen === 'all' ? 2 : Number(rackLen)
     const result = await ask('anagram', { rack: raw, min, max })
+    if (result.lang && result.lang !== getLang()) return
     if (normalize(q.value) !== raw || nav !== 'rack') return
     const n = (result.groups || []).reduce((c, g) => c + g.words.length, 0)
     renderGroups(
@@ -686,8 +714,38 @@ function schedule() {
   debounce = setTimeout(run, nav === 'check' && findMode === 'exact' ? 40 : 140)
 }
 
+async function showCompoundDef(lemma) {
+  const current = normalize(q.value)
+  setHistOpen(false)
+  setNav('check')
+  findMode = 'exact'
+  const definition = await loadDefinition(lemma, { stable: true })
+  if (current && ready) {
+    const result = await ask('check', { word: current })
+    if (result.lang && result.lang !== getLang()) return
+    if (normalize(q.value) !== current || nav !== 'check') return
+    if (result.ok) {
+      renderCheck(current, { ...result, definition })
+      return
+    }
+  }
+  verdict.hidden = false
+  verdict.className = 'verdict ok'
+  const back = current ? backBtn(current, escapeHtml) : wordStack.length ? backBtn(wordStack.at(-1), escapeHtml) : ''
+  verdict.innerHTML = `
+    ${back}
+    <div class="status">${t('def_heading')}</div>
+    <p class="word">${escapeHtml(lemma)}</p>
+    ${defsHtml(definition)}`
+}
+
 function openWord(word, opts = {}) {
-  const next = normalize(word)
+  const original = String(word || '').trim()
+  if (opts.fromDef && isCompoundLemma(original)) {
+    showCompoundDef(original)
+    return
+  }
+  const next = normalize(original)
   const current = normalize(q.value)
   if (opts.fromDef && current && current !== next) wordStack.push(current)
   else if (!opts.fromDef) wordStack = []
@@ -712,11 +770,110 @@ function applyUrl() {
   showPanel(nav)
   if (nav === 'lists') renderLists()
   if (nav === 'game') game?.open(challengeFromUrl())
+  if (nav === 'board') game?.showBoard?.()
   if (nav === 'check' || nav === 'rack') run()
 }
 
+const feedbackSheet = document.getElementById('feedback-sheet')
+const feedbackForm = document.getElementById('feedback-form')
+const feedbackMsg = document.getElementById('feedback-msg')
+const feedbackEmail = document.getElementById('feedback-email')
+const feedbackHp = document.getElementById('feedback-hp')
+const feedbackStatus = document.getElementById('feedback-status')
+const feedbackSend = document.getElementById('feedback-send')
+const feedbackFab = document.getElementById('fab-feedback')
+
+function setFeedbackOpen(on) {
+  if (!feedbackSheet) return
+  feedbackSheet.hidden = !on
+  feedbackFab?.setAttribute('aria-expanded', on ? 'true' : 'false')
+  if (on) {
+    if (feedbackStatus) {
+      feedbackStatus.hidden = true
+      feedbackStatus.textContent = ''
+    }
+    feedbackMsg?.focus()
+  }
+}
+
+feedbackFab?.addEventListener('click', () => setFeedbackOpen(feedbackSheet?.hidden))
+document.getElementById('feedback-close')?.addEventListener('click', () => setFeedbackOpen(false))
+feedbackSheet?.addEventListener('click', (e) => {
+  if (e.target === feedbackSheet) setFeedbackOpen(false)
+})
+feedbackForm?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const message = String(feedbackMsg?.value || '').trim()
+  if (message.length < 4) {
+    if (feedbackStatus) {
+      feedbackStatus.hidden = false
+      feedbackStatus.className = 'feedback-status bad'
+      feedbackStatus.textContent = t('feedback_need')
+    }
+    feedbackMsg?.focus()
+    return
+  }
+  if (feedbackSend) {
+    feedbackSend.disabled = true
+    feedbackSend.textContent = t('feedback_sending')
+  }
+  if (feedbackStatus) feedbackStatus.hidden = true
+  try {
+    const user = getCurrentUser()
+    const res = await fetch('/api/game/feedback', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        email: String(feedbackEmail?.value || '').trim(),
+        name: user?.name || '',
+        lang: getLang(),
+        source: inApp ? 'android-web' : 'web',
+        website: String(feedbackHp?.value || ''),
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data?.ok) throw new Error(data?.error || 'fail')
+    if (feedbackStatus) {
+      feedbackStatus.hidden = false
+      feedbackStatus.className = 'feedback-status ok'
+      feedbackStatus.textContent = t('feedback_ok')
+    }
+    if (feedbackMsg) feedbackMsg.value = ''
+    setTimeout(() => setFeedbackOpen(false), 900)
+  } catch {
+    if (feedbackStatus) {
+      feedbackStatus.hidden = false
+      feedbackStatus.className = 'feedback-status bad'
+      feedbackStatus.textContent = t('feedback_err')
+    }
+  } finally {
+    if (feedbackSend) {
+      feedbackSend.disabled = false
+      feedbackSend.textContent = t('feedback_send')
+    }
+  }
+})
+
 histBtn?.addEventListener('click', () => setHistOpen(histSheet.hidden))
 histClose?.addEventListener('click', () => setHistOpen(false))
+document.getElementById('about-hist')?.addEventListener('click', () => setHistOpen(true))
+document.getElementById('hist-clear')?.addEventListener('click', async () => {
+  if (!loadHistory().length) return
+  if (!window.confirm(t('hist_clear_confirm'))) return
+  clearHistory()
+  paintHistBtn()
+  renderHistory()
+  if (getCurrentUser()) {
+    try {
+      const { clearCloudHistory } = await import('./competitive.js?v=56')
+      await clearCloudHistory()
+    } catch {
+      /* offline */
+    }
+  }
+})
 histSheet?.addEventListener('click', (e) => {
   if (e.target === histSheet) setHistOpen(false)
 })
@@ -784,7 +941,7 @@ document.body.addEventListener('click', (e) => {
   }
   const formOf = e.target.closest('[data-form-of]')
   if (formOf && nav === 'check') {
-    openWord(normalize(formOf.dataset.formOf), { fromDef: true })
+    openWord(formOf.dataset.formOf, { fromDef: true })
     return
   }
   if (e.target.closest('#rack-add-blank')) {
@@ -839,6 +996,7 @@ const game = initGame({
   ready: () => ready,
   define: loadDefinition,
   isCompetitive,
+  isKids,
   onDeal(tiles, cat) {
     gameRack = tiles
     gameCat = cat
@@ -860,11 +1018,14 @@ async function loadMeta() {
 async function reloadLexicon() {
   ready = false
   setLive(t('loading'))
-  const result = await ask('load', { lang: getLang() })
+  const wanted = getLang()
+  const result = await ask('load', { lang: wanted })
+  if (getLang() !== wanted) return
   ready = true
   setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
   if (nav === 'check' || nav === 'rack') run()
   else if (nav === 'lists') renderLists()
+  else if (nav === 'game' || nav === 'board') game?.refresh?.()
 }
 
 async function switchLang(next) {
@@ -912,6 +1073,7 @@ async function boot() {
     if (nav === 'check' || nav === 'rack') run()
     else if (nav === 'lists') renderLists()
     else if (nav === 'game') game.open(challengeFromUrl())
+    else if (nav === 'board') game.showBoard()
   } catch (err) {
     setLive(t('lex_fail'))
     if (hint) hint.textContent = t('lex_fail')
@@ -920,22 +1082,42 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=32').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=56').catch(() => {})
 }
 
+window.addEventListener('resize', () => {
+  if (nav === 'game' || nav === 'board') {
+    syncChrome()
+    showPanel(nav)
+  }
+})
+
 document.getElementById('mode-defi')?.addEventListener('click', async () => {
-  setCompetitive(false)
-  await game.switchMode(false)
+  setGameMode('defi')
+  if (nav === 'board') setNav('game')
+  await game.switchMode('defi')
+  syncChrome()
+  showPanel(nav)
+})
+
+document.getElementById('mode-kids')?.addEventListener('click', async () => {
+  setGameMode('kids')
+  if (nav === 'board') setNav('game')
+  await game.switchMode('kids')
+  syncChrome()
+  showPanel(nav)
 })
 
 document.getElementById('mode-comp')?.addEventListener('click', async () => {
-  setCompetitive(true)
-  await game.switchMode(true)
+  setGameMode('competitive')
+  await game.switchMode('competitive')
+  syncChrome()
+  showPanel(nav)
 })
 
 document.getElementById('logout-btn')?.addEventListener('click', async () => {
   await logout()
-  await game.switchMode(true)
+  await game.switchMode(isKids() ? 'kids' : isCompetitive() ? 'competitive' : 'defi')
   if (histSheet && !histSheet.hidden) renderHistory()
 })
 

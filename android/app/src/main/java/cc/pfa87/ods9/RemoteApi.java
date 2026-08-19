@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +38,9 @@ final class RemoteApi {
 
     interface TrailCb {
         void ok(String trailId, String category, String rack);
+        default void ok(String trailId, String category, String rack, String seed) {
+            ok(trailId, category, rack);
+        }
         void error(String message);
     }
 
@@ -69,7 +73,8 @@ final class RemoteApi {
         IO.execute(() -> {
             try {
                 String langQ = "en".equals(lang) ? "&lang=en" : "";
-                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/define?w=" + word + langQ).openConnection();
+                String q = URLEncoder.encode(word == null ? "" : word, StandardCharsets.UTF_8).replace("+", "%20");
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/define?w=" + q + langQ).openConnection();
                 c.setConnectTimeout(8000);
                 c.setReadTimeout(8000);
                 c.setRequestProperty("Accept", "application/json");
@@ -117,6 +122,43 @@ final class RemoteApi {
         });
     }
 
+    interface FeedbackCb {
+        void ok();
+        void error(String message);
+    }
+
+    static void sendFeedback(String message, String email, String lang, FeedbackCb cb) {
+        IO.execute(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("message", message == null ? "" : message);
+                body.put("email", email == null ? "" : email);
+                body.put("lang", "en".equals(lang) ? "en" : "fr");
+                body.put("source", "android");
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/feedback").openConnection();
+                auth(c);
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(12000);
+                c.setDoOutput(true);
+                c.setRequestMethod("POST");
+                c.setRequestProperty("Content-Type", "application/json");
+                byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8);
+                try (OutputStream os = c.getOutputStream()) {
+                    os.write(bytes);
+                }
+                int code = c.getResponseCode();
+                JSONObject o = new JSONObject(read(c));
+                if (code >= 400 || !o.optBoolean("ok")) {
+                    post(() -> cb.error(o.optString("error", "fail")));
+                    return;
+                }
+                post(cb::ok);
+            } catch (Exception e) {
+                post(() -> cb.error("offline"));
+            }
+        });
+    }
+
     static void postScore(int percent, AvgCb cb) {
         IO.execute(() -> {
             try {
@@ -158,10 +200,16 @@ final class RemoteApi {
         return bos.toString("UTF-8");
     }
 
-    static void fetchTrail(TrailCb cb) {
+    static void fetchTrail(String lang, TrailCb cb) {
+        fetchTrail(lang, false, cb);
+    }
+
+    static void fetchTrail(String lang, boolean kids, TrailCb cb) {
         IO.execute(() -> {
             try {
-                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/trail").openConnection();
+                String q = "en".equals(lang) ? "?lang=en" : "?lang=fr";
+                if (kids) q += "&kids=1";
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/trail" + q).openConnection();
                 auth(c);
                 c.setConnectTimeout(6000);
                 c.setReadTimeout(6000);
@@ -170,7 +218,8 @@ final class RemoteApi {
                     String trailId = o.optString("trailId");
                     String category = o.optString("category");
                     String rack = o.optString("rack");
-                    post(() -> cb.ok(trailId, category, rack));
+                    String seed = o.optString("seed", "");
+                    post(() -> cb.ok(trailId, category, rack, seed));
                 } else post(() -> cb.error("Trail non disponible"));
             } catch (Exception e) {
                 post(() -> cb.error("Connexion requise"));
@@ -178,11 +227,16 @@ final class RemoteApi {
         });
     }
 
-    static void fetchBoard(String trailId, BoardCb cb) {
+    static void fetchBoard(String trailId, String lang, BoardCb cb) {
+        fetchBoard(trailId, lang, false, cb);
+    }
+
+    static void fetchBoard(String trailId, String lang, boolean kids, BoardCb cb) {
         IO.execute(() -> {
             try {
-                String url = HOST + "/api/game/board";
-                if (trailId != null && !trailId.isEmpty()) url += "?trailId=" + trailId;
+                String url = HOST + "/api/game/board?lang=" + ("en".equals(lang) ? "en" : "fr");
+                if (kids) url += "&kids=1";
+                if (trailId != null && !trailId.isEmpty()) url += "&trailId=" + trailId;
                 HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
                 auth(c);
                 c.setConnectTimeout(6000);
@@ -195,6 +249,31 @@ final class RemoteApi {
                     post(() -> cb.ok(top, me));
                 } else post(() -> cb.error("Classement non disponible"));
             } catch (Exception e) {
+                post(() -> cb.error("Connexion requise"));
+            }
+        });
+    }
+
+    static void fetchMe(String token, AuthCb cb) {
+        IO.execute(() -> {
+            String prev = sessionToken;
+            if (token != null && !token.isEmpty()) sessionToken = token;
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/auth/me").openConnection();
+                auth(c);
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(8000);
+                JSONObject o = new JSONObject(read(c));
+                if (o.optBoolean("ok")) {
+                    JSONObject user = o.optJSONObject("user");
+                    if (user != null) post(() -> cb.ok(user, sessionToken));
+                    else post(() -> cb.error("Pas de données utilisateur"));
+                } else {
+                    sessionToken = prev;
+                    post(() -> cb.error(o.optString("error", "not_logged_in")));
+                }
+            } catch (Exception e) {
+                sessionToken = prev;
                 post(() -> cb.error("Connexion requise"));
             }
         });
@@ -248,6 +327,25 @@ final class RemoteApi {
         });
     }
 
+    static void clearHistory(HistoryCb cb) {
+        IO.execute(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/history").openConnection();
+                auth(c);
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(8000);
+                c.setRequestMethod("DELETE");
+                JSONObject o = new JSONObject(read(c));
+                if (o.optBoolean("ok")) {
+                    JSONArray history = o.optJSONArray("history");
+                    post(() -> cb.ok(history != null ? history : new JSONArray(), o.optJSONObject("stats")));
+                } else post(() -> cb.error(o.optString("error", "historique indisponible")));
+            } catch (Exception e) {
+                post(() -> cb.error("Connexion requise"));
+            }
+        });
+    }
+
     static void saveHistory(String word, int pts, String src) {
         IO.execute(() -> {
             try {
@@ -272,7 +370,15 @@ final class RemoteApi {
         });
     }
 
-    static void compete(int percent, String word, CompeteCb cb) {
+    static void compete(int percent, String word, String lang, CompeteCb cb) {
+        compete(percent, word, lang, false, null, cb);
+    }
+
+    static void compete(int percent, String word, String lang, boolean kids, CompeteCb cb) {
+        compete(percent, word, lang, kids, null, cb);
+    }
+
+    static void compete(int percent, String word, String lang, boolean kids, String rack, CompeteCb cb) {
         IO.execute(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/compete").openConnection();
@@ -282,10 +388,13 @@ final class RemoteApi {
                 c.setDoOutput(true);
                 c.setRequestMethod("POST");
                 c.setRequestProperty("Content-Type", "application/json");
-                String payload = "{\"percent\":" + percent;
-                if (word != null && !word.isEmpty()) payload += ",\"word\":\"" + word + "\"";
-                payload += "}";
-                byte[] body = payload.getBytes(StandardCharsets.UTF_8);
+                JSONObject payload = new JSONObject();
+                payload.put("percent", percent);
+                if (word != null && !word.isEmpty()) payload.put("word", word);
+                payload.put("lang", "en".equals(lang) ? "en" : "fr");
+                if (kids) payload.put("kids", true);
+                if (rack != null && !rack.isEmpty()) payload.put("rack", rack);
+                byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
                 try (OutputStream os = c.getOutputStream()) {
                     os.write(body);
                 }

@@ -1,9 +1,25 @@
+import { t, getLang } from './i18n.js?v=47'
+
 const KEY = 'ods9-session-v1'
 const MAX = 80
 
+function webStore() {
+  try {
+    if (typeof localStorage !== 'undefined') return localStorage
+  } catch {
+    /* blocked */
+  }
+  try {
+    if (typeof sessionStorage !== 'undefined') return sessionStorage
+  } catch {
+    /* blocked */
+  }
+  return null
+}
+
 function readStore(storage) {
   try {
-    const raw = (storage || globalThis.sessionStorage).getItem(KEY)
+    const raw = (storage || webStore())?.getItem(KEY)
     const rows = raw ? JSON.parse(raw) : []
     return Array.isArray(rows) ? rows : []
   } catch {
@@ -13,14 +29,26 @@ function readStore(storage) {
 
 function writeStore(storage, rows) {
   try {
-    ;(storage || globalThis.sessionStorage).setItem(KEY, JSON.stringify(rows))
+    ;(storage || webStore())?.setItem(KEY, JSON.stringify(rows))
   } catch {
     /* private mode */
   }
 }
 
 export function loadHistory(storage) {
-  return readStore(storage)
+  if (storage) return readStore(storage)
+  const local = readStore(webStore())
+  if (local.length) return local
+  try {
+    const session = readStore(sessionStorage)
+    if (session.length) {
+      writeStore(webStore(), session)
+      return session
+    }
+  } catch {
+    /* ignore */
+  }
+  return []
 }
 
 export function mergeHistory(remote, storage) {
@@ -62,5 +90,17 @@ export function rememberWord(entry, storage) {
 }
 
 export function historyLabel(src) {
-  return src === 'dico' ? 'Dico' : 'Défi'
+  return src === 'dico' ? t('hist_dico') : t('hist_defi')
+}
+
+export function historyWhen(at) {
+  const d = new Date(Number(at) || 0)
+  if (!Number.isFinite(d.getTime()) || d.getTime() <= 0) return ''
+  const loc = getLang() === 'en' ? 'en-GB' : 'fr-FR'
+  return d.toLocaleDateString(loc, { day: 'numeric', month: 'short' })
+}
+
+export function clearHistory(storage) {
+  writeStore(storage, [])
+  return []
 }

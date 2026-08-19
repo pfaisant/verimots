@@ -1,4 +1,5 @@
 /* Verimots lexicon worker — lookup, anagrams, patterns. */
+import { dealKids } from './kids.js?v=47'
 
 const FR_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
@@ -209,8 +210,8 @@ function matchFind(mode, q) {
 async function load(lang = 'fr') {
   const next = lang === 'en' ? 'en' : 'fr'
   if (ready && currentLang === next) return words.length
-  const file = next === 'en' ? 'data/enable.txt.gz' : 'data/ods9.txt.gz'
-  const plain = next === 'en' ? 'data/enable.txt' : 'data/ods9.txt'
+  const file = next === 'en' ? 'data/yawl.txt.gz' : 'data/ods9.txt.gz'
+  const plain = next === 'en' ? 'data/yawl.txt' : 'data/ods9.txt'
   let res = await fetch(file, { cache: 'force-cache' })
   if (!res.ok) res = await fetch(plain, { cache: 'force-cache' })
   if (!res.ok) throw new Error('lexicon ' + res.status)
@@ -232,46 +233,59 @@ async function load(lang = 'fr') {
   return words.length
 }
 
-self.onmessage = async (ev) => {
-  const msg = ev.data || {}
-  try {
-    if (msg.type === 'load') {
-      const count = await load(msg.lang || 'fr')
-      self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang })
-      return
-    }
-    if (!ready) await load()
-    if (msg.type === 'check') {
-      const word = String(msg.word || '').toUpperCase()
-      const ok = wordSet.has(word)
-      self.postMessage({
-        type: 'check',
-        id: msg.id,
-        word,
-        ok,
-        score: ok ? scoreWord(word) : 0,
-      })
-      return
-    }
-    if (msg.type === 'anagram') {
-      const rack = String(msg.rack || '').toUpperCase()
-      const groups = anagrams(rack, Number(msg.min) || 2, Number(msg.max) || 15)
-      self.postMessage({ type: 'anagram', id: msg.id, groups })
-      return
-    }
-    if (msg.type === 'challenge') {
-      const deal = dealChallenge()
-      self.postMessage({ type: 'challenge', id: msg.id, ...deal })
-      return
-    }
-    if (msg.type === 'find') {
-      const q = String(msg.q || '').toUpperCase()
-      const wordsOut = matchFind(msg.mode, q)
-      self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode })
-      return
-    }
-    self.postMessage({ type: 'error', id: msg.id, error: 'unknown ' + msg.type })
-  } catch (err) {
-    self.postMessage({ type: 'error', id: msg.id, error: String(err && err.message || err) })
+async function handle(msg) {
+  if (msg.type === 'load') {
+    const count = await load(msg.lang || 'fr')
+    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang })
+    return
   }
+  const want = msg.lang === 'en' || msg.lang === 'fr' ? msg.lang : currentLang || 'fr'
+  if (!ready || currentLang !== want) await load(want)
+  if (msg.type === 'check') {
+    const word = String(msg.word || '').toUpperCase()
+    const ok = wordSet.has(word)
+    self.postMessage({
+      type: 'check',
+      id: msg.id,
+      word,
+      ok,
+      score: ok ? scoreWord(word) : 0,
+      lang: currentLang,
+    })
+    return
+  }
+  if (msg.type === 'anagram') {
+    const rack = String(msg.rack || '').toUpperCase()
+    const groups = anagrams(rack, Number(msg.min) || 2, Number(msg.max) || rack.length || 15)
+    self.postMessage({ type: 'anagram', id: msg.id, groups, lang: currentLang })
+    return
+  }
+  if (msg.type === 'kids') {
+    const deal = dealKids(want)
+    const groups = anagrams(deal.rack, 2, deal.rack.length)
+    self.postMessage({ type: 'kids', id: msg.id, ...deal, groups, lang: currentLang })
+    return
+  }
+  if (msg.type === 'challenge') {
+    const deal = dealChallenge()
+    self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang })
+    return
+  }
+  if (msg.type === 'find') {
+    const q = String(msg.q || '').toUpperCase()
+    const wordsOut = matchFind(msg.mode, q)
+    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang })
+    return
+  }
+  self.postMessage({ type: 'error', id: msg.id, error: 'unknown ' + msg.type, lang: currentLang })
+}
+
+let chain = Promise.resolve()
+self.onmessage = (ev) => {
+  const msg = ev.data || {}
+  chain = chain
+    .then(() => handle(msg))
+    .catch((err) => {
+      self.postMessage({ type: 'error', id: msg.id, error: String((err && err.message) || err) })
+    })
 }

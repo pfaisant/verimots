@@ -1,4 +1,4 @@
-// Competitive mode for Verimots: daily trail + Google Sign-In + leaderboard
+// Competitive mode for Verimots: weekly trail + Google Sign-In + leaderboard
 // Only loaded when user switches to competitive mode
 
 const WEB_CLIENT_ID = '617674779621-vu2iv3rjfcs08nrf5m6apn2ivnh9rim7.apps.googleusercontent.com'
@@ -7,12 +7,25 @@ let gsReady = false
 let currentUser = null
 let trailData = null
 
+export function getGameMode() {
+  const mode = sessionStorage.getItem('verimots-mode')
+  return mode === 'competitive' || mode === 'kids' ? mode : 'defi'
+}
+
+export function setGameMode(mode) {
+  sessionStorage.setItem('verimots-mode', mode === 'competitive' || mode === 'kids' ? mode : 'defi')
+}
+
 export function isCompetitive() {
-  return sessionStorage.getItem('verimots-mode') === 'competitive'
+  return getGameMode() === 'competitive'
+}
+
+export function isKids() {
+  return getGameMode() === 'kids'
 }
 
 export function setCompetitive(on) {
-  sessionStorage.setItem('verimots-mode', on ? 'competitive' : 'defi')
+  setGameMode(on ? 'competitive' : 'defi')
 }
 
 export async function initGoogleSignIn() {
@@ -83,9 +96,12 @@ export async function logout() {
   currentUser = null
 }
 
-export async function fetchDailyTrail() {
+export async function fetchDailyTrail(lang, opts = {}) {
   try {
-    const res = await fetch('/api/game/trail')
+    const p = new URLSearchParams()
+    p.set('lang', lang === 'en' ? 'en' : 'fr')
+    if (opts.kids) p.set('kids', '1')
+    const res = await fetch('/api/game/trail?' + p)
     const data = await res.json()
     if (data?.ok && data.trailId && data.rack) {
       trailData = data
@@ -101,17 +117,20 @@ export function getTrailData() {
   return trailData
 }
 
-export async function fetchLeaderboard(trailId) {
+export async function fetchLeaderboard(trailId, lang, opts = {}) {
   try {
-    const url = trailId ? `/api/game/board?trailId=${encodeURIComponent(trailId)}` : '/api/game/board'
-    const res = await fetch(url, { credentials: 'include' })
+    const p = new URLSearchParams()
+    if (trailId) p.set('trailId', trailId)
+    p.set('lang', lang === 'en' ? 'en' : 'fr')
+    if (opts.kids) p.set('kids', '1')
+    const res = await fetch(`/api/game/board?${p}`, { credentials: 'include' })
     const data = await res.json()
     if (data?.ok) {
-      return { ok: true, top: data.top || [], me: data.me || null }
+      return { ok: true, top: data.top || [], me: data.me || null, kids: !!data.kids, trailId: data.trailId }
     }
-    return { ok: false, top: [], me: null }
+    return { ok: false, top: [], me: null, kids: !!opts.kids }
   } catch {
-    return { ok: false, top: [], me: null }
+    return { ok: false, top: [], me: null, kids: !!opts.kids }
   }
 }
 
@@ -140,13 +159,31 @@ export async function saveHistoryWord(entry) {
   }
 }
 
-export async function submitCompete(percent, word) {
+export async function clearCloudHistory() {
+  try {
+    const res = await fetch('/api/game/history', {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    return await res.json()
+  } catch {
+    return { ok: false, error: 'network_error' }
+  }
+}
+
+export async function submitCompete(percent, word, lang, opts = {}) {
   try {
     const res = await fetch('/api/game/compete', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ percent, word }),
+      body: JSON.stringify({
+        percent,
+        word,
+        lang: lang === 'en' ? 'en' : 'fr',
+        kids: !!opts.kids,
+        rack: opts.rack ? String(opts.rack).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 7) : undefined,
+      }),
     })
     const data = await res.json()
     return data

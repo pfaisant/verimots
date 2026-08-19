@@ -42,6 +42,10 @@ final class HistoryStore {
         return out;
     }
 
+    static void clear(Context ctx) {
+        save(ctx, new ArrayList<>());
+    }
+
     static void remember(Context ctx, String word, int pts, String src) {
         String w = Lexicon.normalize(word);
         if (w.length() < 2) return;

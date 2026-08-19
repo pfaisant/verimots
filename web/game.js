@@ -1,23 +1,81 @@
-const LABELS = {
-  bingo: 'Bingo',
-  long: 'Mot long',
-  hard: 'Lettres dures',
+import { t, getLang } from './i18n.js?v=56'
+
+const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
+
+const FR_VALUES = {
+  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
+  J: 8, K: 10, L: 1, M: 2, N: 1, O: 1, P: 3, Q: 8, R: 1,
+  S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10,
+}
+const EN_VALUES = {
+  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
+  J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
+  S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
+}
+
+function catLabel(cat) {
+  const key = CAT_KEYS.has(cat) ? `cat_${cat}` : 'cat_defi'
+  return t(key)
+}
+
+export function tileValues(lang = getLang()) {
+  return lang === 'en' ? EN_VALUES : FR_VALUES
+}
+
+export function letterScore(word, lang = getLang(), jokers = []) {
+  const values = tileValues(lang)
+  const jk = jokers instanceof Set ? jokers : new Set(jokers)
+  let n = 0
+  const letters = String(word || '')
+  for (let i = 0; i < letters.length; i++) {
+    if (jk.has(i)) continue
+    n += values[letters[i]] || 0
+  }
+  return n
 }
 
 export function playPoints(word, baseScore) {
   return (baseScore || 0) + (String(word || '').length === 7 ? 50 : 0)
 }
 
+export function playScore(word, lang = getLang(), jokers = []) {
+  return playPoints(word, letterScore(word, lang, jokers))
+}
+
+export function playPercent(pts, bestPts) {
+  return Math.min(100, Math.round((100 * Number(pts || 0)) / Math.max(1, Number(bestPts || 0))))
+}
+
 export function formatAverage(n) {
-  if (n == null || !Number.isFinite(Number(n))) return 'Score moyen —'
-  return `Score moyen ${String(n).replace('.', ',')} %`
+  if (n == null || !Number.isFinite(Number(n))) return t('avg_empty')
+  const loc = getLang() === 'en' ? 'en-GB' : 'fr-FR'
+  const s = Number(n).toLocaleString(loc, { maximumFractionDigits: 1, minimumFractionDigits: 1 })
+  return t('avg_score', s)
+}
+
+export function formatBoardPercent(n) {
+  if (n == null || !Number.isFinite(Number(n))) return '—'
+  const loc = getLang() === 'en' ? 'en-GB' : 'fr-FR'
+  return `${Number(n).toLocaleString(loc, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`
+}
+
+function boardPercentHtml(entry) {
+  const avg = formatBoardPercent(entry?.percent)
+  const n = Math.max(1, Number(entry?.plays) || 1)
+  if (n <= 1) return avg
+  return `${avg}<small>${t('board_plays', n)}</small>`
 }
 
 const SCORE_KEY = 'ods9-defi-scores-v1'
+const KIDS_SCORE_KEY = 'verimots-kids-scores-v1'
 const MAX_SCORES = 24
 
 function scoreStore(storage) {
   return storage || (typeof localStorage === 'undefined' ? null : localStorage)
+}
+
+function scoreKey(kids) {
+  return kids ? KIDS_SCORE_KEY : SCORE_KEY
 }
 
 export function clampPercent(n) {
@@ -26,9 +84,9 @@ export function clampPercent(n) {
   return Math.max(0, Math.min(100, p))
 }
 
-export function loadScores(storage) {
+export function loadScores(storage, kids = false) {
   try {
-    const raw = scoreStore(storage)?.getItem(SCORE_KEY)
+    const raw = scoreStore(storage)?.getItem(scoreKey(kids))
     const rows = raw ? JSON.parse(raw) : []
     if (!Array.isArray(rows)) return []
     return rows
@@ -42,14 +100,14 @@ export function loadScores(storage) {
   }
 }
 
-export function rememberScore(percent, storage) {
+export function rememberScore(percent, storage, kids = false) {
   const p = clampPercent(percent)
   const store = scoreStore(storage)
-  const prev = loadScores(store)
+  const prev = loadScores(store, kids)
   if (p == null) return prev
   const next = [...prev, { p, at: Date.now() }].slice(-MAX_SCORES)
   try {
-    store?.setItem(SCORE_KEY, JSON.stringify(next))
+    store?.setItem(scoreKey(kids), JSON.stringify(next))
   } catch {
     /* private mode */
   }
@@ -110,12 +168,12 @@ export function parseRack(raw) {
 
 export function defiShareText(rack, percent) {
   const tiles = [...rack].join(' ')
-  const score = percent != null ? `\nJ'ai fait ${percent} %.\n` : '\n'
-  return `Verimots — Défi\n\nTrouve le mot le plus cher avec :\n${tiles}\n${score}`
+  const score = percent != null ? `\n${t('share_game_score', percent)}` : '\n'
+  return `${t('share_game_title')}\n\n${t('share_game_body')}\n${tiles}\n${score}`
 }
 
 export function isInflectionDef(text) {
-  return /personne du|impératif de|participe |pluriel de|féminin de|masculin de|singulier de/i.test(
+  return /personne du|impératif de|participe |pluriel de|féminin de|masculin de|singulier de|forme de /i.test(
     String(text || '')
   )
 }
@@ -162,7 +220,8 @@ function foldWord(value) {
 
 export function wikiUrl(word, lemma) {
   const title = lemma || String(word || '').toLowerCase()
-  return `https://fr.wiktionary.org/wiki/${encodeURIComponent(title)}`
+  const host = getLang() === 'en' ? 'en.wiktionary.org' : 'fr.wiktionary.org'
+  return `https://${host}/wiki/${encodeURIComponent(title)}`
 }
 
 export function topWords(catalog, played, n = 5) {
@@ -228,28 +287,28 @@ function srcLine(payload, escapeHtml) {
   const title = payload.lemma || payload.word
   if (!title) return ''
   const href = payload.url || wikiUrl(payload.word, payload.lemma)
-  const label = payload.found ? 'Ouvrir dans le Wiktionnaire' : 'Chercher sur le Wiktionnaire'
+  const label = payload.found ? t('wiki_open') : t('wiki_search')
   return `<p class="defs-src"><a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a></p>`
 }
 
 function defBody(payload, escapeHtml, extra = {}) {
-  if (!payload) return `<p class="pending">Définition…</p>`
+  if (!payload) return `<p class="pending">${t('def_pending')}</p>`
   if (!payload.found || !payload.senses?.length) {
     return `<p class="empty">${
-      payload.offline ? 'Définition disponible avec une connexion.' : 'Pas de définition Wiktionnaire.'
+      payload.offline ? t('def_need_net') : t('def_missing')
     }</p>${srcLine(payload, escapeHtml)}`
   }
   const blob = payload.senses.flatMap((s) => s.defs).join(' ')
   const formOf = extra.formOf || extractFormOf(blob)
   const inflection = payload.senses.every((s) => s.defs.every(isInflectionDef))
   if (inflection && formOf && extra.root) {
-    const note = `<p class="form-of-line">Forme de <button type="button" class="form-of" data-form-of="${escapeHtml(formOf)}">${escapeHtml(formOf)}</button></p>`
+    const note = `<p class="form-of-line">${t('form_of')} <button type="button" class="form-of" data-form-of="${escapeHtml(formOf)}">${escapeHtml(formOf)}</button></p>`
     if (extra.root.found) return note + defBody(extra.root, escapeHtml, { asRoot: true })
-    return `${note}<p class="empty">Pas de définition pour ${escapeHtml(formOf)}.</p>${srcLine(payload, escapeHtml)}`
+    return `${note}<p class="empty">${t('def_missing_of', formOf)}</p>${srcLine(payload, escapeHtml)}`
   }
   if (inflection && formOf && !extra.asRoot) {
-    return `<p class="form-of-line">Forme de <button type="button" class="form-of" data-form-of="${escapeHtml(formOf)}">${escapeHtml(formOf)}</button></p>
-      <p class="pending">Sens de ${escapeHtml(formOf)}…</p>`
+    return `<p class="form-of-line">${t('form_of')} <button type="button" class="form-of" data-form-of="${escapeHtml(formOf)}">${escapeHtml(formOf)}</button></p>
+      <p class="pending">${t('sense_of', formOf)}</p>`
   }
   const sense = payload.senses[0]
   const defs = (sense.defs || []).slice(0, extra.asRoot ? 2 : 1)
@@ -258,7 +317,28 @@ function defBody(payload, escapeHtml, extra = {}) {
     ${srcLine(payload, escapeHtml)}`
 }
 
-export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, onDeal, onPlayed }) {
+const KIDS_FOUND_KEY = 'verimots-kids-found-v1'
+
+export function loadKidsFound(storage) {
+  try {
+    const n = Number((storage || localStorage)?.getItem(KIDS_FOUND_KEY))
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0
+  } catch {
+    return 0
+  }
+}
+
+export function rememberKidsFound(storage) {
+  const n = loadKidsFound(storage) + 1
+  try {
+    ;(storage || localStorage)?.setItem(KIDS_FOUND_KEY, String(n))
+  } catch {
+    /* private mode */
+  }
+  return n
+}
+
+export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, isKids, onDeal, onPlayed }) {
   const rackEl = document.getElementById('game-rack')
   const catEl = document.getElementById('game-cat')
   const form = document.getElementById('game-form')
@@ -273,13 +353,22 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const userEl = document.getElementById('game-user')
   const boardEl = document.getElementById('game-board')
   const modeDefi = document.getElementById('mode-defi')
+  const modeKids = document.getElementById('mode-kids')
   const modeComp = document.getElementById('mode-comp')
+  const hintBtn = document.getElementById('game-hint')
 
   let rack = ''
   let catalog = []
   let best = null
   let category = 'bingo'
   let closed = false
+  let officialPlay = false
+  let kidsSeed = ''
+  let hintLevel = 0
+
+  function kidsOn() {
+    return typeof isKids === 'function' ? isKids() : !!isKids
+  }
 
   function setClosed(on) {
     closed = on
@@ -310,38 +399,52 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     waEl.href = waHref(percent)
   }
 
-  function paintChart(rows) {
+  function paintChart(rows, kids) {
     if (!chartEl) return
-    const scores = rows || loadScores()
+    chartEl.hidden = false
+    const dock = document.getElementById('game-dock')
+    if (dock) dock.hidden = false
+    const scores = rows || loadScores(null, kids == null ? kidsOn() : !!kids)
     const last = scores.at(-1)
     chartEl.innerHTML = `${scoreChartSvg(scores)}${
       last ? `<span class="game-chart-last">${last.p}<small>/100</small></span>` : ''
     }`
     chartEl.setAttribute(
       'aria-label',
-      last
-        ? `Vos scores, dernier ${last.p} sur 100`
-        : 'Vos scores sur 100 — aucune partie encore'
+      last ? t('chart_last', last.p) : t('chart_empty')
     )
   }
 
+  function paintKidsMeta() {
+    if (globalEl) globalEl.textContent = t('kids_found', loadKidsFound())
+    if (waEl) waEl.classList.add('is-off')
+    paintChart(loadScores(null, true))
+  }
+
   async function paintGlobal() {
+    if (kidsOn()) {
+      paintKidsMeta()
+      return
+    }
+    if (waEl) waEl.classList.remove('is-off')
     paintChart()
     try {
       const res = await fetch('/api/game/stats')
       const data = await res.json()
       if (data?.ok && data.plays) globalEl.textContent = formatAverage(data.average)
-      else globalEl.textContent = 'Score moyen —'
+      else globalEl.textContent = t('avg_empty')
     } catch {
-      globalEl.textContent = 'Score moyen —'
+      globalEl.textContent = t('avg_empty')
     }
   }
 
   function catalogFrom(groups) {
+    const lang = getLang()
     const list = []
     for (const g of groups || []) {
       for (const entry of g.words) {
-        list.push({ word: entry.word, pts: playPoints(entry.word, entry.score), jokers: entry.jokers || [] })
+        const jokers = entry.jokers || []
+        list.push({ word: entry.word, pts: playScore(entry.word, lang, jokers), jokers })
       }
     }
     list.sort((a, b) => b.pts - a.pts || b.word.length - a.word.length)
@@ -362,21 +465,34 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     liveEl.className = kind ? `game-live ${kind}` : 'game-live'
   }
 
-  function applyDeal(tiles, cat, groups) {
+  function applyDeal(tiles, cat, groups, seed = '') {
     rack = tiles
     catalog = catalogFrom(groups)
     best = catalog[0] || null
-    category = LABELS[cat] ? cat : guessCategory(catalog, tiles)
-    catEl.textContent = LABELS[category] || 'Défi'
+    kidsSeed = String(seed || '').toUpperCase()
+    hintLevel = 0
+    category = cat === 'kids' || kidsOn() ? 'kids' : CAT_KEYS.has(cat) ? cat : guessCategory(catalog, tiles)
+    catEl.textContent = category === 'kids' ? t('kids_cat') : catLabel(category)
     input.maxLength = rack.length || 7
     form.hidden = false
+    if (hintBtn) {
+      hintBtn.hidden = category !== 'kids' || closed
+      hintBtn.disabled = false
+      hintBtn.textContent = t('kids_hint')
+    }
     paintRack()
-    paintShare()
+    if (category === 'kids') {
+      if (waEl) waEl.classList.add('is-off')
+    } else {
+      paintShare()
+    }
     onDeal?.(rack, category)
   }
 
-  async function deal(forced, forcedCat) {
+  async function deal(forced, forcedCat, opts = {}) {
     setClosed(false)
+    officialPlay = !!opts.official
+    if (opts.seed) kidsSeed = String(opts.seed).toUpperCase()
     form.hidden = false
     resultEl.hidden = true
     resultEl.innerHTML = ''
@@ -385,32 +501,51 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     input.value = ''
     setLive('')
     if (!ready()) {
-      setLive('Dictionnaire en cours de chargement…')
+      setLive(t('loading_lex'))
       return
     }
-    setLive('Tirage…')
+    setLive(t('loading_deal'))
     const wanted = parseRack(forced)
     let tiles = ''
     let cat = ''
     let groups = []
+    let seed = ''
     try {
-      if (wanted.length >= 2) {
+      if (kidsOn()) {
+        const res = wanted.length >= 2
+          ? await ask('anagram', { rack: wanted, min: 2, max: wanted.length })
+          : await ask('kids')
+        if (res.lang && res.lang !== getLang()) throw new Error('stale')
+        if (wanted.length >= 2) {
+          tiles = wanted
+          cat = 'kids'
+          seed = opts.seed || kidsSeed || ''
+        } else {
+          if (!res?.rack) throw new Error('empty')
+          tiles = res.rack
+          cat = 'kids'
+          seed = res.seed || ''
+        }
+        groups = res.groups || []
+      } else if (wanted.length >= 2) {
         const res = await ask('anagram', { rack: wanted, min: 2, max: wanted.length })
+        if (res.lang && res.lang !== getLang()) throw new Error('stale')
         tiles = wanted
         cat = forcedCat || ''
         groups = res.groups || []
       } else {
         const res = await ask('challenge')
+        if (res.lang && res.lang !== getLang()) throw new Error('stale')
         if (!res?.rack) throw new Error('empty')
         tiles = res.rack
         cat = res.category || ''
         groups = res.groups || []
       }
     } catch {
-      setLive('Impossible de tirer. Réessayez.')
+      setLive(t('deal_fail'))
       return
     }
-    applyDeal(tiles, cat, groups)
+    applyDeal(tiles, cat, groups, seed)
     setLive('')
     input.focus()
   }
@@ -425,8 +560,20 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     const hit = catalog.find((w) => w.word === word)
     if (hit) setLive(`${hit.pts} pts`, 'ok')
-    else if (word.length >= 2) setLive('Pas avec ces lettres', 'bad')
+    else if (word.length >= 2) setLive(t('not_on_rack'), 'bad')
     else setLive('')
+  }
+
+  function giveHint() {
+    if (closed || !kidsOn() || !hintBtn) return
+    const target = catalog.find((w) => w.word === kidsSeed) || best || catalog[0]
+    if (!target) return
+    hintLevel = Math.min(2, hintLevel + 1)
+    if (hintLevel === 1) setLive(t('kids_hint_letter', target.word[0]), 'ok')
+    else {
+      setLive(t('kids_hint_word', target.word), 'ok')
+      hintBtn.disabled = true
+    }
   }
 
   async function resolvedDef(word) {
@@ -436,7 +583,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const formOf = extractFormOf(blob)
     const inflection = payload?.found && (payload.senses || []).every((s) => s.defs.every(isInflectionDef))
     let root = null
-    if (inflection && formOf) root = await define(normalize(formOf), { stable: true })
+    if (inflection && formOf) root = await define(formOf, { stable: true })
     return { payload, formOf, root }
   }
 
@@ -452,7 +599,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const word = normalize(raw)
     const hit = catalog.find((w) => w.word === word)
     if (!hit) {
-      setLive(word.length < 2 ? 'Un mot, le plus cher.' : 'Pas jouable sur ce tirage.', 'bad')
+      setLive(word.length < 2 ? (kidsOn() ? t('kids_need') : t('need_best')) : t('not_playable'), 'bad')
       rackEl.classList.remove('shake')
       void rackEl.offsetWidth
       rackEl.classList.add('shake')
@@ -461,17 +608,18 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     setClosed(true)
     input.disabled = true
     form.hidden = true
+    if (hintBtn) hintBtn.hidden = true
     paintRack()
     const max = best?.pts || hit.pts
-    const percent = Math.min(100, Math.round((100 * hit.pts) / Math.max(1, max)))
+    const percent = playPercent(hit.pts, max)
     const same = best && best.word === hit.word
     resultEl.hidden = false
     resultEl.className = `game-result ${percent >= 100 ? 'hot' : percent >= 60 ? 'warm' : ''}`
     const vs = same
-      ? 'Le meilleur mot'
+      ? t('best_word')
       : percent >= 100
-        ? `À égalité · ${escapeHtml(best.word)} ${best.pts}`
-        : `Top ${escapeHtml(best.word)} ${best.pts}`
+        ? t('tied', escapeHtml(best.word), best.pts)
+        : t('top_word', escapeHtml(best.word), best.pts)
     const tops = topWords(catalog, hit, 5)
     const start = Math.max(0, tops.findIndex((w) => w.word === hit.word))
     const shown = new Map()
@@ -483,7 +631,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           <p class="game-vs">${vs}</p>
         </div>
       </div>
-      <div class="game-top" role="tablist" aria-label="Meilleurs mots">
+      <div class="game-top" role="tablist" aria-label="${escapeHtml(t('best_words'))}">
         ${tops
           .map(
             (w, i) => `<button type="button" role="tab" data-def-tab="${i}" data-def-word="${escapeHtml(w.word)}" aria-selected="${i === start ? 'true' : 'false'}" class="${w.word === hit.word ? 'is-mine' : ''}">
@@ -494,16 +642,23 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           .join('')}
       </div>
       <button type="button" class="game-again" id="game-again">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 6V3L8 7l4 4V8a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
-        Encore
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.6 5.4 14.2 12 8.6 18.6 10.1 20l7.1-8-7.1-8z"/></svg>
+        ${t('again')}
       </button>
       <div class="game-def-panel">
         <div class="game-def-body" id="def-body">${defBody(null, escapeHtml)}</div>
       </div>`
     setLive('')
-    paintShare(percent)
-    paintChart(rememberScore(percent))
-    onPlayed?.({ word: hit.word, pts: hit.pts, best: best?.word, bestPts: best?.pts })
+    if (kidsOn()) {
+      rememberKidsFound()
+      if (waEl) waEl.classList.add('is-off')
+      paintChart(rememberScore(percent, null, true))
+      if (globalEl) globalEl.textContent = t('kids_found', loadKidsFound())
+    } else {
+      paintShare(percent)
+      paintChart(rememberScore(percent))
+    }
+    onPlayed?.({ word: hit.word, pts: hit.pts, best: best?.word || kidsSeed, bestPts: best?.pts })
     resultEl.querySelector('#game-again')?.addEventListener('click', () => deal())
 
     async function showTop(word) {
@@ -529,14 +684,22 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     })
     if (define) await showTop(tops[start]?.word)
     try {
-      if (isCompetitive && isCompetitive()) {
-        const { submitCompete, fetchLeaderboard, getTrailData } = await import('./competitive.js?v=32')
-        const result = await submitCompete(percent, hit.word)
-        if (result?.ok) {
-          const trail = getTrailData()
-          const board = await fetchLeaderboard(trail?.trailId)
-          paintLeaderboard(board)
+      if (kidsOn()) {
+        const { submitCompete, fetchLeaderboard, getCurrentUser } = await import('./competitive.js?v=56')
+        if (getCurrentUser()) {
+          await submitCompete(percent, hit.word, getLang(), { kids: true, rack })
         }
+        officialPlay = false
+        lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
+        paintLeaderboard()
+      } else if (isCompetitive && isCompetitive()) {
+        const { submitCompete, fetchLeaderboard, getTrailData } = await import('./competitive.js?v=56')
+        if (officialPlay) {
+          await submitCompete(percent, hit.word, getLang())
+          officialPlay = false
+        }
+        const trail = getTrailData()
+        paintLeaderboard(await fetchLeaderboard(trail?.trailId, getLang()))
       } else {
         const res = await fetch('/api/game/score', {
           method: 'POST',
@@ -555,6 +718,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     e.preventDefault()
     validate(input.value)
   })
+  hintBtn?.addEventListener('click', () => giveHint())
   input.addEventListener('input', preview)
   rackEl.addEventListener('click', (e) => {
     if (closed) return
@@ -587,30 +751,40 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const box = btn.closest('.game-def-body')
     if (!box || !root) return
     const homeWord = box._home?.payload?.word || box.dataset.originWord || ''
-    box.innerHTML = `<p class="pending">Sens de ${escapeHtml(root)}…</p>`
-    const resolved = await resolvedDef(normalize(root))
+    box.innerHTML = `<p class="pending">${t('sense_of', escapeHtml(root))}</p>`
+    const resolved = await resolvedDef(root)
     if (closed) {
       box.innerHTML = `${backBtn(homeWord, escapeHtml)}${defBody(resolved.payload, escapeHtml, { asRoot: true })}`
     }
   })
 
-  async function switchMode(competitive) {
+  async function switchMode(mode) {
     if (!modeSwitch) return
-    modeDefi?.setAttribute('aria-pressed', competitive ? 'false' : 'true')
-    modeComp?.setAttribute('aria-pressed', competitive ? 'true' : 'false')
-    
-    if (competitive) {
-      await initCompetitive()
-    } else {
-      if (authEl) authEl.hidden = true
-      if (userEl) userEl.hidden = true
-      if (boardEl) boardEl.hidden = true
-      paintGlobal()
+    const competitive = mode === true || mode === 'competitive'
+    const kids = mode === 'kids'
+    const next = competitive ? 'competitive' : kids ? 'kids' : 'defi'
+    boardTab = next === 'kids' ? 'kids' : 'adult'
+    document.body.classList.toggle('kids', next === 'kids')
+    modeDefi?.setAttribute('aria-pressed', next === 'defi' ? 'true' : 'false')
+    modeKids?.setAttribute('aria-pressed', next === 'kids' ? 'true' : 'false')
+    modeComp?.setAttribute('aria-pressed', next === 'competitive' ? 'true' : 'false')
+    if (hintBtn) hintBtn.hidden = next !== 'kids'
+    if (next === 'competitive' || next === 'kids') {
+      await initRanked(next === 'kids')
+      return
     }
+    if (authEl) authEl.hidden = true
+    if (userEl) userEl.hidden = true
+    paintGlobal()
+    await deal()
   }
 
   async function initCompetitive() {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard, getTrailData, submitCompete } = await import('./competitive.js?v=32')
+    return initRanked(false)
+  }
+
+  async function initRanked(kids) {
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=56')
     
     const user = await checkSession()
     if (user) {
@@ -619,15 +793,24 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         userEl.hidden = false
         const pic = document.getElementById('user-pic')
         const name = document.getElementById('user-name')
-        if (pic) pic.src = user.picture || ''
-        if (name) name.textContent = user.name || 'Utilisateur'
+        if (pic) {
+          const src = String(user.picture || '')
+          pic.hidden = !src
+          pic.onerror = () => {
+            pic.removeAttribute('src')
+            pic.hidden = true
+          }
+          if (src) pic.src = src
+          else pic.removeAttribute('src')
+        }
+        if (name) name.textContent = user.name || t('user_fallback')
         const statsEl = document.getElementById('user-stats')
         if (statsEl) {
           const s = user.stats || {}
           const bits = []
-          if (s.streak) bits.push(s.streak + ' j')
+          if (s.streak) bits.push(t('streak_d', s.streak))
           if (s.best) bits.push('best ' + s.best + ' %')
-          if (s.words) bits.push(s.words + ' mot' + (s.words > 1 ? 's' : ''))
+          if (s.words) bits.push(t('words_n', s.words))
           statsEl.textContent = bits.join(' · ')
         }
         document.dispatchEvent(new CustomEvent('verimots-auth', { detail: user }))
@@ -642,7 +825,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           callback: async (response) => {
             const result = await handleGoogleCallback(response)
             if (result.ok) {
-              await switchMode(true)
+              await switchMode(kids ? 'kids' : 'competitive')
             }
           }
         })
@@ -653,52 +836,186 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
             theme: 'filled_blue',
             size: 'large',
             text: 'signin_with',
-            locale: 'fr'
+            locale: getLang() === 'en' ? 'en' : 'fr'
           })
         }
       }
     }
 
-    const trail = await fetchDailyTrail()
-    if (trail && trail.rack) {
-      await deal(trail.rack, trail.category)
+    const trail = await fetchDailyTrail(getLang(), { kids })
+    lastBoard = await fetchLeaderboard(null, getLang())
+    lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
+    paintLeaderboard()
+    const mine = kids ? lastKidsBoard : lastBoard
+    if (kids) paintKidsMeta()
+    if (mine?.me) {
+      await deal()
+    } else if (trail?.rack) {
+      await deal(trail.rack, kids ? 'kids' : trail.category, { official: true, seed: trail.seed })
     }
+  }
 
-    const board = await fetchLeaderboard(trail?.trailId)
-    paintLeaderboard(board)
+  let lastBoard = null
+  let lastKidsBoard = null
+  let boardTab = null
+
+  function kidsBoardTab() {
+    if (boardTab === 'kids' || boardTab === 'adult') return boardTab === 'kids'
+    return kidsOn()
+  }
+
+  function boardBlock(empty, data) {
+    if (!data) {
+      return `<p class="board-empty">${escapeHtml(empty)}</p>`
+    }
+    if (!data.ok) {
+      return `<p class="board-empty">${escapeHtml(t('board_unavailable'))}</p>`
+    }
+    const top = Array.isArray(data.top) ? data.top.slice(0, 10) : []
+    if (!top.length) {
+      return `<p class="board-empty">${escapeHtml(empty)}</p>`
+    }
+    const me = data.me
+    const rows = top.map((entry) => {
+      const isMeRow = me && entry.rank === me.rank
+      return `<div class="board-row${isMeRow ? ' is-me' : ''}">
+        <span class="board-rank">${entry.rank}</span>
+        <span class="board-name">${escapeHtml(entry.pseudo)}</span>
+        <span class="board-word">${entry.word ? escapeHtml(entry.word) : ''}</span>
+        <span class="board-percent">${boardPercentHtml(entry)}</span>
+      </div>`
+    })
+    if (me && me.rank > 10) {
+      rows.push(`<div class="board-row is-me">
+        <span class="board-rank">${me.rank}</span>
+        <span class="board-name">${escapeHtml(me.pseudo)}</span>
+        <span class="board-word">${me.word ? escapeHtml(me.word) : ''}</span>
+        <span class="board-percent">${boardPercentHtml(me)}</span>
+      </div>`)
+    }
+    return `<div class="board-list">${rows.join('')}</div>`
   }
 
   function paintLeaderboard(board) {
     if (!boardEl) return
-    if (!board?.ok || !board.top?.length) {
-      boardEl.hidden = true
+    if (board) {
+      if (board.kids) lastKidsBoard = board
+      else lastBoard = board
+    }
+    const kidsTab = kidsBoardTab()
+    const data = kidsTab ? lastKidsBoard : lastBoard
+    const empty = kidsTab ? t('kids_board_empty') : t('board_empty')
+    boardEl.innerHTML = `
+      <p class="board-title">${escapeHtml(t('board_title'))}</p>
+      <div class="board-switch" role="tablist" aria-label="${escapeHtml(t('board_title'))}">
+        <button type="button" role="tab" class="mode-btn" data-board-tab="adult" aria-selected="${kidsTab ? 'false' : 'true'}" aria-pressed="${kidsTab ? 'false' : 'true'}">${escapeHtml(t('board_general'))}</button>
+        <button type="button" role="tab" class="mode-btn" data-board-tab="kids" aria-selected="${kidsTab ? 'true' : 'false'}" aria-pressed="${kidsTab ? 'true' : 'false'}">${escapeHtml(t('kids_board'))}</button>
+      </div>
+      ${boardBlock(empty, data)}`
+    boardEl.querySelectorAll('[data-board-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        boardTab = btn.dataset.boardTab
+        paintLeaderboard()
+      })
+    })
+    if (waEl) waEl.classList.add('is-off')
+    paintChart(loadScores(null, kidsTab), kidsTab)
+  }
+
+  function paintChrome() {
+    if (catEl) catEl.textContent = category === 'kids' || kidsOn() ? t('kids_cat') : catLabel(category)
+    if (modeDefi) modeDefi.textContent = t('mode_defi')
+    if (modeKids) modeKids.textContent = t('mode_kids')
+    if (modeComp) modeComp.textContent = t('mode_comp')
+    if (hintBtn) {
+      hintBtn.textContent = t('kids_hint')
+      hintBtn.hidden = !kidsOn() || closed
+    }
+    const authHelp = document.querySelector('#game-auth .auth-help')
+    if (authHelp) authHelp.textContent = t('auth_help')
+    const logout = document.getElementById('logout-btn')
+    if (logout) logout.textContent = t('sign_out')
+    if (input) {
+      input.placeholder = t('play_hint')
+      const lab = document.querySelector('label[for="game-q"]')
+      if (lab) lab.textContent = kidsOn() ? t('kids_play') : t('play_label')
+    }
+    if (lastBoard || lastKidsBoard) paintLeaderboard()
+    if (closed) {
+      const again = document.getElementById('game-again')
+      if (again) {
+        const svg = again.querySelector('svg')
+        again.textContent = ''
+        if (svg) again.appendChild(svg)
+        again.append(' ' + t('again'))
+      }
+    } else {
+      preview()
+    }
+  }
+
+  async function refresh() {
+    paintChrome()
+    paintGlobal()
+    if (kidsOn()) {
+      await initRanked(true)
       return
     }
-    boardEl.hidden = false
-    const rows = board.top.slice(0, 10).map((entry) => {
-      const isMeRow = board.me && entry.pseudo === board.me.pseudo && entry.percent === board.me.percent
-      return `<div class="board-row${isMeRow ? ' is-me' : ''}">
-        <span class="board-rank">${entry.rank}</span>
-        <span class="board-name">${escapeHtml(entry.pseudo)}</span>
-        <span class="board-percent">${entry.percent}%</span>
-      </div>`
-    }).join('')
-    boardEl.innerHTML = `<p class="board-title">Classement du jour</p><div class="board-list">${rows}</div>`
+    if (isCompetitive && isCompetitive()) {
+      try {
+        const { fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=56')
+        const trail = await fetchDailyTrail(getLang())
+        const board = await fetchLeaderboard(trail?.trailId, getLang())
+        paintLeaderboard(board)
+        if (trail?.rack && !board?.me) {
+          await deal(trail.rack, trail.category, { official: true })
+        } else {
+          await deal()
+        }
+      } catch {
+        /* keep current */
+      }
+      return
+    }
+    if (!rack || !ready()) return
+    try {
+      const res = await ask('anagram', { rack, min: 2, max: rack.length })
+      if (res.lang && res.lang !== getLang()) return
+      applyDeal(rack, category, res.groups || [])
+      setClosed(false)
+      form.hidden = false
+      resultEl.hidden = true
+      resultEl.innerHTML = ''
+      input.disabled = false
+    } catch {
+      /* keep current catalog */
+    }
   }
+
+  document.addEventListener('verimots-lang', () => {
+    paintChrome()
+  })
 
   return {
     async open(opts = {}) {
       if (isCompetitive && isCompetitive()) {
-        await switchMode(true)
+        await switchMode('competitive')
+      } else if (kidsOn()) {
+        await switchMode('kids')
       } else {
-        await switchMode(false)
-        paintGlobal()
+        await switchMode('defi')
         const fromUrl = parseRack(opts.rack)
         if (fromUrl.length >= 2 && fromUrl !== rack) await deal(fromUrl, opts.category)
-        else if (!rack) await deal()
       }
       input.focus()
     },
+    async showBoard() {
+      const { fetchLeaderboard } = await import('./competitive.js?v=56')
+      lastBoard = await fetchLeaderboard(null, getLang())
+      lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
+      paintLeaderboard()
+    },
+    refresh,
     deal,
     switchMode,
   }
