@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots hors ligne, maintenue par la communauté. Définitions automatiques avec une connexion." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=60" />
+  <link rel="stylesheet" href="app.css?v=61" />
 </head>
 <body class="simple">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -243,6 +243,7 @@
       <a class="apk-link" href="verimots-3.19.apk" download="verimots-3.19.apk" title="Télécharger verimots-3.19.apk">verimots-3.19.apk</a>
       <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
       <button type="button" class="legal-link" id="about-link" data-i18n="about">À propos</button>
+      <button type="button" class="legal-link" data-cookies>Cookies</button>
     </div>
     <nav class="adv-nav" id="adv-nav" hidden data-i18n-aria="advanced" aria-label="Mode avancé">
       <button type="button" data-nav="check" aria-current="page" data-i18n="nav_check">Vérifier</button>
@@ -253,6 +254,18 @@
     <button type="button" class="adv-toggle" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
   </footer>
 
+  <aside id="consent" role="dialog" aria-labelledby="consent-title" hidden aria-hidden="true">
+    <p class="consent-text" id="consent-title">
+      Ce site utilise Google Analytics pour mesurer l'audience. Nous ne plaçons de cookies
+      que si vous acceptez. <a href="/confidentialite.html">En savoir plus</a>
+    </p>
+    <div class="consent-buttons">
+      <button type="button" class="consent-btn" data-consent="granted">Accepter</button>
+      <button type="button" class="consent-btn" data-consent="denied">Refuser</button>
+    </div>
+  </aside>
+
+  <script src="analytics.js?v=28"></script>
   <script src="app.js?v=56" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>

@@ -75,6 +75,7 @@ export async function handleGoogleCallback(response) {
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken: response.credential }),
+      credentials: 'include',
     })
     const data = await res.json()
     if (data?.ok && data.user) {
@@ -101,7 +102,7 @@ export async function fetchDailyTrail(lang, opts = {}) {
     const p = new URLSearchParams()
     p.set('lang', lang === 'en' ? 'en' : 'fr')
     if (opts.kids) p.set('kids', '1')
-    const res = await fetch('/api/game/trail?' + p)
+    const res = await fetch('/api/game/trail?' + p, { credentials: 'include' })
     const data = await res.json()
     if (data?.ok && data.trailId && data.rack) {
       trailData = data

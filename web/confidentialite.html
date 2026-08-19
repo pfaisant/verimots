@@ -24,11 +24,12 @@
   <main>
     <article class="info">
       <h2>Politique de confidentialité</h2>
-      <p>Dernière mise à jour : 15 août 2026.</p>
+      <p>Dernière mise à jour : 19 août 2026.</p>
       <p>
         Verimots est un vérificateur de mots et un défi de lettres en français,
         publié par <strong>pfa87</strong>
-        (<a href="https://s.pfa87.cc/">s.pfa87.cc</a>,
+        (<a href="https://verimots.pfa87.cc/">verimots.pfa87.cc</a>,
+        <a href="https://s.pfa87.cc/">s.pfa87.cc</a>,
         <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>).
         Version web et application Android (<code>cc.pfa87.verimots</code>).
         Pas de publicité, pas d’achat intégré, pas de vente de données.
@@ -38,7 +39,7 @@
       <h3>Responsable</h3>
       <p>
         pfa87, contact <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>.
-        L’app et le site sont hébergés via le domaine s.pfa87.cc.
+        L’app et le site sont hébergés via verimots.pfa87.cc et s.pfa87.cc.
       </p>
 
       <h3>Vous pouvez tout faire sans compte</h3>
@@ -82,11 +83,20 @@
         <li>Nous ne recevons pas votre mot de passe Google.</li>
       </ul>
 
+      <h3>Mesure d’audience (Google Analytics)</h3>
+      <p>
+        Sur le site web uniquement, nous utilisons Google Analytics 4
+        (<code>G-6R0YS8HW30</code>) pour compter les visites.
+        Google peut recevoir l’URL de la page, la langue du navigateur, le type
+        d’appareil et une localisation approximative. Pas de publicité, pas de
+        remarketing. L’application Android n’embarque pas ce tag.
+      </p>
+
       <h3>Sous-traitants</h3>
       <ul>
-        <li><strong>Google</strong> — connexion (Sign in with Google). Leur politique : <a href="https://policies.google.com/privacy">policies.google.com/privacy</a>.</li>
+        <li><strong>Google</strong> — connexion (Sign in with Google) et Google Analytics sur le web. Leur politique : <a href="https://policies.google.com/privacy">policies.google.com/privacy</a>.</li>
         <li><strong>Wikimedia / Wiktionnaire</strong> — définitions, si vous êtes en ligne.</li>
-        <li><strong>Cloudflare</strong> — acheminement HTTPS de s.pfa87.cc.</li>
+        <li><strong>Cloudflare</strong> — acheminement HTTPS de verimots.pfa87.cc et s.pfa87.cc.</li>
       </ul>
 
       <h3>Conservation</h3>
@@ -121,13 +131,47 @@
       <h3>Modifications</h3>
       <p>Nous mettons à jour cette page si le traitement change. La date en tête fait foi.</p>
 
+      <h3>Mesure d'audience</h3>
+      <p>
+        Ce site utilise <strong>Google Analytics 4</strong> pour mesurer l'audience
+        (pages visitées, durée, appareil). Nous n'utilisons pas Google Analytics pour
+        la publicité. Les cookies de mesure ne sont placés que si vous acceptez.
+      </p>
+      <p>
+        Vous pouvez <strong>refuser les cookies</strong> lors de votre première visite
+        ou à tout moment via le bouton « Cookies » en bas de page. Votre choix est
+        enregistré localement dans votre navigateur.
+      </p>
+      <p>
+        Aucune donnée publicitaire n'est collectée. Google Analytics est configuré
+        en mode « analytics_storage » uniquement, sans « ad_storage », « ad_user_data »
+        ni « ad_personalization ».
+      </p>
+
       <h3>Contact</h3>
       <p>
         <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a><br />
         <a href="https://s.pfa87.cc/">s.pfa87.cc</a>
       </p>
-      <p class="fine"><a href="/">Retour à Verimots</a></p>
+      <p class="fine">
+        <a href="/">Retour à Verimots</a>
+        ·
+        <button type="button" class="legal-link" data-cookies>Gérer les cookies</button>
+      </p>
     </article>
   </main>
+
+  <aside id="consent" role="dialog" aria-labelledby="consent-title" hidden aria-hidden="true">
+    <p class="consent-text" id="consent-title">
+      Ce site utilise Google Analytics pour mesurer l'audience. Nous ne plaçons de cookies 
+      que si vous acceptez. <a href="/confidentialite.html">En savoir plus</a>
+    </p>
+    <div class="consent-buttons">
+      <button type="button" class="consent-btn" data-consent="granted">Accepter</button>
+      <button type="button" class="consent-btn" data-consent="denied">Refuser</button>
+    </div>
+  </aside>
+
+  <script src="analytics.js?v=28"></script>
 </body>
 </html>
