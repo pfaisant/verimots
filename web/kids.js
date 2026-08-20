@@ -1,4 +1,4 @@
-const HARD = /[JKQWXYZ]/
+const HARD = /[JKÑQWXYZ]/
 
 const FR = `
 AMI ANE ARC BAL BAR BEC BLE BOL BON BUS BUT CAP CAR CAS COL COR COU CRI DES DOS
@@ -65,44 +65,71 @@ DRAGON FOREST ISLAND MOTHER FATHER SISTER BROTHER WINDOW SUMMER WINTER
 SPRING AUTUMN FLOWER GARDEN TURTLE
 `.trim().split(/\s+/).filter((w) => /^[A-Z]{6,7}$/.test(w))
 
+const ES = `
+ALA AÑO AVE BAR BUS CAL COL DAR DOS ECO ERA FIN GAS GOL LAGO LUZ MAL MAR MES MIEL
+NIÑA NIÑO OLA ORO OSO PAN PAZ PEZ PIE RIO SAL SOL SUR TE VEO VOZ
+AGUA AIRE ALMA AMOR ARCO AUTO AZUL BESO BOLA BOTE CAMA CASA CENA CINE COLA DADO
+DIA FLOR FUEGO GATO HORA JUEGO LAGO LECHE LIBRO LUNA MANO MESA MIEL MONO MOTO
+NUBE OJO OLA ORO PATO PELO PERA PIE PISO PLAYA QUESO RANA RISA ROJO ROSA RUTA
+SILLA SOL TAZA TREN VACA VELA VIDA
+AMIGO ARBOL AVION BARCO BEBE CAMPO CARA CARTA CIELO COCHE COLOR DULCE FRESA FRUTA
+GLOBO HUEVO ISLA LAGO LAPIZ LEON LLAVE MADRE MAPA MAR NARIZ NOCHE PADRE PAPEL
+PARQUE PERRO PLAYA PUERTA RADIO RATON RELOJ ROJO RUEDA SALTO SOPA TIERRA TIGRE
+VASO VERDE ZUMO
+`.trim().split(/\s+/).filter((w) => /^[A-ZÑ]+$/.test(w) && w.length >= 3 && w.length <= 5 && !HARD.test(w))
+
+const ES_LONG = `
+ABUELOS AMIGOS ANIMALES BANANA CABALLO CAMION COCINA COLEGIO CONEJO CUADERNO
+ESCUELA FAMILIA FLORES GALLETA JARDIN MAESTRO MANZANA NARANJA OVEJAS PAJARO
+PALABRA PELOTA PERROS PLANETA PLATANO REGALO TOMATE TORTUGA VENTANA VERANO
+`.trim().split(/\s+/).filter((w) => /^[A-ZÑ]{6,8}$/.test(w))
+
 const LISTS = {
   fr: [...new Set([...FR, ...FR_LONG])],
   en: [...new Set([...EN, ...EN_LONG])],
+  es: [...new Set([...ES, ...ES_LONG])],
 }
-const LONG = { fr: [...new Set(FR_LONG)], en: [...new Set(EN_LONG)] }
+const LONG = {
+  fr: [...new Set(FR_LONG)],
+  en: [...new Set(EN_LONG)],
+  es: [...new Set(ES_LONG)],
+}
+
+function language(lang) {
+  return lang === 'en' || lang === 'es' ? lang : 'fr'
+}
 
 function rackCounts(rack) {
-  const counts = new Uint8Array(26)
+  const counts = Object.create(null)
   for (const ch of rack) {
-    if (ch >= 'A' && ch <= 'Z') counts[ch.charCodeAt(0) - 65]++
+    if (/^[A-ZÑ]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
   }
   return counts
 }
 
 function formable(word, counts) {
-  const used = new Uint8Array(26)
-  for (let i = 0; i < word.length; i++) {
-    const c = word.charCodeAt(i) - 65
-    if (c < 0 || c > 25) return false
-    used[c]++
-    if (used[c] > counts[c]) return false
+  const used = Object.create(null)
+  for (const ch of word) {
+    if (!/^[A-ZÑ]$/.test(ch)) return false
+    used[ch] = (used[ch] || 0) + 1
+    if (used[ch] > (counts[ch] || 0)) return false
   }
   return true
 }
 
 export function kidsWords(lang = 'fr') {
-  return LISTS[lang === 'en' ? 'en' : 'fr']
+  return LISTS[language(lang)]
 }
 
 export function kidsLong(lang = 'fr') {
-  return LONG[lang === 'en' ? 'en' : 'fr']
+  return LONG[language(lang)]
 }
 
 export function kidsAnagrams(rack, lang = 'fr') {
   const counts = rackCounts(String(rack || '').toUpperCase())
-  const tiles = String(rack || '').replace(/[^A-Z]/g, '').length
+  const tiles = String(rack || '').replace(/[^A-ZÑ]/g, '').length
   const groups = []
-  for (let len = Math.min(7, tiles); len >= 3; len--) {
+  for (let len = Math.min(8, tiles); len >= 3; len--) {
     const found = []
     for (const word of kidsWords(lang)) {
       if (word.length !== len) continue
@@ -129,7 +156,7 @@ export function dealKids(lang = 'fr', rnd = Math.random, excludeSeed = '') {
   const blocked = String(excludeSeed || '').toUpperCase()
   const filtered = fullPool.filter((word) => word !== blocked)
   const pool = filtered.length ? filtered : fullPool
-  const fallback = lang === 'en' ? 'HORSES' : 'CHEVAUX'
+  const fallback = lang === 'en' ? 'HORSES' : lang === 'es' ? 'CABALLO' : 'CHEVAUX'
   for (let attempt = 0; attempt < 40; attempt++) {
     const seed = pool[Math.floor(rnd() * pool.length)] || fallback
     const rack = shuffleWord(seed, rnd)

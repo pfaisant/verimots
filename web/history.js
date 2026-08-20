@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=61'
+import { t, getLang } from './i18n.js?v=68'
 
 const KEY = 'ods9-session-v1'
 const MAX = 80
@@ -57,7 +57,7 @@ export function mergeHistory(remote, storage) {
   for (const row of [...incoming, ...readStore(storage)]) {
     const word = String(row?.word || '')
       .toUpperCase()
-      .replace(/[^A-Z]/g, '')
+      .replace(/[^A-ZÑ]/g, '')
     if (word.length < 2) continue
     const prev = map.get(word)
     if (!prev || (row.at || 0) > (prev.at || 0)) {
@@ -77,7 +77,7 @@ export function mergeHistory(remote, storage) {
 export function rememberWord(entry, storage) {
   const word = String(entry?.word || '')
     .toUpperCase()
-    .replace(/[^A-Z]/g, '')
+    .replace(/[^A-ZÑ]/g, '')
   if (word.length < 2 || word.length > 15) return readStore(storage)
   const pts = Math.max(0, Math.round(Number(entry.pts) || 0))
   const src = entry.src === 'dico' ? 'dico' : 'defi'
@@ -96,7 +96,7 @@ export function historyLabel(src) {
 export function historyWhen(at) {
   const d = new Date(Number(at) || 0)
   if (!Number.isFinite(d.getTime()) || d.getTime() <= 0) return ''
-  const loc = getLang() === 'en' ? 'en-GB' : 'fr-FR'
+  const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
   return d.toLocaleDateString(loc, { day: 'numeric', month: 'short' })
 }
 

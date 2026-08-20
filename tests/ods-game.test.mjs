@@ -20,11 +20,19 @@ import {
   clampPercent,
   loadScores,
   rememberScore,
+  loadTrainingStats,
+  rememberTrainingRound,
   scoreChartSvg,
+  usedTiles,
 } from '../web/game.js'
 import { loadHistory, rememberWord, historyLabel, clearHistory } from '../web/history.js'
 import { kidsWords } from '../web/kids.js'
 import { competeAccepted } from '../web/competitive.js'
+
+test('rack tile usage assigns unmatched letters to blanks', () => {
+  assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
+  assert.deepEqual([...usedTiles('AA?', 'ABA')].sort((a, b) => a - b), [0, 1, 2])
+})
 
 const dir = await mkdtemp(join(tmpdir(), 'ods9-game-'))
 const {
@@ -51,6 +59,7 @@ test('score moyen uses a French decimal comma', () => {
 test('shared rack is letters only', () => {
   assert.equal(parseRack('lie-irat!'), 'LIEIRAT')
   assert.equal(parseRack('abcdefghij'), 'ABCDEFG')
+  assert.equal(parseRack('año?'), 'AÑO')
 })
 
 test('WhatsApp défi does not reveal the answer', () => {
@@ -135,6 +144,7 @@ test('competition trail id is the Paris ISO week', () => {
   assert.equal(isoWeekTrailId(new Date('2026-08-23T23:00:00+02:00'), 'fr'), '2026-W34')
   assert.equal(isoWeekTrailId(new Date('2026-08-16T12:00:00+02:00'), 'fr'), '2026-W33')
   assert.equal(isoWeekTrailId(new Date('2026-08-18T12:00:00+02:00'), 'en'), '2026-W34-en')
+  assert.equal(isoWeekTrailId(new Date('2026-08-18T12:00:00+02:00'), 'es'), '2026-W34-es')
 })
 
 test('local défi scores stay in order and clamp to 0–100', () => {
@@ -154,6 +164,29 @@ test('local défi scores stay in order and clamp to 0–100', () => {
   rememberScore(101, mem)
   const rows = loadScores(mem)
   assert.deepEqual(rows.map((r) => r.p), [9, 68, 100])
+})
+
+test('training statistics stay separate by language and preset', () => {
+  const mem = {
+    data: {},
+    getItem(key) {
+      return this.data[key] || null
+    },
+    setItem(key, value) {
+      this.data[key] = value
+    },
+  }
+  rememberTrainingRound({ preset: 'seven', length: 7, solved: true, found: 3, total: 3 }, mem, 'es')
+  rememberTrainingRound({ preset: 'joker', length: 7, solved: false, found: 2, total: 5, hard: 1 }, mem, 'es')
+  const spanish = loadTrainingStats(mem, 'es')
+  assert.equal(spanish.plays, 2)
+  assert.equal(spanish.solved, 1)
+  assert.equal(spanish.found, 5)
+  assert.equal(spanish.byPreset.seven, 1)
+  assert.equal(spanish.byPreset.joker, 1)
+  assert.equal(spanish.byLength['7'], 1)
+  assert.equal(spanish.hard, 1)
+  assert.equal(loadTrainingStats(mem, 'fr').plays, 0)
 })
 
 test('kids scores stay on their own chart', () => {
@@ -192,7 +225,7 @@ test('a 7-letter play gets the bingo bonus', () => {
   assert.equal(playPoints('', 0), 0)
 })
 
-test('letter scores follow FR vs EN tile values', () => {
+test('letter scores follow FR, EN and ES tile values', () => {
   assert.equal(letterScore('QUIZ', 'fr'), 20)
   assert.equal(letterScore('QUIZ', 'en'), 22)
   assert.equal(letterScore('WAXY', 'fr'), 31)
@@ -201,6 +234,8 @@ test('letter scores follow FR vs EN tile values', () => {
   assert.equal(letterScore('MIX', 'en'), 12)
   assert.equal(letterScore('K', 'fr'), 10)
   assert.equal(letterScore('K', 'en'), 5)
+  assert.equal(letterScore('AÑO', 'es'), 10)
+  assert.equal(letterScore('QUESO', 'es'), 9)
   assert.equal(letterScore('QUIZ', 'fr', [0]), 12)
   assert.equal(letterScore('QUIZ', 'en', [0]), 12)
 })
@@ -513,6 +548,32 @@ test('english official plays use english tile values', async () => {
   if (split) {
     assert.notEqual(split.pts, playScore(split.word, 'fr'))
   }
+})
+
+test('Spanish trail, Ñ scoring and leaderboard are language-isolated', async () => {
+  resetGameStatsForTests(
+    join(dir, 'board-es-score.json'),
+    join(dir, 'board-es-score-salt.txt'),
+    join(dir, 'board-es-score-leaderboard.json'),
+    join(dir, 'board-es-score-auth.json')
+  )
+  seedUserForTests('spanish-player', { name: 'Ana' })
+  const cookie = sessionCookieForTests('spanish-player')
+  const trail = await apiRequest('GET', '/api/game/trail?lang=es', cookie)
+  assert.equal(trail.status, 200)
+  assert.equal(trail.body.lang, 'es')
+  assert.match(trail.body.trailId, /-es$/)
+  assert.match(trail.body.rack, /^[A-ZÑ]{3,7}$/)
+  const { plays, lang } = await officialPlays(trail.body.trailId)
+  assert.equal(lang, 'es')
+  assert.ok(plays.length > 0)
+  for (const play of plays) assert.equal(play.pts, playScore(play.word, 'es'))
+  const accepted = await postCompete(cookie, { word: plays[0].word, lang: 'es' })
+  assert.equal(accepted.ok, true)
+  const spanish = await apiRequest('GET', '/api/game/board?lang=es', cookie)
+  const french = await apiRequest('GET', '/api/game/board?lang=fr', cookie)
+  assert.equal(spanish.body.top.length, 1)
+  assert.equal(french.body.top.length, 0)
 })
 
 test('playing another language in the same week does not reset the streak', async () => {

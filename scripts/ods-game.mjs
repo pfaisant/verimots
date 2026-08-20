@@ -2,8 +2,8 @@
 // Competitive mode: weekly trail (Paris ISO week), leaderboard, Google auth.
 //
 // New endpoints:
-//   GET /api/game/trail?lang=fr|en — this week's deterministic challenge (YYYY-Www / YYYY-Www-en)
-//   GET /api/game/board?lang=fr|en&trailId=… — leaderboard for that language
+//   GET /api/game/trail?lang=fr|en|es — this week's deterministic challenge
+//   GET /api/game/board?lang=fr|en|es&trailId=… — leaderboard for that language
 //   POST /api/game/compete — { percent, word, lang } ranked score (requires login)
 //   GET|POST|DELETE /api/game/history — synced word history
 //   POST /api/auth/google — Google Sign-In
@@ -71,6 +71,8 @@ let lexFr = null
 let byLenFr = []
 let lexEn = null
 let byLenEn = []
+let lexEs = null
+let byLenEs = []
 
 const FR_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
@@ -82,8 +84,13 @@ const EN_VALUES = {
   J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
   S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
 }
+const ES_VALUES = {
+  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
+  J: 8, K: 10, L: 1, M: 3, N: 1, Ñ: 8, O: 1, P: 3, Q: 5,
+  R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 8, Y: 4, Z: 10,
+}
 
-const HARD = new Set(['J', 'K', 'Q', 'W', 'X', 'Y', 'Z'])
+const HARD = new Set(['J', 'K', 'Ñ', 'Q', 'W', 'X', 'Y', 'Z'])
 const FR_BAG = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
   J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
@@ -93,6 +100,11 @@ const EN_BAG = {
   A: 9, B: 2, C: 2, D: 4, E: 12, F: 2, G: 3, H: 2, I: 9,
   J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
   S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1,
+}
+const ES_BAG = {
+  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
+  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
+  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1,
 }
 
 // ========== Seeded RNG ==========
@@ -108,11 +120,12 @@ class SeededRng {
 
 function parseLang(raw) {
   const s = String(raw || '').toLowerCase()
+  if (s === 'es' || s.endsWith('-es')) return 'es'
   return s === 'en' || s.endsWith('-en') ? 'en' : 'fr'
 }
 
 function trailLang(trailId) {
-  return String(trailId || '').endsWith('-en') ? 'en' : 'fr'
+  return parseLang(trailId)
 }
 
 function trailKids(trailId) {
@@ -120,7 +133,7 @@ function trailKids(trailId) {
 }
 
 function trailPeriod(trailId) {
-  return String(trailId || '').replace(/-kids/, '').replace(/-en$/, '')
+  return String(trailId || '').replace(/-kids/, '').replace(/-(?:en|es)$/, '')
 }
 
 function parisYmd(date = new Date()) {
@@ -149,7 +162,7 @@ export function isoWeekTrailId(date = new Date(), lang = 'fr', kids = false) {
   const week = isoWeekFromYmd(y, m, d)
   let id = week
   if (kids) id += '-kids'
-  if (lang === 'en') id += '-en'
+  if (lang === 'en' || lang === 'es') id += `-${lang}`
   return id
 }
 
@@ -160,11 +173,11 @@ function todayTrailId(lang = 'fr', kids = false) {
 function normalizeTrailId(id, lang, kids = false) {
   if (!id) return todayTrailId(lang, kids)
   const s = String(id)
-  if (s.includes('-kids') || s.endsWith('-en')) return s
+  if (s.includes('-kids') || /-(?:en|es)$/.test(s)) return s
   if (/^\d{4}-W\d{2}$/.test(s) || /^\d{4}-\d{2}-\d{2}$/.test(s)) {
     let next = s
     if (kids) next += '-kids'
-    if (lang === 'en') next += '-en'
+    if (lang === 'en' || lang === 'es') next += `-${lang}`
     return next
   }
   return s
@@ -205,6 +218,15 @@ async function loadLexicon(lang = 'fr') {
     console.log(`Loaded EN ${words.length} words, byLen[7]=${byLenEn[7]?.length || 0}`)
     return
   }
+  if (lang === 'es') {
+    if (lexEs) return
+    const words = await readLexiconFile('rla-es.txt.gz')
+    lexEs = words
+    byLenEs = Array.from({ length: 16 }, () => [])
+    for (const w of words) if (w.length < 16) byLenEs[w.length].push(w)
+    console.log(`Loaded ES ${words.length} words, byLen[7]=${byLenEs[7]?.length || 0}`)
+    return
+  }
   if (lexFr) return
   try {
     const words = await readLexiconFile('ods9.txt.gz')
@@ -218,6 +240,18 @@ async function loadLexicon(lang = 'fr') {
   }
 }
 
+function byLengthFor(lang) {
+  return lang === 'en' ? byLenEn : lang === 'es' ? byLenEs : byLenFr
+}
+
+function valuesFor(lang) {
+  return lang === 'en' ? EN_VALUES : lang === 'es' ? ES_VALUES : FR_VALUES
+}
+
+function bagFor(lang) {
+  return lang === 'en' ? EN_BAG : lang === 'es' ? ES_BAG : FR_BAG
+}
+
 function scoreWord(word, jokerSet = new Set(), values = FR_VALUES) {
   let n = 0
   for (let i = 0; i < word.length; i++) {
@@ -228,23 +262,23 @@ function scoreWord(word, jokerSet = new Set(), values = FR_VALUES) {
 }
 
 function rackCounts(rack) {
-  const counts = new Uint8Array(26)
+  const counts = Object.create(null)
   let blanks = 0
   for (const ch of rack) {
     if (ch === '?' || ch === '.' || ch === '*') blanks++
-    else if (ch >= 'A' && ch <= 'Z') counts[ch.charCodeAt(0) - 65]++
+    else if (/^[A-ZÑ]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
   }
   return { counts, blanks, tiles: rack.length }
 }
 
 function formable(word, counts, blanks) {
   let need = 0
-  const used = new Uint8Array(26)
+  const used = Object.create(null)
   const jokers = []
   for (let i = 0; i < word.length; i++) {
-    const c = word.charCodeAt(i) - 65
-    used[c]++
-    if (used[c] > counts[c]) {
+    const ch = word[i]
+    used[ch] = (used[ch] || 0) + 1
+    if (used[ch] > (counts[ch] || 0)) {
       need++
       jokers.push(i)
       if (need > blanks) return null
@@ -301,9 +335,9 @@ async function generateTrail(trailId) {
   try {
     const lang = trailLang(trailId)
     await loadLexicon(lang)
-    const byLen = lang === 'en' ? byLenEn : byLenFr
-    const values = lang === 'en' ? EN_VALUES : FR_VALUES
-    const bag = lang === 'en' ? EN_BAG : FR_BAG
+    const byLen = byLengthFor(lang)
+    const values = valuesFor(lang)
+    const bag = bagFor(lang)
     const salt = await ensureTrailSalt()
     const seedHash = createHash('sha256').update(trailId + salt).digest()
     const seed = seedHash.readUInt32LE(0)
@@ -447,8 +481,8 @@ export async function officialPlays(trailId) {
   const lang = trailLang(trailId)
   const groups = trail.groups || anagrams(
     trail.rack,
-    lang === 'en' ? byLenEn : byLenFr,
-    lang === 'en' ? EN_VALUES : FR_VALUES
+    byLengthFor(lang),
+    valuesFor(lang)
   )
   return { trailId, lang, rack: trail.rack, plays: catalogFromGroups(groups) }
 }
@@ -472,24 +506,25 @@ function scoreFromPlays(plays, form, extra = {}) {
 export async function scoreOfficialPlay(trailId, word) {
   const form = String(word || '')
     .toUpperCase()
-    .replace(/[^A-Z]/g, '')
+    .replace(/[^A-ZÑ]/g, '')
   if (form.length < 2 || form.length > 15) return { ok: false, error: 'not_playable' }
   const { plays, lang, rack } = await officialPlays(trailId)
   return scoreFromPlays(plays, form, { trailId, lang, rack })
 }
 
 export async function scorePlayOnRack(lang, rackRaw, word) {
+  lang = parseLang(lang)
   const rack = String(rackRaw || '')
     .toUpperCase()
-    .replace(/[^A-Z]/g, '')
+    .replace(/[^A-ZÑ?]/g, '')
     .slice(0, 7)
   const form = String(word || '')
     .toUpperCase()
-    .replace(/[^A-Z]/g, '')
+    .replace(/[^A-ZÑ]/g, '')
   if (rack.length < 2 || form.length < 2 || form.length > rack.length) return { ok: false, error: 'not_playable' }
   await loadLexicon(lang)
-  const byLen = lang === 'en' ? byLenEn : byLenFr
-  const values = lang === 'en' ? EN_VALUES : FR_VALUES
+  const byLen = byLengthFor(lang)
+  const values = valuesFor(lang)
   const plays = catalogFromGroups(anagrams(rack, byLen, values))
   return scoreFromPlays(plays, form, { lang, rack })
 }
@@ -984,7 +1019,7 @@ async function updateUserBest(sub, scored, stamp) {
 function rememberUserWord(user, entry) {
   const word = String(entry?.word || '')
     .toUpperCase()
-    .replace(/[^A-Z]/g, '')
+    .replace(/[^A-ZÑ]/g, '')
   if (word.length < 2 || word.length > 15) return user.history || []
   const pts = Math.max(0, Math.round(Number(entry.pts) || 0))
   const src = entry.src === 'dico' ? 'dico' : 'defi'

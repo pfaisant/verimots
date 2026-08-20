@@ -69,6 +69,64 @@ From old stuff.
   assert.doesNotMatch(senses[0].defs.join(' '), /pas ça|old stuff/)
 })
 
+test('extractSenses reads Spanish numbered definitions and preserves Ñ', () => {
+  const wiki = `== {{lengua|es}} ==
+=== Etimología ===
+Del latín.
+=== Sustantivo masculino ===
+;1: Periodo de doce [[mes]]es.
+;2: {{ámbito|España}} Curso escolar.
+=== Traducciones ===
+* English: year
+== {{lengua|fr}} ==
+=== {{S|nom|fr}} ===
+# autre langue
+`
+  const senses = extractSenses(wiki, 'es')
+  assert.equal(senses.length, 1)
+  assert.equal(senses[0].pos, 'sustantivo masculino')
+  assert.equal(senses[0].defs.length, 2)
+  assert.match(senses[0].defs[0], /doce meses/)
+  assert.doesNotMatch(senses[0].defs.join(' '), /autre langue|Del latín/)
+  assert.equal(lookupQuery('AÑO', 'es'), 'año')
+  assert.equal(lookupQuery('CAMIÓN', 'es'), 'camion')
+  assert.equal(rankTitles('AÑO', ['ano', 'año', 'Año'], 'es')[0], 'año')
+})
+
+test('extractSenses reads live-style Spanish template headings', () => {
+  const wiki = `== {{lengua|es}} ==
+=== Etimología 1 ===
+==== {{sustantivo masculino|es}} ====
+;1: Intervalo de [[tiempo]] que tarda la Tierra alrededor del Sol.
+;2: Periodo entre fechas de un calendario.
+==== Traducciones ====
+* English: year
+== {{lengua|an}} ==
+==== {{sustantivo masculino|an}} ====
+;1: otra lengua
+`
+  const senses = extractSenses(wiki, 'es')
+  assert.equal(senses.length, 1)
+  assert.equal(senses[0].pos, 'sustantivo masculino')
+  assert.deepEqual(senses[0].defs, [
+    'Intervalo de tiempo que tarda la Tierra alrededor del Sol.',
+    'Periodo entre fechas de un calendario.',
+  ])
+})
+
+test('extractSenses expands Spanish form templates without punctuation-only definitions', () => {
+  const verb = extractSenses(`== {{lengua|es}} ==
+=== Forma verbal ===
+;1: {{forma verbo|comer|p=3p|t=pret ind|m=indicativo|pronominal=s}}.
+`, 'es')
+  const noun = extractSenses(`== {{lengua|es}} ==
+=== Forma sustantiva ===
+;1: {{forma sustantivo plural|niña}}.
+`, 'es')
+  assert.equal(verb[0].defs[0], 'Forma de comer.')
+  assert.equal(noun[0].defs[0], 'Plural de niña.')
+})
+
 test('cleanWikitext expands English plural-of templates', () => {
   assert.match(cleanWikitext('{{plural of|en|keum}}'), /Plural of keum/)
 })

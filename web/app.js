@@ -1,7 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues } from './game.js?v=61'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=61'
-import { isCompetitive, isKids, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=61'
-import { initLang, setLang, getLang, t } from './i18n.js?v=61'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues } from './game.js?v=68'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=68'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=68'
+import { initLang, setLang, getLang, t } from './i18n.js?v=68'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -13,11 +13,16 @@ const EN_COUNTS = {
   J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
   S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1, '?': 2,
 }
+const ES_COUNTS = {
+  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
+  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
+  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1, '?': 2,
+}
 function letterValues() {
   return tileValues(getLang())
 }
 function letterCounts() {
-  return getLang() === 'en' ? EN_COUNTS : FR_COUNTS
+  return getLang() === 'en' ? EN_COUNTS : getLang() === 'es' ? ES_COUNTS : FR_COUNTS
 }
 
 const q = document.getElementById('q')
@@ -42,9 +47,16 @@ const histCount = document.getElementById('hist-count')
 const histSheet = document.getElementById('hist-sheet')
 const histOut = document.getElementById('hist-out')
 const histClose = document.getElementById('hist-close')
+const multiTools = document.getElementById('find-multi-tools')
+const multiStart = document.getElementById('find-start')
+const multiHas = document.getElementById('find-contains')
+const multiEnd = document.getElementById('find-end')
+const multiLength = document.getElementById('find-length')
+const multiInfinitives = document.getElementById('find-infinitives')
+const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=61', { type: 'module' })
+const worker = new Worker('worker.js?v=68', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -82,11 +94,15 @@ worker.onmessage = (ev) => {
 }
 
 function normalize(value) {
+  const sentinel = '\ue000'
   return String(value || '')
+    .normalize('NFC')
+    .replace(/ñ/gi, sentinel)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
-    .replace(/[^A-Z?.*]/g, '')
+    .replaceAll(sentinel.toUpperCase(), 'Ñ')
+    .replace(/[^A-ZÑ?.*]/g, '')
 }
 
 function tilesHtml(word, jokers = [], opts = {}) {
@@ -104,7 +120,11 @@ function tilesHtml(word, jokers = [], opts = {}) {
 
 function wikiUrl(word, lemma) {
   const title = lemma || String(word || '').toLowerCase()
-  const host = getLang() === 'en' ? 'en.wiktionary.org' : 'fr.wiktionary.org'
+  const host = getLang() === 'en'
+    ? 'en.wiktionary.org'
+    : getLang() === 'es'
+      ? 'es.wiktionary.org'
+      : 'fr.wiktionary.org'
   return `https://${host}/wiki/${encodeURIComponent(title)}`
 }
 
@@ -112,8 +132,40 @@ function isCompoundLemma(value) {
   return /[-'’]/.test(String(value || ''))
 }
 
+const DEF_CACHE_KEY = 'verimots-definitions-v2'
+const DEF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000
+const DEF_CACHE_MAX = 80
 const defCache = new Map()
 let defSeq = 0
+
+function readStoredDefinition(key) {
+  try {
+    const all = JSON.parse(localStorage.getItem(DEF_CACHE_KEY) || '{}')
+    const hit = all?.[key]
+    if (!hit || Date.now() - Number(hit.at || 0) > DEF_CACHE_TTL) return null
+    const value = hit.value
+    if (!value?.found || !value.senses?.some((sense) =>
+      sense?.defs?.some((definition) => /\p{L}/u.test(String(definition || '')))
+    )) return null
+    return value
+  } catch {
+    return null
+  }
+}
+
+function storeDefinition(key, value) {
+  if (!value?.ok || !value.found || value.offline) return
+  try {
+    const all = JSON.parse(localStorage.getItem(DEF_CACHE_KEY) || '{}')
+    all[key] = { at: Date.now(), value }
+    const ordered = Object.entries(all)
+      .sort((a, b) => Number(b[1]?.at || 0) - Number(a[1]?.at || 0))
+      .slice(0, DEF_CACHE_MAX)
+    localStorage.setItem(DEF_CACHE_KEY, JSON.stringify(Object.fromEntries(ordered)))
+  } catch {
+    /* private mode or storage quota */
+  }
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -124,10 +176,14 @@ function escapeHtml(value) {
 }
 
 function foldKeyClient(value) {
+  const sentinel = '\ue000'
   return String(value || '')
+    .normalize('NFC')
+    .replace(/ñ/gi, sentinel)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replaceAll(sentinel, 'ñ')
 }
 
 function wordLink(word) {
@@ -140,9 +196,9 @@ function shareMessage(share) {
   const link = wordLink(share.word)
   if (share.ok) {
     const def = share.def ? `\n${share.def}\n` : '\n'
-    return `Verimots\n\n*${share.word}* est dans la liste\n${share.word.length} lettres · ${share.score} pt${share.score > 1 ? 's' : ''}\n${def}\n${link}`
+    return `Verimots\n\n*${t('share_valid', share.word)}*\n${t('letters_pts', share.word.length, share.score)}\n${def}\n${link}`
   }
-  return `Verimots\n\n*${share.word}* n'est pas dans la liste\n\n${link}`
+  return `Verimots\n\n*${t('share_invalid', share.word)}*\n\n${link}`
 }
 
 function waHref(share) {
@@ -190,16 +246,24 @@ async function loadDefinition(word, opts = {}) {
   if (!key) return { ok: true, found: false, word: '' }
   const cacheKey = `${getLang()}:${foldKeyClient(key)}`
   if (defCache.has(cacheKey)) return defCache.get(cacheKey)
+  const stored = readStoredDefinition(cacheKey)
+  if (stored) {
+    defCache.set(cacheKey, stored)
+    return stored
+  }
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return { ok: true, found: false, offline: true, word: key }
   }
   const mine = opts.stable ? defSeq : ++defSeq
   try {
-    const langQ = getLang() === 'en' ? '&lang=en' : ''
+    const langQ = `&lang=${encodeURIComponent(getLang())}`
     const res = await fetch(`/api/define?w=${encodeURIComponent(key)}${langQ}`)
     const data = await res.json()
     if (!opts.stable && mine !== defSeq) return null
-    if (data?.ok) defCache.set(cacheKey, data)
+    if (data?.ok && data.found) {
+      defCache.set(cacheKey, data)
+      storeDefinition(cacheKey, data)
+    }
     return data
   } catch {
     if (!opts.stable && mine !== defSeq) return null
@@ -272,7 +336,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=61').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=68').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -281,7 +345,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=61')
+    const { fetchHistory } = await import('./competitive.js?v=68')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -289,7 +353,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=61')
+    const { saveHistoryWord } = await import('./competitive.js?v=68')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -369,7 +433,7 @@ function readUrl() {
             ? vue
             : 'check'
   if (!advanced && nav !== 'game' && nav !== 'info' && nav !== 'board') nav = 'check'
-  findMode = ['prefix', 'suffix', 'has', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
+  findMode = ['prefix', 'suffix', 'has', 'multi', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
   if (p.get('len') && /^\d+$/.test(p.get('len'))) rackLen = p.get('len')
   if (word) q.value = word
   return word
@@ -393,9 +457,10 @@ function syncChrome() {
     prefix: t('hint_prefix'),
     suffix: t('hint_suffix'),
     has: t('hint_has'),
+    multi: t('hint_multi'),
   }
   const keepClosed = nav === 'game' && document.body.classList.contains('game-closed')
-  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}`
+  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}${isTraining() ? ' training' : ''}`
   brandSub.textContent = titles[nav] || titles.check
   document.title =
     nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : t('title')
@@ -404,8 +469,8 @@ function syncChrome() {
   document.querySelectorAll('.legal-link').forEach((el) => {
     el.hidden = nav === 'game' || nav === 'board'
     const href = el.getAttribute('href') || ''
-    if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy'))) {
-      el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : '/confidentialite.html')
+    if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy') || href.includes('privacidad'))) {
+      el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : getLang() === 'es' ? '/privacidad.html' : '/confidentialite.html')
     }
   })
   advToggle.textContent = advanced ? t('simple') : t('advanced')
@@ -425,6 +490,14 @@ function syncChrome() {
   q.maxLength = nav === 'rack' ? 16 : 15
   if (qJoker) qJoker.hidden = nav !== 'rack'
   if (hint) hint.textContent = hints[findMode] || hints.exact
+  if (multiTools) multiTools.hidden = findMode !== 'multi'
+  if (multiInfinitives) {
+    const supported = getLang() !== 'en'
+    multiInfinitives.disabled = !supported
+    if (!supported) multiInfinitives.checked = false
+    const label = multiInfinitives.closest('label')
+    if (label) label.hidden = !supported
+  }
   rackPreview.hidden = nav !== 'rack'
   document.querySelectorAll('#adv-nav [data-nav]').forEach((btn) => {
     btn.setAttribute('aria-current', btn.dataset.nav === nav ? 'page' : 'false')
@@ -488,6 +561,21 @@ function setAdvanced(on) {
 
 function blankCount(raw) {
   return [...raw].filter((c) => c === '?' || c === '.' || c === '*').length
+}
+
+function multiFilters() {
+  return {
+    start: normalize(multiStart?.value || '').replace(/[?.*]/g, ''),
+    has: normalize(multiHas?.value || '').replace(/[?.*]/g, ''),
+    end: normalize(multiEnd?.value || '').replace(/[?.*]/g, ''),
+    length: Math.max(0, Math.min(15, Number(multiLength?.value) || 0)),
+    infinitives: getLang() !== 'en' && !!multiInfinitives?.checked,
+    hideInflections: !!multiHideInflections?.checked,
+  }
+}
+
+function hasMultiFilter(filters = multiFilters()) {
+  return !!(filters.start || filters.has || filters.end || filters.length || filters.infinitives || filters.hideInflections)
 }
 
 function addBlankToRack() {
@@ -587,7 +675,7 @@ function renderFind(words, query) {
   verdict.hidden = true
   findOut.hidden = false
   if (!words.length) {
-    findOut.innerHTML = `<p class="empty">Aucun mot de la liste pour « ${escapeHtml(query)} ».</p>`
+    findOut.innerHTML = `<p class="empty">${escapeHtml(t('find_none', query))}</p>`
     return
   }
   const groups = []
@@ -599,8 +687,7 @@ function renderFind(words, query) {
   for (const len of [...by.keys()].sort((a, b) => a - b)) {
     groups.push({ len, words: by.get(len) })
   }
-  const labels = { prefix: 'qui commencent par', suffix: 'qui finissent par', has: 'qui contiennent' }
-  renderGroups(findOut, groups, '', `${words.length.toLocaleString('fr-FR')} mot${words.length > 1 ? 's' : ''} ${labels[findMode] || ''} ${query}`)
+  renderGroups(findOut, groups, '', t('find_summary', words.length, query))
 }
 
 function renderLists() {
@@ -618,12 +705,12 @@ function renderLists() {
         ×2
       </div>
     </div>
-    <p class="empty">Distribution française officielle. Un joker vaut 0.</p>`
+    <p class="empty">${t('values_note')}</p>`
     return
   }
   const list = listKind === '2' ? meta?.letters2 || [] : meta?.letters3 || []
   const cls = listKind === '2' ? 'grid2' : 'grid3'
-  listsOut.innerHTML = `<p class="result-sum">${list.length} mots de ${listKind} lettres · touchez pour vérifier</p>
+  listsOut.innerHTML = `<p class="result-sum">${t('list_count', list.length, listKind)}</p>
     <div class="${cls}">${list.map((w) => `<button type="button" class="chip" data-word="${w}">${w}</button>`).join('')}</div>`
 }
 
@@ -668,9 +755,10 @@ async function run() {
 
   if (nav === 'check') {
     verdict.hidden = true
-    if (raw.length < 2) {
+    const filters = findMode === 'multi' ? multiFilters() : null
+    if (findMode === 'multi' ? !hasMultiFilter(filters) : raw.length < 2) {
       findOut.hidden = false
-      findOut.innerHTML = `<p class="empty">Au moins 2 lettres.</p>`
+      findOut.innerHTML = `<p class="empty">${t('find_min')}</p>`
       return
     }
     if (!ready) {
@@ -678,9 +766,14 @@ async function run() {
       findOut.innerHTML = `<p class="pending">Dictionnaire en cours de chargement…</p>`
       return
     }
-    const result = await ask('find', { mode: findMode, q: raw })
+    const result = await ask('find', { mode: findMode, q: raw, filters })
     if (result.lang && result.lang !== getLang()) return
-    if (normalize(q.value) === raw && nav === 'check') renderFind(result.words, raw)
+    if (normalize(q.value) === raw && nav === 'check') {
+      const summary = findMode === 'multi'
+        ? [filters.start, filters.has, filters.end, filters.length || ''].filter(Boolean).join(' · ')
+        : raw
+      renderFind(result.words, summary)
+    }
     return
   }
 
@@ -703,8 +796,8 @@ async function run() {
     renderGroups(
       rackOut,
       result.groups,
-      'Aucun mot de la liste avec ces lettres.',
-      `${n.toLocaleString('fr-FR')} mot${n > 1 ? 's' : ''} jouable${n > 1 ? 's' : ''} · ? = joker · score à droite`
+      t('rack_none'),
+      t('rack_summary', n)
     )
   }
 }
@@ -867,7 +960,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=61')
+      const { clearCloudHistory } = await import('./competitive.js?v=68')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -906,6 +999,12 @@ document.querySelectorAll('.find-tools [data-find]').forEach((btn) => {
     q.focus()
   })
 })
+
+multiTools?.querySelectorAll('input, select').forEach((field) => {
+  field.addEventListener('input', schedule)
+  field.addEventListener('change', run)
+})
+document.getElementById('find-apply')?.addEventListener('click', run)
 
 document.querySelectorAll('.list-switch [data-list]').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -997,6 +1096,7 @@ const game = initGame({
   define: loadDefinition,
   isCompetitive,
   isKids,
+  isTraining,
   onDeal(tiles, cat) {
     gameRack = tiles
     gameCat = cat
@@ -1010,9 +1110,14 @@ const game = initGame({
 })
 
 async function loadMeta() {
-  const file = getLang() === 'en' ? 'data/meta-en.json' : 'data/meta.json'
+  const file = getLang() === 'en'
+    ? 'data/meta-en.json'
+    : getLang() === 'es'
+      ? 'data/meta-es.json'
+      : 'data/meta.json'
   meta = await (await fetch(file)).json()
-  setLive(t('word_count', meta.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  setLive(t('word_count', meta.count.toLocaleString(locale)))
 }
 
 async function reloadLexicon() {
@@ -1022,7 +1127,8 @@ async function reloadLexicon() {
   const result = await ask('load', { lang: wanted })
   if (getLang() !== wanted) return
   ready = true
-  setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  setLive(t('word_count', result.count.toLocaleString(locale)))
   if (nav === 'check' || nav === 'rack') run()
   else if (nav === 'lists') renderLists()
   else if (nav === 'game' || nav === 'board') game?.refresh?.()
@@ -1049,6 +1155,7 @@ async function boot() {
   initLang()
   document.getElementById('lang-fr')?.addEventListener('click', () => switchLang('fr'))
   document.getElementById('lang-en')?.addEventListener('click', () => switchLang('en'))
+  document.getElementById('lang-es')?.addEventListener('click', () => switchLang('es'))
   readUrl()
   syncChrome()
   paintApkLink()
@@ -1069,7 +1176,8 @@ async function boot() {
   try {
     const result = await ask('load', { lang: getLang() })
     ready = true
-    setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+    const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+    setLive(t('word_count', result.count.toLocaleString(locale)))
     if (nav === 'check' || nav === 'rack') run()
     else if (nav === 'lists') renderLists()
     else if (nav === 'game') game.open(challengeFromUrl())
@@ -1082,7 +1190,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=66').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=68').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
@@ -1104,6 +1212,14 @@ document.getElementById('mode-kids')?.addEventListener('click', async () => {
   setGameMode('kids')
   if (nav === 'board') setNav('game')
   await game.switchMode('kids')
+  syncChrome()
+  showPanel(nav)
+})
+
+document.getElementById('mode-training')?.addEventListener('click', async () => {
+  setGameMode('training')
+  if (nav === 'board') setNav('game')
+  await game.switchMode('training')
   syncChrome()
   showPanel(nav)
 })

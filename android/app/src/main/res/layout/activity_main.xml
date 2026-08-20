@@ -81,6 +81,18 @@
                 android:paddingVertical="4dp"
                 android:text="@string/lang_en"
                 android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/lang_es"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:minWidth="32dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/lang_es"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <TextView

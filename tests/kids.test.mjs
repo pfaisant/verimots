@@ -3,30 +3,31 @@ import assert from 'node:assert/strict'
 import { dealKids, kidsAnagrams, kidsWords, kidsLong } from '../web/kids.js'
 import { loadKidsFound, rememberKidsFound } from '../web/game.js'
 
-const HARD = /[JKQWXYZ]/
+const HARD = /[JKÑQWXYZ]/
 
 test('kids short words avoid hard letters; long easy words may include them', () => {
-  for (const lang of ['fr', 'en']) {
+  for (const lang of ['fr', 'en', 'es']) {
     const words = kidsWords(lang)
     const longs = kidsLong(lang)
     assert.ok(words.length > 80)
     assert.ok(longs.length > 8)
-    for (const w of longs) assert.match(w, /^[A-Z]{6,7}$/)
+    for (const w of longs) assert.match(w, /^[A-ZÑ]{6,8}$/)
     for (const w of words) {
-      assert.match(w, /^[A-Z]{3,7}$/)
+      assert.match(w, /^[A-ZÑ]{3,8}$/)
       if (w.length <= 5) assert.equal(HARD.test(w), false)
     }
   }
   assert.ok(kidsLong('fr').includes('CHEVAUX'))
   assert.ok(kidsLong('en').includes('HORSES'))
+  assert.ok(kidsLong('es').includes('CABALLO'))
   assert.ok(kidsWords('en').includes('PIP'))
 })
 
 test('a kids deal always includes an easy long word', () => {
-  for (const lang of ['fr', 'en']) {
+  for (const lang of ['fr', 'en', 'es']) {
     const d = dealKids(lang)
     assert.equal(d.category, 'kids')
-    assert.ok(d.rack.length === 6 || d.rack.length === 7)
+    assert.ok(d.rack.length >= 6 && d.rack.length <= 8)
     assert.ok(kidsLong(lang).includes(d.seed))
     const plays = kidsAnagrams(d.rack, lang).flatMap((g) => g.words)
     assert.ok(plays.some((p) => p.word === d.seed))
@@ -36,6 +37,8 @@ test('a kids deal always includes an easy long word', () => {
   assert.equal(chevaux.rack.length, 7)
   const next = dealKids('fr', () => 0, chevaux.seed)
   assert.notEqual(next.seed, chevaux.seed)
+  const animales = kidsAnagrams('ANIMALES', 'es').flatMap((g) => g.words)
+  assert.ok(animales.some((p) => p.word === 'ANIMALES'))
 })
 
 test('kids anagrams ignore adult-only forms', () => {

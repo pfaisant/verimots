@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,6 +22,10 @@ final class RemoteApi {
     private static final ExecutorService IO = Executors.newCachedThreadPool();
     private static final Handler UI = new Handler(Looper.getMainLooper());
     private static String sessionToken = "";
+
+    private static String language(String lang) {
+        return "en".equals(lang) || "es".equals(lang) ? lang : "fr";
+    }
 
     static void setSessionToken(String token) {
         sessionToken = token == null ? "" : token;
@@ -72,8 +77,8 @@ final class RemoteApi {
     static void define(String word, DefCb cb, String lang) {
         IO.execute(() -> {
             try {
-                String langQ = "en".equals(lang) ? "&lang=en" : "";
-                String q = URLEncoder.encode(word == null ? "" : word, StandardCharsets.UTF_8).replace("+", "%20");
+                String langQ = "&lang=" + language(lang);
+                String q = URLEncoder.encode(word == null ? "" : word, "UTF-8").replace("+", "%20");
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/define?w=" + q + langQ).openConnection();
                 c.setConnectTimeout(8000);
                 c.setReadTimeout(8000);
@@ -95,7 +100,8 @@ final class RemoteApi {
                 JSONArray defs = s0.optJSONArray("defs");
                 String pos = s0.optString("pos", "");
                 String def = defs != null && defs.length() > 0 ? defs.getString(0) : "";
-                String url = o.optString("url", "https://fr.wiktionary.org/wiki/" + word.toLowerCase());
+                String url = o.optString("url", "https://" + language(lang)
+                        + ".wiktionary.org/wiki/" + word.toLowerCase(Locale.ROOT));
                 String lemma = o.optString("lemma", "");
                 post(() -> cb.ok(pos, def, url, lemma));
             } catch (Exception e) {
@@ -133,7 +139,7 @@ final class RemoteApi {
                 JSONObject body = new JSONObject();
                 body.put("message", message == null ? "" : message);
                 body.put("email", email == null ? "" : email);
-                body.put("lang", "en".equals(lang) ? "en" : "fr");
+                body.put("lang", language(lang));
                 body.put("source", "android");
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/feedback").openConnection();
                 auth(c);
@@ -207,7 +213,7 @@ final class RemoteApi {
     static void fetchTrail(String lang, boolean kids, TrailCb cb) {
         IO.execute(() -> {
             try {
-                String q = "en".equals(lang) ? "?lang=en" : "?lang=fr";
+                String q = "?lang=" + language(lang);
                 if (kids) q += "&kids=1";
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/trail" + q).openConnection();
                 auth(c);
@@ -234,7 +240,7 @@ final class RemoteApi {
     static void fetchBoard(String trailId, String lang, boolean kids, BoardCb cb) {
         IO.execute(() -> {
             try {
-                String url = HOST + "/api/game/board?lang=" + ("en".equals(lang) ? "en" : "fr");
+                String url = HOST + "/api/game/board?lang=" + language(lang);
                 if (kids) url += "&kids=1";
                 if (trailId != null && !trailId.isEmpty()) url += "&trailId=" + trailId;
                 HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
@@ -391,7 +397,7 @@ final class RemoteApi {
                 JSONObject payload = new JSONObject();
                 payload.put("percent", percent);
                 if (word != null && !word.isEmpty()) payload.put("word", word);
-                payload.put("lang", "en".equals(lang) ? "en" : "fr");
+                payload.put("lang", language(lang));
                 if (kids) payload.put("kids", true);
                 byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
                 try (OutputStream os = c.getOutputStream()) {

@@ -103,7 +103,7 @@ final class CompetitiveMode {
     }
 
     void openWebSignIn() {
-        String lang = Lang.isEn(activity) ? "en" : "fr";
+        String lang = Lang.get(activity);
         Uri uri = Uri.parse(RemoteApi.HOST + "/auth-android.html?lang=" + lang);
         Intent i = new Intent(Intent.ACTION_VIEW, uri);
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);

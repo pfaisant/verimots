@@ -7,13 +7,17 @@ let gsReady = false
 let currentUser = null
 let trailData = null
 
+function language(value) {
+  return value === 'en' || value === 'es' ? value : 'fr'
+}
+
 export function getGameMode() {
   const mode = sessionStorage.getItem('verimots-mode')
-  return mode === 'competitive' || mode === 'kids' ? mode : 'defi'
+  return ['competitive', 'kids', 'training'].includes(mode) ? mode : 'defi'
 }
 
 export function setGameMode(mode) {
-  sessionStorage.setItem('verimots-mode', mode === 'competitive' || mode === 'kids' ? mode : 'defi')
+  sessionStorage.setItem('verimots-mode', ['competitive', 'kids', 'training'].includes(mode) ? mode : 'defi')
 }
 
 export function isCompetitive() {
@@ -22,6 +26,10 @@ export function isCompetitive() {
 
 export function isKids() {
   return getGameMode() === 'kids'
+}
+
+export function isTraining() {
+  return getGameMode() === 'training'
 }
 
 export function setCompetitive(on) {
@@ -104,7 +112,7 @@ export async function logout() {
 export async function fetchDailyTrail(lang, opts = {}) {
   try {
     const p = new URLSearchParams()
-    p.set('lang', lang === 'en' ? 'en' : 'fr')
+    p.set('lang', language(lang))
     if (opts.kids) p.set('kids', '1')
     const res = await fetch('/api/game/trail?' + p, { credentials: 'include' })
     const data = await res.json()
@@ -126,7 +134,7 @@ export async function fetchLeaderboard(trailId, lang, opts = {}) {
   try {
     const p = new URLSearchParams()
     if (trailId) p.set('trailId', trailId)
-    p.set('lang', lang === 'en' ? 'en' : 'fr')
+    p.set('lang', language(lang))
     if (opts.kids) p.set('kids', '1')
     const res = await fetch(`/api/game/board?${p}`, { credentials: 'include' })
     const data = await res.json()
@@ -185,7 +193,7 @@ export async function submitCompete(percent, word, lang, opts = {}) {
       body: JSON.stringify({
         percent,
         word,
-        lang: lang === 'en' ? 'en' : 'fr',
+        lang: language(lang),
         kids: !!opts.kids,
       }),
     })

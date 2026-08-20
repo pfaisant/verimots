@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots hors ligne, maintenue par la communauté. Définitions automatiques avec une connexion." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=61" />
+  <link rel="stylesheet" href="app.css?v=68" />
 </head>
 <body class="simple">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -34,6 +34,7 @@
       <div class="lang-toggle" role="group" data-i18n-aria="lang" aria-label="Langue">
         <button type="button" id="lang-fr" class="lang-btn" aria-pressed="true">FR</button>
         <button type="button" id="lang-en" class="lang-btn" aria-pressed="false">EN</button>
+        <button type="button" id="lang-es" class="lang-btn" aria-pressed="false">ES</button>
       </div>
       <button type="button" class="hist-btn" id="hist-btn" data-i18n-aria="hist" aria-label="Historique de la session" aria-expanded="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 3a9 9 0 1 0 8.5 12h-2.1A7 7 0 1 1 13 5v4.6l3.4 2-1 1.7L11 10.2V3h2z"/></svg>
@@ -72,6 +73,27 @@
         <button type="button" data-find="prefix" aria-pressed="false" data-i18n="find_prefix">Commence</button>
         <button type="button" data-find="suffix" aria-pressed="false" data-i18n="find_suffix">Finit</button>
         <button type="button" data-find="has" aria-pressed="false" data-i18n="find_has">Contient</button>
+        <button type="button" data-find="multi" aria-pressed="false" data-i18n="find_multi">Combiner</button>
+      </div>
+      <div class="find-multi" id="find-multi-tools" hidden>
+        <div class="find-multi-fields">
+          <input id="find-start" type="text" maxlength="15" autocomplete="off" data-i18n-placeholder="find_start" placeholder="Commence par" />
+          <input id="find-contains" type="text" maxlength="15" autocomplete="off" data-i18n-placeholder="find_has" placeholder="Contient" />
+          <input id="find-end" type="text" maxlength="15" autocomplete="off" data-i18n-placeholder="find_end" placeholder="Finit par" />
+          <select id="find-length" data-i18n-aria="find_length" aria-label="Longueur">
+            <option value="" data-i18n="find_length">Longueur</option>
+            <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+            <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+            <option value="11">11</option><option value="12">12</option><option value="13">13</option>
+            <option value="14">14</option><option value="15">15</option>
+          </select>
+        </div>
+        <div class="find-multi-checks">
+          <label><input id="find-infinitives" type="checkbox" /> <span data-i18n="find_infinitives">Infinitifs</span></label>
+          <label><input id="find-hide-inflections" type="checkbox" /> <span data-i18n="find_hide_inflections">Masquer les flexions probables</span></label>
+          <button type="button" id="find-apply" data-i18n="find_apply">Rechercher</button>
+        </div>
       </div>
       <p class="hint" id="hint" data-i18n="hint_exact">Dans la liste ? Sans accents. Liste hors ligne.</p>
       <div id="verdict" class="verdict idle" hidden></div>
@@ -122,7 +144,7 @@
         </p>
         <p data-i18n="about_p3">
           La liste est maintenue par la communauté. Verimots n’est pas
-          l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.
+          l’ouvrage Larousse, ni un produit affilié à Scrabble, Mattel, Hasbro ou à une fédération.
         </p>
         <p data-i18n="about_p4">
           Mode simple : vérifier et partager. Mode avancé : tiroir, motifs et listes.
@@ -145,8 +167,29 @@
       </div>
       <div class="game-mode-switch" id="game-mode-switch">
         <button type="button" id="mode-defi" class="mode-btn" data-mode="defi" aria-pressed="true" data-i18n="mode_defi">Défi</button>
+        <button type="button" id="mode-training" class="mode-btn" data-mode="training" aria-pressed="false" data-i18n="mode_training">Entraînement</button>
         <button type="button" id="mode-comp" class="mode-btn" data-mode="competitive" aria-pressed="false" data-i18n="mode_comp">Compétition</button>
         <button type="button" id="mode-kids" class="mode-btn" data-mode="kids" aria-pressed="false" data-i18n="mode_kids">Enfant</button>
+      </div>
+      <div class="training-tools" id="training-tools" hidden>
+        <div class="training-presets" role="group" aria-label="Entraînement">
+          <button type="button" data-training-preset="all" data-training-label="training_all" aria-pressed="true">Tous</button>
+          <button type="button" data-training-preset="seven" data-training-label="training_seven" aria-pressed="false">7 lettres</button>
+          <button type="button" data-training-preset="eight" data-training-label="training_eight" aria-pressed="false">8 lettres</button>
+          <button type="button" data-training-preset="plusOne" data-training-label="training_plus_one" aria-pressed="false">7 + 1</button>
+          <button type="button" data-training-preset="joker" data-training-label="training_joker" aria-pressed="false">Joker</button>
+          <button type="button" data-training-preset="hard" data-training-label="training_hard" aria-pressed="false">Difficiles</button>
+        </div>
+        <div class="training-status">
+          <span id="training-progress">0 sur 0</span>
+          <select id="training-timer" data-i18n-aria="training_timer" aria-label="Temps">
+            <option value="0" data-i18n="training_no_timer">Sans limite</option>
+            <option value="30">30 s</option>
+            <option value="60">60 s</option>
+            <option value="120">2 min</option>
+          </select>
+          <button type="button" id="training-reveal" data-i18n="training_reveal">Voir les réponses</button>
+        </div>
       </div>
       <div id="game-auth" class="game-auth" hidden>
         <div id="google-signin-btn" class="google-signin-area"></div>
@@ -240,7 +283,7 @@
 
   <footer class="foot">
     <div class="foot-links">
-      <a class="apk-link" href="verimots-3.19.apk" download="verimots-3.19.apk" title="Télécharger verimots-3.19.apk">verimots-3.19.apk</a>
+      <a class="apk-link" href="verimots-3.20.apk" download="verimots-3.20.apk" title="Télécharger verimots-3.20.apk">verimots-3.20.apk</a>
       <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
       <button type="button" class="legal-link" id="about-link" data-i18n="about">À propos</button>
       <button type="button" class="legal-link" data-cookies>Cookies</button>
@@ -266,7 +309,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=61" type="module"></script>
+  <script src="app.js?v=68" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
