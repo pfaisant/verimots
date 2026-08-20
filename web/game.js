@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=59'
+import { t, getLang } from './i18n.js?v=61'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -363,7 +363,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let category = 'bingo'
   let closed = false
   let officialPlay = false
-  let kidsSeed = ''
+  let dealSeed = ''
   let hintLevel = 0
   let activeMode = ''
   let modeSeq = 0
@@ -473,7 +473,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     rack = tiles
     catalog = catalogFrom(groups)
     best = catalog[0] || null
-    kidsSeed = String(seed || '').toUpperCase()
+    dealSeed = String(seed || '').toUpperCase()
     hintLevel = 0
     category = cat === 'kids' || kidsOn() ? 'kids' : CAT_KEYS.has(cat) ? cat : guessCategory(catalog, tiles)
     catEl.textContent = category === 'kids' ? t('kids_cat') : catLabel(category)
@@ -499,7 +499,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const requestLang = getLang()
     setClosed(false)
     officialPlay = !!opts.official
-    if (opts.seed) kidsSeed = String(opts.seed).toUpperCase()
+    if (opts.seed) dealSeed = String(opts.seed).toUpperCase()
     form.hidden = false
     resultEl.hidden = true
     resultEl.innerHTML = ''
@@ -520,14 +520,14 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     try {
       if (kidsOn()) {
         const res = wanted.length >= 2
-          ? await ask('kids', { rack: wanted, seed: opts.seed || kidsSeed || '' })
-          : await ask('kids', { excludeSeed: kidsSeed })
+          ? await ask('kids', { rack: wanted, seed: opts.seed || dealSeed || '' })
+          : await ask('kids', { excludeSeed: dealSeed })
         if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
         if (res.lang && res.lang !== requestLang) throw new Error('stale')
         if (wanted.length >= 2) {
           tiles = wanted
           cat = 'kids'
-          seed = opts.seed || kidsSeed || ''
+          seed = opts.seed || dealSeed || ''
         } else {
           if (!res?.rack) throw new Error('empty')
           tiles = res.rack
@@ -543,12 +543,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         cat = forcedCat || ''
         groups = res.groups || []
       } else {
-        const res = await ask('challenge')
+        const res = await ask('challenge', { excludeSeed: dealSeed, excludeRack: rack })
         if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
         if (res.lang && res.lang !== requestLang) throw new Error('stale')
         if (!res?.rack) throw new Error('empty')
         tiles = res.rack
         cat = res.category || ''
+        seed = res.seed || ''
         groups = res.groups || []
       }
     } catch {
@@ -579,7 +580,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   function giveHint() {
     if (closed || !kidsOn() || !hintBtn) return
-    const target = catalog.find((w) => w.word === kidsSeed) || best || catalog[0]
+    const target = catalog.find((w) => w.word === dealSeed) || best || catalog[0]
     if (!target) return
     hintLevel = Math.min(2, hintLevel + 1)
     if (hintLevel === 1) setLive(t('kids_hint_letter', target.word[0]), 'ok')
@@ -619,7 +620,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=59')
+        await import('./competitive.js?v=61')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -631,11 +632,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         }
       }
       if (!isPlayContextCurrent(context)) return false
-      const trail = getTrailData()
-      const board = await fetchLeaderboard(trail?.trailId, context.lang, { kids: context.kids })
-      if (!isPlayContextCurrent(context)) return false
-      paintLeaderboard(board)
-      return !officialPlay
+      const accepted = !officialPlay
+      void (async () => {
+        const trail = getTrailData()
+        const board = await fetchLeaderboard(trail?.trailId, context.lang, { kids: context.kids })
+        if (isPlayContextCurrent(context)) paintLeaderboard(board)
+      })().catch(() => {})
+      return accepted
     })()
       .catch(() => false)
       .finally(() => {
@@ -718,7 +721,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       paintShare(percent)
       paintChart(rememberScore(percent))
     }
-    onPlayed?.({ word: hit.word, pts: hit.pts, best: best?.word || kidsSeed, bestPts: best?.pts })
+    onPlayed?.({ word: hit.word, pts: hit.pts, best: best?.word || dealSeed, bestPts: best?.pts })
     resultEl.querySelector('#game-again')?.addEventListener('click', async () => {
       if (!isPlayContextCurrent(playContext)) return
       if (playContext.official && officialPlay && !(await syncRankedScore(percent, hit.word, playContext))) return
@@ -747,10 +750,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         showTop(btn.dataset.defWord)
       })
     })
+    const rankedPromise = playContext.ranked
+      ? syncRankedScore(percent, hit.word, playContext)
+      : null
     if (define) await showTop(tops[start]?.word)
     if (!isPlayContextCurrent(playContext)) return
     if (playContext.ranked) {
-      await syncRankedScore(percent, hit.word, playContext)
+      await rankedPromise
     } else {
       try {
         const res = await fetch('/api/game/score', {
@@ -843,7 +849,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=59')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=61')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1069,7 +1075,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=59')
+      const { fetchLeaderboard } = await import('./competitive.js?v=61')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

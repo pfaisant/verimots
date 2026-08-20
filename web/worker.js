@@ -1,5 +1,5 @@
 /* Verimots lexicon worker — lookup, anagrams, patterns. */
-import { dealKids, kidsAnagrams } from './kids.js?v=59'
+import { dealKids, kidsAnagrams } from './kids.js?v=61'
 
 const FR_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
@@ -118,8 +118,11 @@ function buildPools() {
   return pools
 }
 
-function dealChallenge() {
+function dealChallenge(excludeSeed = '', excludeRack = '') {
   const p = buildPools()
+  const blockedSeed = String(excludeSeed || '').toUpperCase()
+  const rackKey = (value) => String(value || '').toUpperCase().replace(/[^A-Z?]/g, '').split('').sort().join('')
+  const blockedRack = rackKey(excludeRack)
   for (let attempt = 0; attempt < 20; attempt++) {
     const roll = Math.random()
     let category = 'bingo'
@@ -141,6 +144,7 @@ function dealChallenge() {
     } else {
       continue
     }
+    if ((blockedSeed && seed === blockedSeed) || (blockedRack && rackKey(rack) === blockedRack)) continue
     const groups = anagrams(rack, 2, rack.length)
     const best = groups[0]?.words[0]
     if (!best) continue
@@ -158,7 +162,10 @@ function dealChallenge() {
     if (best.word.length <= 4 && !hardBest && best.score < 12) continue
     return { category, rack, groups, seed }
   }
-  const seed = pickWord(p.bingo.length ? p.bingo : ['SCRABBLE'])
+  const allowed = p.bingo.filter((word) =>
+    word !== blockedSeed && (!blockedRack || rackKey(word) !== blockedRack)
+  )
+  const seed = pickWord(allowed.length ? allowed : p.bingo.length ? p.bingo : ['SCRABBLE'])
   const rack = shuffleWord(seed)
   return { category: 'bingo', rack, groups: anagrams(rack, 2, rack.length), seed }
 }
@@ -269,7 +276,7 @@ async function handle(msg) {
     return
   }
   if (msg.type === 'challenge') {
-    const deal = dealChallenge()
+    const deal = dealChallenge(msg.excludeSeed, msg.excludeRack)
     self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang })
     return
   }
