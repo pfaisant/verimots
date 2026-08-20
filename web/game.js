@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=58'
+import { t, getLang } from './i18n.js?v=59'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -521,7 +521,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (kidsOn()) {
         const res = wanted.length >= 2
           ? await ask('kids', { rack: wanted, seed: opts.seed || kidsSeed || '' })
-          : await ask('kids')
+          : await ask('kids', { excludeSeed: kidsSeed })
         if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
         if (res.lang && res.lang !== requestLang) throw new Error('stale')
         if (wanted.length >= 2) {
@@ -619,7 +619,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=58')
+        await import('./competitive.js?v=59')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -843,7 +843,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=58')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=59')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1069,7 +1069,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=58')
+      const { fetchLeaderboard } = await import('./competitive.js?v=59')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

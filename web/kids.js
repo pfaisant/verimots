@@ -124,8 +124,11 @@ function shuffleWord(word, rnd) {
   return a.join('')
 }
 
-export function dealKids(lang = 'fr', rnd = Math.random) {
-  const pool = kidsLong(lang)
+export function dealKids(lang = 'fr', rnd = Math.random, excludeSeed = '') {
+  const fullPool = kidsLong(lang)
+  const blocked = String(excludeSeed || '').toUpperCase()
+  const filtered = fullPool.filter((word) => word !== blocked)
+  const pool = filtered.length ? filtered : fullPool
   const fallback = lang === 'en' ? 'HORSES' : 'CHEVAUX'
   for (let attempt = 0; attempt < 40; attempt++) {
     const seed = pool[Math.floor(rnd() * pool.length)] || fallback

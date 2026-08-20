@@ -34,6 +34,8 @@ test('a kids deal always includes an easy long word', () => {
   const chevaux = dealKids('fr', () => 0)
   assert.equal(chevaux.seed, 'CHEVAUX')
   assert.equal(chevaux.rack.length, 7)
+  const next = dealKids('fr', () => 0, chevaux.seed)
+  assert.notEqual(next.seed, chevaux.seed)
 })
 
 test('kids anagrams ignore adult-only forms', () => {

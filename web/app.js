@@ -1,7 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues } from './game.js?v=58'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=58'
-import { isCompetitive, isKids, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=58'
-import { initLang, setLang, getLang, t } from './i18n.js?v=58'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues } from './game.js?v=59'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=59'
+import { isCompetitive, isKids, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=59'
+import { initLang, setLang, getLang, t } from './i18n.js?v=59'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -44,7 +44,7 @@ const histOut = document.getElementById('hist-out')
 const histClose = document.getElementById('hist-close')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=58', { type: 'module' })
+const worker = new Worker('worker.js?v=59', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -272,7 +272,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=58').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=59').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -281,7 +281,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=58')
+    const { fetchHistory } = await import('./competitive.js?v=59')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -289,7 +289,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=58')
+    const { saveHistoryWord } = await import('./competitive.js?v=59')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -867,7 +867,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=58')
+      const { clearCloudHistory } = await import('./competitive.js?v=59')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1082,7 +1082,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=63').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=64').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

@@ -1,5 +1,5 @@
 /* Verimots lexicon worker — lookup, anagrams, patterns. */
-import { dealKids, kidsAnagrams } from './kids.js?v=58'
+import { dealKids, kidsAnagrams } from './kids.js?v=59'
 
 const FR_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
@@ -264,7 +264,7 @@ async function handle(msg) {
     const rack = String(msg.rack || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 7)
     const deal = rack.length >= 2
       ? { category: 'kids', rack, groups: kidsAnagrams(rack, want), seed: String(msg.seed || '') }
-      : dealKids(want)
+      : dealKids(want, Math.random, msg.excludeSeed)
     self.postMessage({ type: 'kids', id: msg.id, ...deal, lang: currentLang })
     return
   }
