@@ -21,8 +21,10 @@ import {
   loadScores,
   rememberScore,
   scoreChartSvg,
-} from '../dashboard/s/game.js'
-import { loadHistory, rememberWord, historyLabel, clearHistory } from '../dashboard/s/history.js'
+} from '../web/game.js'
+import { loadHistory, rememberWord, historyLabel, clearHistory } from '../web/history.js'
+import { kidsWords } from '../web/kids.js'
+import { competeAccepted } from '../web/competitive.js'
 
 const dir = await mkdtemp(join(tmpdir(), 'ods9-game-'))
 const {
@@ -35,6 +37,7 @@ const {
   scoreOfficialPlay,
   seedUserForTests,
   sessionCookieForTests,
+  mergeGoogleUserForTests,
 } = await import('../scripts/ods-game.mjs')
 
 test('score moyen uses a French decimal comma', () => {
@@ -236,6 +239,13 @@ test('game percent is clamped 0–100', async () => {
   assert.equal(snap.average, 50)
 })
 
+test('a failed ranked submission keeps the official attempt retryable', () => {
+  assert.equal(competeAccepted({ ok: true }), true)
+  assert.equal(competeAccepted({ ok: false, error: 'already_submitted' }), true)
+  assert.equal(competeAccepted({ ok: false, error: 'network_error' }), false)
+  assert.equal(competeAccepted(null), false)
+})
+
 test('daily trail generates deterministic challenges from same seed', async () => {
   resetGameStatsForTests(
     join(dir, 'trail-test.json'),
@@ -269,6 +279,23 @@ test('daily trail generates deterministic challenges from same seed', async () =
   assert.equal(resp1.trailId, resp2.trailId)
   assert.equal(resp1.rack, resp2.rack)
   assert.equal(resp1.category, resp2.category)
+})
+
+test('weekly adult racks include every intended filler tile', async () => {
+  resetGameStatsForTests(
+    join(dir, 'trail-fill.json'),
+    join(dir, 'trail-fill-salt.txt'),
+    join(dir, 'trail-fill-leaderboard.json'),
+    join(dir, 'trail-fill-auth.json')
+  )
+  for (let week = 1; week <= 52; week++) {
+    const trailId = `2026-W${String(week).padStart(2, '0')}`
+    const { rack } = await officialPlays(trailId)
+    assert.ok(
+      rack.length === 4 || rack.length === 5 || rack.length === 7,
+      `${trailId} generated an invalid ${rack.length}-tile rack: ${rack}`
+    )
+  }
 })
 
 test('leaderboard returns top 50 entries', async () => {
@@ -372,6 +399,24 @@ async function postCompete(cookie, payload) {
   return out.body()
 }
 
+async function apiRequest(method, path, cookie, payload = null) {
+  const raw = payload == null ? '' : JSON.stringify(payload)
+  let sent = false
+  const req = {
+    method,
+    headers: cookie ? { cookie } : {},
+    [Symbol.asyncIterator]: async function* () {
+      if (!sent && raw) {
+        sent = true
+        yield Buffer.from(raw)
+      }
+    },
+  }
+  const out = collectRes()
+  await handleOdsGame(req, out.res, new URL(`http://localhost${path}`), { json: jsonHelper() })
+  return { status: out.status(), body: out.body() }
+}
+
 test('leaderboard stores the server score for the official weekly word', async () => {
   resetGameStatsForTests(
     join(dir, 'board-score.json'),
@@ -417,6 +462,30 @@ test('leaderboard stores the server score for the official weekly word', async (
   assert.equal(board.top[0].percent, scored.percent)
   assert.equal(board.top[0].word, worse.word)
   assert.equal(board.me.percent, scored.percent)
+
+  const history = await apiRequest('GET', '/api/game/history', cookie)
+  const savedWord = history.body.history.find((row) => row.word === worse.word)
+  assert.equal(savedWord.pts, scored.pts)
+})
+
+test('concurrent board reads cannot erase a ranked submission', async () => {
+  resetGameStatsForTests(
+    join(dir, 'board-race.json'),
+    join(dir, 'board-race-salt.txt'),
+    join(dir, 'board-race-leaderboard.json'),
+    join(dir, 'board-race-auth.json')
+  )
+  seedUserForTests('racer', { name: 'Racer' })
+  const cookie = sessionCookieForTests('racer')
+  const trailId = isoWeekTrailId()
+  const { plays } = await officialPlays(trailId)
+  await Promise.all([
+    postCompete(cookie, { word: plays[0].word, lang: 'fr' }),
+    ...Array.from({ length: 20 }, () => apiRequest('GET', '/api/game/board?lang=fr', cookie)),
+  ])
+  const board = await apiRequest('GET', '/api/game/board?lang=fr', cookie)
+  assert.equal(board.body.me.word, plays[0].word)
+  assert.equal(board.body.top.length, 1)
 })
 
 test('english official plays use english tile values', async () => {
@@ -446,7 +515,25 @@ test('english official plays use english tile values', async () => {
   }
 })
 
-test('auth/google returns 503 without WEB_CLIENT_ID', async () => {
+test('playing another language in the same week does not reset the streak', async () => {
+  resetGameStatsForTests(
+    join(dir, 'same-week.json'),
+    join(dir, 'same-week-salt.txt'),
+    join(dir, 'same-week-leaderboard.json'),
+    join(dir, 'same-week-auth.json')
+  )
+  seedUserForTests('bilingual-player', { name: 'Sam' })
+  const cookie = sessionCookieForTests('bilingual-player')
+  const fr = await officialPlays(isoWeekTrailId(new Date(), 'fr'))
+  const en = await officialPlays(isoWeekTrailId(new Date(), 'en'))
+  assert.equal((await postCompete(cookie, { word: fr.plays[0].word, lang: 'fr' })).ok, true)
+  assert.equal((await postCompete(cookie, { word: en.plays[0].word, lang: 'en' })).ok, true)
+  const me = await apiRequest('GET', '/api/auth/me', cookie)
+  assert.equal(me.body.user.stats.streak, 1)
+  assert.equal(me.body.user.stats.plays, 2)
+})
+
+test('auth/google rejects an invalid token', async () => {
   resetGameStatsForTests(
     join(dir, 'auth-test.json'),
     join(dir, 'auth-salt.txt'),
@@ -479,9 +566,62 @@ test('auth/google returns 503 without WEB_CLIENT_ID', async () => {
   
   await handleOdsGame(mockReq, mockRes, url, { json })
   
-  assert.equal(respStatus, 503)
+  assert.equal(respStatus, 401)
   assert.equal(resp.ok, false)
-  assert.equal(resp.error, 'google_not_configured')
+  assert.equal(resp.error, 'invalid_token')
+})
+
+test('Google profile refresh preserves saved player data', async () => {
+  const authFile = join(dir, 'auth-merge-db.json')
+  resetGameStatsForTests(
+    join(dir, 'auth-merge.json'),
+    join(dir, 'auth-merge-salt.txt'),
+    join(dir, 'auth-merge-leaderboard.json'),
+    authFile
+  )
+  seedUserForTests('returning-player', {
+    name: 'Old name',
+    picture: 'old.png',
+    history: [{ word: 'CHAT', pts: 9, src: 'defi', at: '2026-08-01T00:00:00.000Z' }],
+    plays: 4,
+    sumPercent: 310,
+    bestPercent: 100,
+    streak: 3,
+    lastTrailId: '2026-W32',
+  })
+  await mergeGoogleUserForTests('returning-player', 'New name', 'new.png')
+  const saved = JSON.parse(await readFile(authFile, 'utf8')).users['returning-player']
+  assert.equal(saved.name, 'New name')
+  assert.equal(saved.picture, 'new.png')
+  assert.equal(saved.plays, 4)
+  assert.equal(saved.sumPercent, 310)
+  assert.equal(saved.bestPercent, 100)
+  assert.equal(saved.streak, 3)
+  assert.equal(saved.lastTrailId, '2026-W32')
+  assert.deepEqual(saved.history.map((row) => row.word), ['CHAT'])
+})
+
+test('concurrent profile and history writes preserve every update', async () => {
+  const authFile = join(dir, 'auth-race-db.json')
+  resetGameStatsForTests(
+    join(dir, 'auth-race.json'),
+    join(dir, 'auth-race-salt.txt'),
+    join(dir, 'auth-race-leaderboard.json'),
+    authFile
+  )
+  seedUserForTests('history-racer', { name: 'Before' })
+  const cookie = sessionCookieForTests('history-racer')
+  const words = ['CHAT', 'CHIEN', 'ARBRE', 'FLEUR', 'PLAGE', 'TRAIN', 'ROUGE', 'LIVRE']
+  await Promise.all([
+    mergeGoogleUserForTests('history-racer', 'After', 'after.png'),
+    ...words.map((word, i) =>
+      apiRequest('POST', '/api/game/history', cookie, { word, pts: i + 1, src: 'defi' })
+    ),
+  ])
+  const saved = JSON.parse(await readFile(authFile, 'utf8')).users['history-racer']
+  assert.equal(saved.name, 'After')
+  assert.equal(saved.picture, 'after.png')
+  assert.deepEqual(new Set(saved.history.map((row) => row.word)), new Set(words))
 })
 
 test('trail generation works with real lexicon', async () => {
@@ -513,9 +653,13 @@ test('trail generation works with real lexicon', async () => {
   assert.ok(resp.trailId)
   assert.ok(resp.rack)
   assert.ok(resp.category)
-  assert.equal(resp.rack.length, 7)
-  assert.match(resp.rack, /^[A-Z]{7}$/)
   assert.ok(['bingo', 'long', 'hard'].includes(resp.category))
+  if (resp.category === 'bingo' || resp.category === 'long') {
+    assert.equal(resp.rack.length, 7)
+  } else {
+    assert.ok(resp.rack.length === 4 || resp.rack.length === 5)
+  }
+  assert.match(resp.rack, /^[A-Z]+$/)
 })
 
 test('english trail and board are separate from french', async () => {
@@ -608,7 +752,7 @@ test('kids weekly trail is a long easy word and a separate board', async () => {
   assert.equal(board.kids, true)
 })
 
-test('kids competition ranks by average of plays', async () => {
+test('kids competition only accepts the official restricted deal once', async () => {
   resetGameStatsForTests(
     join(dir, 'kids-update.json'),
     join(dir, 'kids-update-salt.txt'),
@@ -626,32 +770,42 @@ test('kids competition ranks by average of plays', async () => {
   )
   const trail = trailOut.body()
   const { plays } = await officialPlays(trail.trailId)
-  assert.ok(plays.length >= 2)
+  assert.ok(plays.length >= 1)
+  const allowed = new Set(kidsWords('fr'))
+  assert.ok(plays.every((play) => allowed.has(play.word)))
+  for (const play of plays) assert.equal(play.pts, playScore(play.word, 'fr'))
+  assert.ok(plays.some((play) => play.word === trail.seed))
+
+  const arbitrary = await postCompete(cookie, {
+    percent: 100,
+    word: 'TACH',
+    lang: 'fr',
+    kids: true,
+    rack: 'CHAT',
+  })
+  assert.equal(arbitrary.ok, false)
+  assert.equal(arbitrary.error, 'not_playable')
+
   const first = plays[plays.length - 1]
-  const better = plays[0]
-  const a = await scoreOfficialPlay(trail.trailId, first.word)
-  const b = await scoreOfficialPlay(trail.trailId, better.word)
+  const scored = await scoreOfficialPlay(trail.trailId, first.word)
   const saved = await postCompete(cookie, {
     percent: 0,
     word: first.word,
     lang: 'fr',
     kids: true,
-    rack: trail.rack,
+    rack: 'ZZZZZZZ',
   })
   assert.equal(saved.ok, true)
-  assert.equal(saved.percent, a.percent)
+  assert.equal(saved.percent, scored.percent)
   const again = await postCompete(cookie, {
     percent: 0,
-    word: better.word,
+    word: plays[0].word,
     lang: 'fr',
     kids: true,
     rack: trail.rack,
   })
-  const avg = Math.round((10 * (a.percent + b.percent)) / 2) / 10
-  assert.equal(again.ok, true)
-  assert.equal(again.word, better.word)
-  assert.equal(again.percent, avg)
-  assert.equal(again.plays, 2)
+  assert.equal(again.ok, false)
+  assert.equal(again.error, 'already_submitted')
   const boardOut = collectRes()
   await handleOdsGame(
     { method: 'GET', headers: { cookie } },
@@ -661,10 +815,10 @@ test('kids competition ranks by average of plays', async () => {
   )
   const board = boardOut.body()
   assert.equal(board.kids, true)
-  assert.equal(board.me.word, better.word)
-  assert.equal(board.me.percent, avg)
-  assert.equal(board.me.plays, 2)
-  assert.equal(board.top[0].percent, avg)
+  assert.equal(board.me.word, first.word)
+  assert.equal(board.me.percent, scored.percent)
+  assert.equal(board.me.plays, 1)
+  assert.equal(board.top[0].percent, scored.percent)
 })
 
 async function postFeedback(payload) {

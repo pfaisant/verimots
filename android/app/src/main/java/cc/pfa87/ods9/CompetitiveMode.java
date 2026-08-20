@@ -293,30 +293,34 @@ final class CompetitiveMode {
         submitScore(percent, word, kids, null, null);
     }
 
-    void submitScore(int percent, String word, boolean kids, String rack, Runnable onDone) {
+    void submitScore(int percent, String word, boolean kids, String rack, SubmitCallback onDone) {
         if (!loggedIn()) {
-            if (onDone != null) onDone.run();
+            if (onDone != null) onDone.done(false);
             return;
         }
         RemoteApi.compete(percent, word, Lang.get(activity), kids, rack, new RemoteApi.CompeteCb() {
             @Override
             public void ok() {
                 Toast.makeText(activity, activity.getString(R.string.score_ranked), Toast.LENGTH_SHORT).show();
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.done(true);
             }
 
             @Override
             public void alreadySubmitted() {
                 Toast.makeText(activity, activity.getString(R.string.already_ranked), Toast.LENGTH_SHORT).show();
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.done(true);
             }
 
             @Override
             public void error(String message) {
                 Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.done(false);
             }
         });
+    }
+
+    interface SubmitCallback {
+        void done(boolean accepted);
     }
 
     interface TrailCallback {

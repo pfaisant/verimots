@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { dealKids, kidsAnagrams, kidsWords, kidsLong } from '../dashboard/s/kids.js'
-import { loadKidsFound, rememberKidsFound } from '../dashboard/s/game.js'
+import { dealKids, kidsAnagrams, kidsWords, kidsLong } from '../web/kids.js'
+import { loadKidsFound, rememberKidsFound } from '../web/game.js'
 
 const HARD = /[JKQWXYZ]/
 

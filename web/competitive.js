@@ -68,6 +68,10 @@ export function getCurrentUser() {
   return currentUser
 }
 
+export function competeAccepted(result) {
+  return !!(result?.ok || result?.error === 'already_submitted')
+}
+
 export async function handleGoogleCallback(response) {
   try {
     const res = await fetch('/api/auth/google', {
@@ -183,7 +187,6 @@ export async function submitCompete(percent, word, lang, opts = {}) {
         word,
         lang: lang === 'en' ? 'en' : 'fr',
         kids: !!opts.kids,
-        rack: opts.rack ? String(opts.rack).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 7) : undefined,
       }),
     })
     const data = await res.json()

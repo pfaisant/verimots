@@ -74,6 +74,7 @@ public final class Lexicon {
     private static Lexicon instance;
     private static Lexicon instanceFr;
     private static Lexicon instanceEn;
+    private final boolean english;
     private final int[] val;
     private final int[] bag;
     private final HashSet<String> set = new HashSet<>();
@@ -108,6 +109,7 @@ public final class Lexicon {
     }
 
     private Lexicon(Context ctx, boolean english) throws IOException {
+        this.english = english;
         this.val = english ? VAL_EN : VAL;
         this.bag = english ? BAG_EN : BAG;
         for (int i = 0; i < byLen.length; i++) byLen[i] = new ArrayList<>();
@@ -341,9 +343,9 @@ public final class Lexicon {
     }
 
     public Deal kidsDeal() {
-        String seed = Kids.pickLong(this.val == VAL_EN, rng);
+        String seed = Kids.pickLong(english, rng);
         String rack = shuffle(seed);
-        return new Deal("kids", rack, anagrams(rack, 2, rack.length()), seed);
+        return new Deal("kids", rack, kidsAnagrams(rack), seed);
     }
 
     public Deal fromRack(String rack) {
@@ -354,7 +356,37 @@ public final class Lexicon {
         String tiles = normalize(rack);
         if (tiles.length() < 2) return challenge();
         if (tiles.length() > 7) tiles = tiles.substring(0, 7);
-        return new Deal(seed.isEmpty() ? guessCategory(tiles) : "kids", tiles, anagrams(tiles, 2, tiles.length()), seed);
+        List<Play> catalog = seed.isEmpty()
+                ? anagrams(tiles, 2, tiles.length())
+                : kidsAnagrams(tiles);
+        return new Deal(seed.isEmpty() ? guessCategory(tiles) : "kids", tiles, catalog, seed);
+    }
+
+    private List<Play> kidsAnagrams(String rack) {
+        int[] counts = new int[26];
+        int tiles = 0;
+        for (int i = 0; i < rack.length(); i++) {
+            char ch = rack.charAt(i);
+            if (ch >= 'A' && ch <= 'Z') {
+                counts[ch - 'A']++;
+                tiles++;
+            }
+        }
+        ArrayList<Play> out = new ArrayList<>();
+        HashSet<String> seen = new HashSet<>();
+        for (String word : Kids.words(english)) {
+            if (word.length() < 3 || word.length() > tiles || !seen.add(word)) continue;
+            if (formable(word, counts, 0) == null) continue;
+            out.add(new Play(word, points(word, null), new int[0]));
+        }
+        Collections.sort(out, (a, b) -> {
+            int d = b.pts() - a.pts();
+            if (d != 0) return d;
+            d = b.word.length() - a.word.length();
+            if (d != 0) return d;
+            return a.word.compareTo(b.word);
+        });
+        return out;
     }
 
     private String guessCategory(String tiles) {

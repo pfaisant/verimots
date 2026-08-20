@@ -93,6 +93,11 @@ public class MainActivity extends Activity {
     private Dialog historyDialog;
     private TableLayout historyTable;
     private boolean officialDeal;
+    private int dealRequestGeneration;
+    private boolean rankedSubmitInFlight;
+    private int rankedSubmitGeneration;
+    private int pendingRankedPercent = -1;
+    private String pendingRankedWord = "";
     private boolean advanced;
     private String findMode = "exact";
     private String lastShare;
@@ -186,6 +191,7 @@ public class MainActivity extends Activity {
                     live.setText(getString(R.string.word_count, String.format(java.util.Locale.FRANCE, "%,d", lex.size()).replace('\u00a0', ' ')));
                     setEnabled(true);
                     applyIntent(getIntent());
+                    if (tab == 1 && deal == null) requestDeal();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> live.setText(R.string.lex_unavailable));
@@ -333,74 +339,98 @@ public class MainActivity extends Activity {
             styleBoardTabs();
             competitiveMode.fetchBoards(gameBoard, gameBoardTitle, boardKidsTab);
         }
-        if (which == 1 && lex != null && deal == null) {
-            if (isKidsMode) {
-                competitiveMode.fetchTrail(true, new CompetitiveMode.TrailCallback() {
-                    @Override
-                    public void onTrail(String trailId, String category, String rack) {
-                        onTrail(trailId, category, rack, "");
-                    }
-                    @Override
-                    public void onTrail(String trailId, String category, String rack, String seed) {
-                        RemoteApi.fetchBoard(trailId, Lang.get(MainActivity.this), true, new RemoteApi.BoardCb() {
-                            @Override
-                            public void ok(org.json.JSONArray top, org.json.JSONObject me) {
-                                if (me != null) {
-                                    officialDeal = false;
-                                    startDeal(lex.kidsDeal());
-                                } else {
-                                    officialDeal = true;
-                                    startDeal(lex.fromRack(rack, seed));
-                                }
-                            }
-                            @Override
-                            public void error(String message) {
-                                officialDeal = true;
-                                startDeal(lex.fromRack(rack, seed));
-                            }
-                        });
-                    }
-                    @Override
-                    public void onError(String message) {
-                        officialDeal = false;
-                        startDeal(lex.kidsDeal());
-                    }
-                });
-            } else if (isCompetitiveMode) {
-                competitiveMode.fetchTrail(new CompetitiveMode.TrailCallback() {
-                    @Override
-                    public void onTrail(String trailId, String category, String rack) {
-                        RemoteApi.fetchBoard(trailId, Lang.get(MainActivity.this), new RemoteApi.BoardCb() {
-                            @Override
-                            public void ok(org.json.JSONArray top, org.json.JSONObject me) {
-                                if (me != null) {
-                                    officialDeal = false;
-                                    startDeal(lex.challenge());
-                                } else {
-                                    officialDeal = true;
-                                    startDeal(lex.fromRack(rack));
-                                }
-                            }
+        if (which == 1 && lex != null && deal == null) requestDeal();
+    }
 
-                            @Override
-                            public void error(String message) {
-                                officialDeal = true;
-                                startDeal(lex.fromRack(rack));
-                            }
-                        });
-                    }
-                    @Override
-                    public void onError(String message) {
-                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-                        officialDeal = false;
-                        startDeal(lex.challenge());
-                    }
-                });
-            } else {
-                officialDeal = false;
-                startDeal(lex.challenge());
-            }
+    private void requestDeal() {
+        if (lex == null || deal != null || tab != 1) return;
+        final int request = ++dealRequestGeneration;
+        rankedSubmitGeneration++;
+        rankedSubmitInFlight = false;
+        pendingRankedPercent = -1;
+        pendingRankedWord = "";
+        final boolean requestKids = isKidsMode;
+        final boolean requestCompetitive = isCompetitiveMode;
+        final String requestLang = Lang.get(this);
+        if (requestKids) {
+            competitiveMode.fetchTrail(true, new CompetitiveMode.TrailCallback() {
+                @Override
+                public void onTrail(String trailId, String category, String rack) {
+                    onTrail(trailId, category, rack, "");
+                }
+
+                @Override
+                public void onTrail(String trailId, String category, String rack, String seed) {
+                    if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                    RemoteApi.fetchBoard(trailId, requestLang, true, new RemoteApi.BoardCb() {
+                        @Override
+                        public void ok(org.json.JSONArray top, org.json.JSONObject me) {
+                            if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                            officialDeal = me == null;
+                            startDeal(me != null ? lex.kidsDeal() : lex.fromRack(rack, seed));
+                        }
+
+                        @Override
+                        public void error(String message) {
+                            if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                            officialDeal = true;
+                            startDeal(lex.fromRack(rack, seed));
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                    officialDeal = false;
+                    startDeal(lex.kidsDeal());
+                }
+            });
+        } else if (requestCompetitive) {
+            competitiveMode.fetchTrail(new CompetitiveMode.TrailCallback() {
+                @Override
+                public void onTrail(String trailId, String category, String rack) {
+                    if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                    RemoteApi.fetchBoard(trailId, requestLang, new RemoteApi.BoardCb() {
+                        @Override
+                        public void ok(org.json.JSONArray top, org.json.JSONObject me) {
+                            if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                            officialDeal = me == null;
+                            startDeal(me != null ? lex.challenge() : lex.fromRack(rack));
+                        }
+
+                        @Override
+                        public void error(String message) {
+                            if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                            officialDeal = true;
+                            startDeal(lex.fromRack(rack));
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    officialDeal = false;
+                    startDeal(lex.challenge());
+                }
+            });
+        } else {
+            officialDeal = false;
+            startDeal(lex.challenge());
         }
+    }
+
+    private boolean isDealRequestCurrent(int request, boolean kids, boolean competitive, String lang) {
+        return !isFinishing()
+                && !isDestroyed()
+                && request == dealRequestGeneration
+                && tab == 1
+                && deal == null
+                && kids == isKidsMode
+                && competitive == isCompetitiveMode
+                && lang.equals(Lang.get(this));
     }
 
     private void styleTab(TextView t, boolean on) {
@@ -1192,6 +1222,10 @@ public class MainActivity extends Activity {
         findViewById(R.id.game_go).setOnClickListener(v -> submitPlay());
         findViewById(R.id.game_again).setOnClickListener(v -> {
             if (lex == null) return;
+            if (officialDeal && !pendingRankedWord.isEmpty() && competitiveMode.loggedIn()) {
+                submitOfficialScore(pendingRankedPercent, pendingRankedWord, true);
+                return;
+            }
             officialDeal = false;
             startDeal(isKidsMode ? lex.kidsDeal() : lex.challenge());
         });
@@ -1213,6 +1247,10 @@ public class MainActivity extends Activity {
     }
 
     private void startDeal(Lexicon.Deal next) {
+        rankedSubmitGeneration++;
+        rankedSubmitInFlight = false;
+        pendingRankedPercent = -1;
+        pendingRankedWord = "";
         deal = next;
         closed = false;
         gameQ.setText("");
@@ -1320,22 +1358,40 @@ public class MainActivity extends Activity {
         showDef(tops.get(start).word);
         List<Integer> scores = ScoreStore.add(this, percent, isKidsMode);
         paintChart(scores);
-        if (!isKidsMode) {
+        if (!isKidsMode && !isCompetitiveMode) {
             paintShare(percent);
             RemoteApi.postScore(percent, (has, avg) -> gameAvg.setText(fmtAvg(has, avg)));
         }
         HistoryStore.remember(this, hit.word, hit.pts(), "defi");
         if (competitiveMode.loggedIn()) RemoteApi.saveHistory(hit.word, hit.pts(), "defi");
         paintHistory();
-        if (isKidsMode && competitiveMode.loggedIn()) {
-            competitiveMode.submitScore(percent, hit.word, true, deal != null ? deal.rack : null, this::refreshBoards);
-            officialDeal = false;
-        } else if (isCompetitiveMode && competitiveMode.loggedIn() && officialDeal) {
-            competitiveMode.submitScore(percent, hit.word, false, null, this::refreshBoards);
-            officialDeal = false;
+        if ((isKidsMode || isCompetitiveMode) && competitiveMode.loggedIn() && officialDeal) {
+            submitOfficialScore(percent, hit.word, false);
         } else if (isCompetitiveMode || isKidsMode) {
             refreshBoards();
         }
+    }
+
+    private void submitOfficialScore(int percent, String word, boolean dealAfterSuccess) {
+        if (!officialDeal || rankedSubmitInFlight || word == null || word.isEmpty()) return;
+        pendingRankedPercent = percent;
+        pendingRankedWord = word;
+        rankedSubmitInFlight = true;
+        final int generation = rankedSubmitGeneration;
+        final boolean kids = isKidsMode;
+        competitiveMode.submitScore(percent, word, kids, null, accepted -> {
+            if (generation != rankedSubmitGeneration) return;
+            rankedSubmitInFlight = false;
+            if (accepted) {
+                officialDeal = false;
+                pendingRankedPercent = -1;
+                pendingRankedWord = "";
+            }
+            refreshBoards();
+            if (accepted && dealAfterSuccess && lex != null) {
+                startDeal(kids ? lex.kidsDeal() : lex.challenge());
+            }
+        });
     }
 
     private void refreshBoards() {

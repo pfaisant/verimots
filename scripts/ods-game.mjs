@@ -14,14 +14,15 @@
 // still returns 401 invalid_token. SESSION_SECRET is persisted so cookies
 // survive a serve restart.
 
-import { readFile, writeFile, mkdir, appendFile } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, appendFile, rename } from 'node:fs/promises'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import { createHash, randomBytes, createHmac } from 'node:crypto'
 import { gunzipSync } from 'node:zlib'
 import { OAuth2Client } from 'google-auth-library'
+import { kidsAnagrams, kidsLong } from '../web/kids.js'
 
 let FILE =
   process.env.ODS9_GAME_FILE ||
@@ -63,6 +64,8 @@ let trailSalt = ''
 let trailCache = new Map() // trailId -> trail
 let leaderboards = {} // { trailId: { entries: [...], updatedAt } }
 let authDb = { version: 1, users: {}, sessions: {} } // { users: { sub: { name, picture } }, sessions: { token: { sub, exp } } }
+let leaderboardsLoaded = false
+let authDbLoaded = false
 
 let lexFr = null
 let byLenFr = []
@@ -291,16 +294,7 @@ async function ensureTrailSalt() {
 }
 
 async function loadKidsLong(lang) {
-  const scriptDir = dirname(fileURLToPath(import.meta.url))
-  for (const rel of ['../dashboard/s/kids.js', '../web/kids.js']) {
-    try {
-      const mod = await import(pathToFileURL(join(scriptDir, rel)).href)
-      if (typeof mod.kidsLong === 'function') return mod.kidsLong(lang)
-    } catch {
-      /* try next */
-    }
-  }
-  return lang === 'en' ? ['HORSES'] : ['CHEVAUX']
+  return kidsLong(lang)
 }
 
 async function generateTrail(trailId) {
@@ -334,7 +328,14 @@ async function generateTrail(trailId) {
       const pool = await loadKidsLong(lang)
       const hiddenSeed = pickWord(pool)
       const rack = shuffleWord(hiddenSeed)
-      return { trailId, category: 'kids', rack, groups: anagrams(rack, byLen, values), seed: hiddenSeed }
+      const groups = kidsAnagrams(rack, lang).map((group) => ({
+        ...group,
+        words: group.words.map((entry) => ({
+          ...entry,
+          score: scoreWord(entry.word, new Set(), values),
+        })),
+      }))
+      return { trailId, category: 'kids', rack, groups, seed: hiddenSeed }
     }
 
     // Build pools
@@ -352,16 +353,16 @@ async function generateTrail(trailId) {
       }
     }
     const fillTiles = (used, n) => {
-      const bag = []
+      const available = []
       const have = {}
       for (const ch of used) have[ch] = (have[ch] || 0) + 1
       for (const [ch, max] of Object.entries(bag)) {
-        for (let i = have[ch] || 0; i < max; i++) bag.push(ch)
+        for (let i = have[ch] || 0; i < max; i++) available.push(ch)
       }
       let out = ''
-      for (let i = 0; i < n && bag.length; i++) {
-        const idx = Math.floor(rng.next() * bag.length)
-        out += bag.splice(idx, 1)[0]
+      for (let i = 0; i < n && available.length; i++) {
+        const idx = Math.floor(rng.next() * available.length)
+        out += available.splice(idx, 1)[0]
       }
       return out
     }
@@ -654,8 +655,17 @@ export async function gameStats() {
 
 // ========== Leaderboard ==========
 let boardLock = Promise.resolve()
+let authLock = Promise.resolve()
+
+async function writeJsonAtomic(file, value) {
+  await mkdir(dirname(file), { recursive: true })
+  const tmp = `${file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`
+  await writeFile(tmp, JSON.stringify(value, null, 2) + '\n', { mode: 0o600 })
+  await rename(tmp, file)
+}
 
 async function loadLeaderboards() {
+  if (leaderboardsLoaded) return
   try {
     const raw = JSON.parse(await readFile(LEADERBOARD_FILE, 'utf8'))
     if (raw?.version === 1 && raw.boards) {
@@ -663,12 +673,13 @@ async function loadLeaderboards() {
     }
   } catch {
     // first run
+  } finally {
+    leaderboardsLoaded = true
   }
 }
 
 async function saveLeaderboards() {
-  await mkdir(dirname(LEADERBOARD_FILE), { recursive: true })
-  await writeFile(LEADERBOARD_FILE, JSON.stringify({ version: 1, boards: leaderboards }, null, 2) + '\n', { mode: 0o600 })
+  await writeJsonAtomic(LEADERBOARD_FILE, { version: 1, boards: leaderboards })
 }
 
 async function withBoardLock(fn) {
@@ -757,17 +768,8 @@ async function recordCompete(trailId, sub, pseudo, scored, opts = {}) {
   board.updatedAt = stamp
   await saveLeaderboards()
   const entry = board.entries.find((e) => e.sub === sub)
-  if (idx < 0) await recordUserPlay(sub, trailId, scored.percent, scored.word)
-  else {
-    await loadAuthDb()
-    const user = authDb.users[sub]
-    if (user) {
-      user.bestPercent = Math.max(Number(user.bestPercent) || 0, scored.percent)
-      if (scored.word) rememberUserWord(user, { word: scored.word, pts: scored.pts, src: 'defi' })
-      user.updatedAt = stamp
-      await saveAuthDb()
-    }
-  }
+  if (idx < 0) await recordUserPlay(sub, trailId, scored)
+  else await updateUserBest(sub, scored, stamp)
   return {
     ok: true,
     percent: entryAverage(entry),
@@ -779,23 +781,26 @@ async function recordCompete(trailId, sub, pseudo, scored, opts = {}) {
 }
 
 async function getLeaderboard(trailId, sessionSub = null) {
-  await loadLeaderboards()
-  const board = leaderboards[trailId]
-  if (!board || !board.entries.length) {
-    return { ok: true, trailId, lang: trailLang(trailId), top: [], me: null }
-  }
-  sortBoard(board)
-  const top = board.entries.slice(0, 50).map((e, i) => publicEntry(e, i + 1))
-  let me = null
-  if (sessionSub) {
-    const idx = board.entries.findIndex((e) => e.sub === sessionSub)
-    if (idx !== -1) me = publicEntry(board.entries[idx], idx + 1)
-  }
-  return { ok: true, trailId, lang: trailLang(trailId), top, me }
+  return withBoardLock(async () => {
+    await loadLeaderboards()
+    const board = leaderboards[trailId]
+    if (!board || !board.entries.length) {
+      return { ok: true, trailId, lang: trailLang(trailId), top: [], me: null }
+    }
+    sortBoard(board)
+    const top = board.entries.slice(0, 50).map((e, i) => publicEntry(e, i + 1))
+    let me = null
+    if (sessionSub) {
+      const idx = board.entries.findIndex((e) => e.sub === sessionSub)
+      if (idx !== -1) me = publicEntry(board.entries[idx], idx + 1)
+    }
+    return { ok: true, trailId, lang: trailLang(trailId), top, me }
+  })
 }
 
 // ========== Auth ==========
 async function loadAuthDb() {
+  if (authDbLoaded) return
   try {
     const raw = JSON.parse(await readFile(AUTH_DB_FILE, 'utf8'))
     if (raw?.version === 1 && raw.users && raw.sessions) {
@@ -803,12 +808,27 @@ async function loadAuthDb() {
     }
   } catch {
     // first run
+  } finally {
+    authDbLoaded = true
   }
 }
 
 async function saveAuthDb() {
-  await mkdir(dirname(AUTH_DB_FILE), { recursive: true })
-  await writeFile(AUTH_DB_FILE, JSON.stringify(authDb, null, 2) + '\n', { mode: 0o600 })
+  await writeJsonAtomic(AUTH_DB_FILE, authDb)
+}
+
+async function withAuthLock(fn) {
+  const prev = authLock
+  let release
+  authLock = new Promise((resolve) => {
+    release = resolve
+  })
+  await prev
+  try {
+    return await fn()
+  } finally {
+    release()
+  }
 }
 
 function getSessionSecret() {
@@ -867,14 +887,32 @@ async function handleGoogleAuth(idToken) {
     const ticket = await client.verifyIdToken({ idToken, audience: WEB_CLIENT_ID })
     const payload = ticket.getPayload()
     const { sub, name, picture } = payload
-    await loadAuthDb()
-    authDb.users[sub] = { name, picture, updatedAt: new Date().toISOString() }
-    await saveAuthDb()
+    await mergeGoogleUser(sub, name, picture)
     const sessionToken = signSession(sub)
     return { ok: true, sessionToken, user: { sub, name, picture } }
   } catch (err) {
     return { ok: false, error: 'invalid_token' }
   }
+}
+
+async function mergeGoogleUser(sub, name, picture) {
+  return withAuthLock(async () => {
+    await loadAuthDb()
+    const previous = authDb.users[sub] || {}
+    const user = {
+      ...previous,
+      name,
+      picture,
+      updatedAt: new Date().toISOString(),
+    }
+    authDb.users[sub] = user
+    await saveAuthDb()
+    return user
+  })
+}
+
+export async function mergeGoogleUserForTests(sub, name, picture) {
+  return mergeGoogleUser(sub, name, picture)
 }
 
 function shiftPeriod(trailId, delta) {
@@ -907,25 +945,40 @@ function publicStats(user) {
   }
 }
 
-async function recordUserPlay(sub, trailId, percent, word) {
-  await loadAuthDb()
-  const user = authDb.users[sub]
-  if (!user) return
-  const last = user.lastTrailId || ''
-  if (last === trailId) {
-    /* already counted */
-  } else if (last && trailPeriod(last) === shiftPeriod(trailId, -1)) {
-    user.streak = (Number(user.streak) || 0) + 1
-  } else {
-    user.streak = 1
-  }
-  user.lastTrailId = trailId
-  user.plays = (Number(user.plays) || 0) + 1
-  user.sumPercent = (Number(user.sumPercent) || 0) + percent
-  user.bestPercent = Math.max(Number(user.bestPercent) || 0, percent)
-  user.updatedAt = new Date().toISOString()
-  if (word) rememberUserWord(user, { word, pts: 0, src: 'defi' })
-  await saveAuthDb()
+async function recordUserPlay(sub, trailId, scored) {
+  return withAuthLock(async () => {
+    await loadAuthDb()
+    const user = authDb.users[sub]
+    if (!user) return
+    const last = user.lastTrailId || ''
+    const samePeriod = last && trailPeriod(last) === trailPeriod(trailId)
+    if (last === trailId || samePeriod) {
+      /* streak already counted for this period */
+    } else if (last && trailPeriod(last) === shiftPeriod(trailId, -1)) {
+      user.streak = (Number(user.streak) || 0) + 1
+    } else {
+      user.streak = 1
+    }
+    user.lastTrailId = trailId
+    user.plays = (Number(user.plays) || 0) + 1
+    user.sumPercent = (Number(user.sumPercent) || 0) + scored.percent
+    user.bestPercent = Math.max(Number(user.bestPercent) || 0, scored.percent)
+    user.updatedAt = new Date().toISOString()
+    if (scored.word) rememberUserWord(user, { word: scored.word, pts: scored.pts, src: 'defi' })
+    await saveAuthDb()
+  })
+}
+
+async function updateUserBest(sub, scored, stamp) {
+  return withAuthLock(async () => {
+    await loadAuthDb()
+    const user = authDb.users[sub]
+    if (!user) return
+    user.bestPercent = Math.max(Number(user.bestPercent) || 0, scored.percent)
+    if (scored.word) rememberUserWord(user, { word: scored.word, pts: scored.pts, src: 'defi' })
+    user.updatedAt = stamp
+    await saveAuthDb()
+  })
 }
 
 function rememberUserWord(user, entry) {
@@ -943,14 +996,17 @@ function rememberUserWord(user, entry) {
 
 async function getMe(sub) {
   if (!sub) return null
-  await loadAuthDb()
-  const user = authDb.users[sub]
-  if (!user) return null
-  return { sub, name: user.name, picture: user.picture, stats: publicStats(user) }
+  return withAuthLock(async () => {
+    await loadAuthDb()
+    const user = authDb.users[sub]
+    if (!user) return null
+    return { sub, name: user.name, picture: user.picture, stats: publicStats(user) }
+  })
 }
 
 export function seedUserForTests(sub, user = {}) {
   cachedSessionSecret = process.env.SESSION_SECRET || 'test-session-secret'
+  authDbLoaded = true
   authDb.users[sub] = { name: 'Test', picture: '', history: [], plays: 0, sumPercent: 0, ...user }
 }
 
@@ -1069,19 +1125,13 @@ export async function handleOdsGame(req, res, url, helpers) {
         json(res, 401, { ok: false, error: 'user_not_found' }, {}, req.method)
         return true
       }
-      const rack = String(body.rack || '')
-        .toUpperCase()
-        .replace(/[^A-Z]/g, '')
-        .slice(0, 7)
-      const scored = kids && rack.length >= 2
-        ? await scorePlayOnRack(lang, rack, word)
-        : await scoreOfficialPlay(trailId, word)
+      const scored = await scoreOfficialPlay(trailId, word)
       if (!scored.ok) {
         json(res, 400, scored, { 'Cache-Control': 'no-store' }, req.method)
         return true
       }
       const pseudo = user.name || 'Anonyme'
-      const result = await recordCompete(trailId, sessionSub, pseudo, scored, { replace: kids })
+      const result = await recordCompete(trailId, sessionSub, pseudo, scored)
       json(
         res,
         result.ok ? 200 : 400,
@@ -1156,32 +1206,38 @@ export async function handleOdsGame(req, res, url, helpers) {
       json(res, 401, { ok: false, error: 'login_required' }, {}, req.method)
       return true
     }
-    await loadAuthDb()
-    const user = authDb.users[sessionSub]
-    if (!user) {
-      json(res, 401, { ok: false, error: 'user_not_found' }, {}, req.method)
-      return true
-    }
+    let entry = null
     if (req.method === 'POST') {
       try {
-        const body = await readJson(req)
-        rememberUserWord(user, body)
-        user.updatedAt = new Date().toISOString()
-        await saveAuthDb()
+        entry = await readJson(req)
       } catch {
         json(res, 400, { ok: false, error: 'Invalid history' }, {}, req.method)
         return true
       }
     }
-    if (req.method === 'DELETE') {
-      user.history = []
-      user.updatedAt = new Date().toISOString()
-      await saveAuthDb()
+    const result = await withAuthLock(async () => {
+      await loadAuthDb()
+      const user = authDb.users[sessionSub]
+      if (!user) return null
+      if (req.method === 'POST') {
+        rememberUserWord(user, entry)
+        user.updatedAt = new Date().toISOString()
+        await saveAuthDb()
+      } else if (req.method === 'DELETE') {
+        user.history = []
+        user.updatedAt = new Date().toISOString()
+        await saveAuthDb()
+      }
+      return { history: [...(user.history || [])], stats: publicStats(user) }
+    })
+    if (!result) {
+      json(res, 401, { ok: false, error: 'user_not_found' }, {}, req.method)
+      return true
     }
     json(
       res,
       200,
-      { ok: true, history: user.history || [], stats: publicStats(user) },
+      { ok: true, ...result },
       { 'Cache-Control': 'no-store' },
       req.method
     )
@@ -1265,6 +1321,10 @@ export function resetGameStatsForTests(file, saltFile = null, leaderboardFile = 
   trailCache.clear()
   leaderboards = {}
   authDb = { version: 1, users: {}, sessions: {} }
+  leaderboardsLoaded = true
+  authDbLoaded = true
+  boardLock = Promise.resolve()
+  authLock = Promise.resolve()
   trailSalt = saltFile ? '' : 'test-salt-' + randomBytes(16).toString('hex')
   cachedSessionSecret = process.env.SESSION_SECRET || 'test-session-secret'
 }

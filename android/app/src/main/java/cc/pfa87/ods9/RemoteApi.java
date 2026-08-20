@@ -393,7 +393,6 @@ final class RemoteApi {
                 if (word != null && !word.isEmpty()) payload.put("word", word);
                 payload.put("lang", "en".equals(lang) ? "en" : "fr");
                 if (kids) payload.put("kids", true);
-                if (rack != null && !rack.isEmpty()) payload.put("rack", rack);
                 byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
                 try (OutputStream os = c.getOutputStream()) {
                     os.write(body);
