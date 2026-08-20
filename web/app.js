@@ -1102,10 +1102,8 @@ const game = initGame({
     gameCat = cat
     writeUrl()
   },
-  onPlayed({ word, pts, best, bestPts }) {
-    const rows = [{ word, pts, src: 'defi' }]
-    if (best && best !== word) rows.push({ word: best, pts: bestPts, src: 'defi' })
-    recordWords(rows)
+  onPlayed({ word, pts }) {
+    recordWords([{ word, pts, src: 'defi' }])
   },
 })
 
@@ -1190,7 +1188,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=68').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=69').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
