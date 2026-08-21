@@ -10,8 +10,18 @@ import {
   playPercent,
   formatAverage,
   formatBoardPercent,
+  formatChartAverage,
+  averageScore,
+  boardScoreHtml,
   parseRack,
   defiShareText,
+  dailyStudySlice,
+  dailyStudyText,
+  studyListText,
+  studyWordText,
+  studyDateLabel,
+  lexiconFileName,
+  utcDayIndex,
   extractFormOf,
   isInflectionDef,
   linkifyDef,
@@ -20,11 +30,20 @@ import {
   clampPercent,
   loadScores,
   rememberScore,
+  loadTrainingStats,
+  rememberTrainingRound,
   scoreChartSvg,
+  usedTiles,
 } from '../web/game.js'
 import { loadHistory, rememberWord, historyLabel, clearHistory } from '../web/history.js'
-import { kidsWords } from '../web/kids.js'
+import { kidsWords, kidsLong } from '../web/kids.js'
 import { competeAccepted } from '../web/competitive.js'
+import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js'
+
+test('rack tile usage assigns unmatched letters to blanks', () => {
+  assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
+  assert.deepEqual([...usedTiles('AA?', 'ABA')].sort((a, b) => a - b), [0, 1, 2])
+})
 
 const dir = await mkdtemp(join(tmpdir(), 'ods9-game-'))
 const {
@@ -46,11 +65,20 @@ test('score moyen uses a French decimal comma', () => {
   assert.equal(formatAverage(null), 'Score moyen —')
   assert.equal(formatBoardPercent(38.5), '38,5%')
   assert.equal(formatBoardPercent(100), '100,0%')
+  assert.equal(formatChartAverage(38.5), '38,5')
+  assert.equal(averageScore([{ p: 40 }, { p: 80 }]), 60)
+  assert.equal(averageScore([{ p: 100 }, { p: 70 }, { p: 80 }]), 83.3)
+  assert.equal(averageScore([]), null)
+  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /58,0%/)
+  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /9 mots/)
+  assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /100,0%/)
+  assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /1 mot/)
 })
 
 test('shared rack is letters only', () => {
   assert.equal(parseRack('lie-irat!'), 'LIEIRAT')
   assert.equal(parseRack('abcdefghij'), 'ABCDEFG')
+  assert.equal(parseRack('año?'), 'AÑO')
 })
 
 test('WhatsApp défi does not reveal the answer', () => {
@@ -58,6 +86,99 @@ test('WhatsApp défi does not reveal the answer', () => {
   assert.match(text, /L I E I R A T/)
   assert.match(text, /19 %/)
   assert.doesNotMatch(text, /AJOUREE|LITERAI|meilleur mot/i)
+})
+
+test('Kids mode is labelled Beginners', () => {
+  setLang('en')
+  assert.equal(t('mode_kids'), 'Beginners')
+  assert.equal(t('kids_board'), 'Beginners')
+  setLang('fr')
+  assert.equal(t('mode_kids'), 'Débutants')
+  setLang('es')
+  assert.equal(t('mode_kids'), 'Principiantes')
+  setLang('fr')
+})
+
+test('each language dictionary is a community list following a named source', () => {
+  setLang('en')
+  assert.equal(t('dict_name_ods'), 'ODS')
+  assert.equal(t('dict_name_csw'), 'CSW')
+  assert.equal(t('dict_name_wow24'), 'WGPO WOW24')
+  assert.equal(t('dict_name_rla'), 'RLA-ES')
+  assert.equal(t('dict_blurb_ods'), 'Community list following ODS.')
+  assert.match(t('dict_blurb_csw'), /Closest public list following CSW/)
+  assert.equal(t('dictionaries'), 'Dictionaries')
+  assert.match(t('dicts_learn'), /lists in detail/)
+  assert.equal(t('dict_blurb_wow24'), 'Community list following WGPO Official Words 2024.')
+  assert.equal(t('dict_blurb_rla'), 'Community list following RLA-ES.')
+  setLang('fr')
+  assert.match(t('dict_blurb_ods'), /communautaire suivant l’ODS/)
+  assert.match(t('dict_blurb_wow24'), /WGPO Official Words 2024/)
+  setLang('es')
+  assert.match(t('dict_blurb_ods'), /comunitaria según ODS/)
+  setLang('fr')
+})
+
+test('English defaults to WGPO WOW24 and names the list everywhere', () => {
+  assert.equal(defaultDictFor('en'), 'wow24')
+  setDict('wow24')
+  assert.equal(dictLabel(), 'WGPO WOW24')
+  assert.equal(t('playable', dictLabel()), 'Playable · WGPO WOW24')
+  assert.equal(t('not_in_list', dictLabel()), 'Not in WGPO WOW24')
+  assert.equal(t('word_count', '195,383', dictLabel()), '195,383 words · WGPO WOW24')
+  setLang('fr')
+  assert.equal(dictLabel(), 'ODS9')
+  assert.match(t('playable', dictLabel()), /ODS9/)
+})
+
+test('English can switch between CSW and WOW24', () => {
+  setDict('wow24')
+  assert.equal(getLang(), 'en')
+  assert.equal(getDict(), 'wow24')
+  assert.equal(lexiconFileName('wow24'), 'verimots-en-wow24.txt')
+  setLang('fr')
+  assert.equal(getDict(), 'ods')
+  setLang('en')
+  assert.equal(getDict(), 'wow24')
+  setDict('csw')
+  assert.equal(getDict(), 'csw')
+  assert.equal(dictLabel(), 'CSW · YAWL')
+  assert.equal(lexiconFileName('csw'), 'verimots-en-csw.txt')
+  setDict('yawl')
+  assert.equal(getDict(), 'csw')
+  setLang('fr')
+})
+
+test('daily study slice is deterministic and wraps', () => {
+  const list = ['AA', 'AB', 'AD', 'AE', 'AG']
+  const day = new Date(2026, 7, 21)
+  const a = dailyStudySlice(list, day, 3)
+  assert.deepEqual(a, dailyStudySlice(list, day, 3))
+  assert.equal(a.length, 3)
+  assert.equal(new Set(a).size, 3)
+  const next = dailyStudySlice(list, new Date(2026, 7, 22), 3)
+  assert.notDeepEqual(a, next)
+  assert.deepEqual(dailyStudySlice([], day, 10), [])
+  assert.equal(dailyStudySlice(list, day, 8).length, 5)
+  assert.equal(utcDayIndex(day), utcDayIndex(new Date(2026, 7, 21, 23, 59)))
+})
+
+test('WhatsApp study pack is compact and dated', () => {
+  const when = studyDateLabel(new Date(2026, 7, 21))
+  assert.equal(when, '21/08/2026')
+  const daily = dailyStudyText(['AA', 'AB'], ['ACE', 'ACT'], new Date(2026, 7, 21))
+  assert.match(daily, /21\/08\/2026/)
+  assert.match(daily, /AA · AB/)
+  assert.match(daily, /ACE · ACT/)
+  const list = studyListText(['AA', 'AB', 'AD'], 2)
+  assert.match(list, /2 lettres \(3\)/)
+  assert.match(list, /AA · AB · AD/)
+  const word = studyWordText('QI', 11, 'A vital energy.', 'https://s.pfa87.cc/?w=QI')
+  assert.match(word, /\*QI est dans ODS9\*/)
+  assert.match(word, /Verimots · ODS9/)
+  assert.match(word, /A vital energy/)
+  assert.equal(lexiconFileName('csw'), 'verimots-en-csw.txt')
+  assert.equal(lexiconFileName('ods'), 'verimots-fr-ods.txt')
 })
 
 test('top words keep the five best and still include the played word', () => {
@@ -135,6 +256,7 @@ test('competition trail id is the Paris ISO week', () => {
   assert.equal(isoWeekTrailId(new Date('2026-08-23T23:00:00+02:00'), 'fr'), '2026-W34')
   assert.equal(isoWeekTrailId(new Date('2026-08-16T12:00:00+02:00'), 'fr'), '2026-W33')
   assert.equal(isoWeekTrailId(new Date('2026-08-18T12:00:00+02:00'), 'en'), '2026-W34-en')
+  assert.equal(isoWeekTrailId(new Date('2026-08-18T12:00:00+02:00'), 'es'), '2026-W34-es')
 })
 
 test('local défi scores stay in order and clamp to 0–100', () => {
@@ -154,6 +276,29 @@ test('local défi scores stay in order and clamp to 0–100', () => {
   rememberScore(101, mem)
   const rows = loadScores(mem)
   assert.deepEqual(rows.map((r) => r.p), [9, 68, 100])
+})
+
+test('training statistics stay separate by language and preset', () => {
+  const mem = {
+    data: {},
+    getItem(key) {
+      return this.data[key] || null
+    },
+    setItem(key, value) {
+      this.data[key] = value
+    },
+  }
+  rememberTrainingRound({ preset: 'seven', length: 7, solved: true, found: 3, total: 3 }, mem, 'es')
+  rememberTrainingRound({ preset: 'joker', length: 7, solved: false, found: 2, total: 5, hard: 1 }, mem, 'es')
+  const spanish = loadTrainingStats(mem, 'es')
+  assert.equal(spanish.plays, 2)
+  assert.equal(spanish.solved, 1)
+  assert.equal(spanish.found, 5)
+  assert.equal(spanish.byPreset.seven, 1)
+  assert.equal(spanish.byPreset.joker, 1)
+  assert.equal(spanish.byLength['7'], 1)
+  assert.equal(spanish.hard, 1)
+  assert.equal(loadTrainingStats(mem, 'fr').plays, 0)
 })
 
 test('kids scores stay on their own chart', () => {
@@ -192,7 +337,7 @@ test('a 7-letter play gets the bingo bonus', () => {
   assert.equal(playPoints('', 0), 0)
 })
 
-test('letter scores follow FR vs EN tile values', () => {
+test('letter scores follow FR, EN and ES tile values', () => {
   assert.equal(letterScore('QUIZ', 'fr'), 20)
   assert.equal(letterScore('QUIZ', 'en'), 22)
   assert.equal(letterScore('WAXY', 'fr'), 31)
@@ -201,6 +346,8 @@ test('letter scores follow FR vs EN tile values', () => {
   assert.equal(letterScore('MIX', 'en'), 12)
   assert.equal(letterScore('K', 'fr'), 10)
   assert.equal(letterScore('K', 'en'), 5)
+  assert.equal(letterScore('AÑO', 'es'), 10)
+  assert.equal(letterScore('QUESO', 'es'), 9)
   assert.equal(letterScore('QUIZ', 'fr', [0]), 12)
   assert.equal(letterScore('QUIZ', 'en', [0]), 12)
 })
@@ -466,6 +613,14 @@ test('leaderboard stores the server score for the official weekly word', async (
   const history = await apiRequest('GET', '/api/game/history', cookie)
   const savedWord = history.body.history.find((row) => row.word === worse.word)
   assert.equal(savedWord.pts, scored.pts)
+
+  if (worse.word !== best.word) {
+    const improved = await postCompete(cookie, { percent: 100, word: best.word, lang: 'fr' })
+    const mean = Math.round((10 * (scored.percent + 100)) / 2) / 10
+    assert.equal(improved.ok, true)
+    assert.equal(improved.plays, 2)
+    assert.equal(improved.percent, mean)
+  }
 })
 
 test('concurrent board reads cannot erase a ranked submission', async () => {
@@ -513,6 +668,32 @@ test('english official plays use english tile values', async () => {
   if (split) {
     assert.notEqual(split.pts, playScore(split.word, 'fr'))
   }
+})
+
+test('Spanish trail, Ñ scoring and leaderboard are language-isolated', async () => {
+  resetGameStatsForTests(
+    join(dir, 'board-es-score.json'),
+    join(dir, 'board-es-score-salt.txt'),
+    join(dir, 'board-es-score-leaderboard.json'),
+    join(dir, 'board-es-score-auth.json')
+  )
+  seedUserForTests('spanish-player', { name: 'Ana' })
+  const cookie = sessionCookieForTests('spanish-player')
+  const trail = await apiRequest('GET', '/api/game/trail?lang=es', cookie)
+  assert.equal(trail.status, 200)
+  assert.equal(trail.body.lang, 'es')
+  assert.match(trail.body.trailId, /-es$/)
+  assert.match(trail.body.rack, /^[A-ZÑ]{3,7}$/)
+  const { plays, lang } = await officialPlays(trail.body.trailId)
+  assert.equal(lang, 'es')
+  assert.ok(plays.length > 0)
+  for (const play of plays) assert.equal(play.pts, playScore(play.word, 'es'))
+  const accepted = await postCompete(cookie, { word: plays[0].word, lang: 'es' })
+  assert.equal(accepted.ok, true)
+  const spanish = await apiRequest('GET', '/api/game/board?lang=es', cookie)
+  const french = await apiRequest('GET', '/api/game/board?lang=fr', cookie)
+  assert.equal(spanish.body.top.length, 1)
+  assert.equal(french.body.top.length, 0)
 })
 
 test('playing another language in the same week does not reset the streak', async () => {
@@ -752,7 +933,7 @@ test('kids weekly trail is a long easy word and a separate board', async () => {
   assert.equal(board.kids, true)
 })
 
-test('kids competition only accepts the official restricted deal once', async () => {
+test('kids competition averages later plays and rejects arbitrary racks', async () => {
   resetGameStatsForTests(
     join(dir, 'kids-update.json'),
     join(dir, 'kids-update-salt.txt'),
@@ -804,8 +985,23 @@ test('kids competition only accepts the official restricted deal once', async ()
     kids: true,
     rack: trail.rack,
   })
-  assert.equal(again.ok, false)
-  assert.equal(again.error, 'already_submitted')
+  const second = await scoreOfficialPlay(trail.trailId, plays[0].word)
+  const mean = Math.round((10 * (scored.percent + second.percent)) / 2) / 10
+  assert.equal(again.ok, true)
+  assert.equal(again.plays, 2)
+  assert.equal(again.percent, mean)
+
+  const extraSeed = kidsLong('fr').find((word) => word !== trail.seed)
+  assert.ok(extraSeed)
+  const extra = await postCompete(cookie, {
+    percent: 0,
+    word: extraSeed,
+    lang: 'fr',
+    kids: true,
+    rack: extraSeed,
+  })
+  assert.equal(extra.ok, true)
+  assert.equal(extra.plays, 3)
   const boardOut = collectRes()
   await handleOdsGame(
     { method: 'GET', headers: { cookie } },
@@ -815,10 +1011,10 @@ test('kids competition only accepts the official restricted deal once', async ()
   )
   const board = boardOut.body()
   assert.equal(board.kids, true)
-  assert.equal(board.me.word, first.word)
-  assert.equal(board.me.percent, scored.percent)
-  assert.equal(board.me.plays, 1)
-  assert.equal(board.top[0].percent, scored.percent)
+  assert.equal(board.me.word, extraSeed)
+  assert.equal(board.me.plays, 3)
+  assert.equal(board.me.percent, extra.percent)
+  assert.equal(board.top[0].percent, extra.percent)
 })
 
 async function postFeedback(payload) {

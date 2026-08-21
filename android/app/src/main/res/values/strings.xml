@@ -35,13 +35,35 @@
     <string name="build_stamp">Version %1$s (%2$d)\nCompilé le %3$s</string>
     <string name="lang_fr">FR</string>
     <string name="lang_en">EN</string>
+    <string name="lang_es">ES</string>
     <string name="lang_switch">Langue</string>
     <string name="tab_about_sub">À propos</string>
     <string name="competition">Compétition</string>
     <string name="competition_on">Compétition · on</string>
     <string name="challenge">Défi</string>
+    <string name="training">Entraînement</string>
+    <string name="training_on">Entraînement · on</string>
+    <string name="training_all">Tous</string>
+    <string name="training_seven">7 lettres</string>
+    <string name="training_eight">8 lettres</string>
+    <string name="training_plus_one">7 + 1</string>
+    <string name="training_joker">Joker</string>
+    <string name="joker_type_letter">Tapez la lettre que remplace le joker.</string>
+    <string name="training_hard">Difficiles</string>
+    <string name="training_progress">%1$d sur %2$d%3$s</string>
+    <string name="training_reveal">Voir les réponses</string>
+    <string name="training_no_timer">Sans limite</string>
+    <string name="training_complete">Tous trouvés !</string>
+    <string name="training_revealed">Réponses affichées</string>
+    <string name="training_found">%1$s · %2$d points</string>
+    <string name="already_found">Déjà trouvé</string>
+    <string name="training_score">%1$d/%2$d mots trouvés</string>
+    <string name="training_stats">%1$d/%2$d tirages terminés</string>
+    <string name="training_new">Nouveau tirage</string>
     <string name="avg_empty">Score moyen —</string>
     <string name="avg_score">Score moyen %1$s %%</string>
+    <string name="chart_avg">moy.</string>
+    <string name="board_score">%1$s · %2$s</string>
     <string name="mode_exact">Exact</string>
     <string name="mode_prefix">Début</string>
     <string name="mode_suffix">Fin</string>
@@ -51,7 +73,7 @@
     <string name="rack_type_hint">Tapez A–Z ou posez un ?</string>
     <string name="rack_cap">%1$d lettre%2$s%3$s</string>
     <string name="jokers_bit"> · %1$d joker%2$s</string>
-    <string name="playable_count">%1$d mot%2$s jouable%3$s · ? = joker</string>
+    <string name="playable_count">%1$d mot%2$s jouable%2$s · ? = joker</string>
     <string name="no_rack_words">Aucun mot de la liste avec ces lettres.</string>
     <string name="letters_n">%1$d lettres</string>
     <string name="word_count_n">%1$d mot%2$s</string>

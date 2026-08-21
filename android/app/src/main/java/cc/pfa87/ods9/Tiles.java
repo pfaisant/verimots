@@ -13,18 +13,24 @@ import java.util.Set;
 
 final class Tiles {
     static void fill(LinearLayout row, String word, Set<Integer> used, View.OnClickListener tap) {
+        fill(row, word, used, tap, -1);
+    }
+
+    static void fill(LinearLayout row, String word, Set<Integer> used, View.OnClickListener tap, int bonusIndex) {
         Context ctx = row.getContext();
         float d = ctx.getResources().getDisplayMetrics().density;
         row.removeAllViews();
         int n = word.length();
-        int size = n >= 7 ? 42 : n >= 5 ? 48 : 54;
+        int size = n >= 8 ? 30 : n >= 7 ? 42 : n >= 5 ? 48 : 54;
+        int gap = n >= 8 ? 4 : 6;
         for (int i = 0; i < n; i++) {
             char ch = word.charAt(i);
             FrameLayout cell = new FrameLayout(ctx);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams((int) (size * d), (int) ((size + 6) * d));
-            if (i > 0) lp.setMarginStart((int) (6 * d));
+            if (i > 0) lp.setMarginStart((int) (gap * d));
             cell.setLayoutParams(lp);
-            cell.setBackgroundResource(R.drawable.bg_tile);
+            cell.setBackgroundResource(i == bonusIndex ? R.drawable.bg_gold_btn : R.drawable.bg_tile);
+            if (i == bonusIndex) cell.setContentDescription("+1 " + ch);
 
             boolean blank = ch == '?' || ch == '.' || ch == '*';
             TextView letter = new TextView(ctx);

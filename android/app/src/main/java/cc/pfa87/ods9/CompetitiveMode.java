@@ -103,7 +103,7 @@ final class CompetitiveMode {
     }
 
     void openWebSignIn() {
-        String lang = Lang.isEn(activity) ? "en" : "fr";
+        String lang = Lang.get(activity);
         Uri uri = Uri.parse(RemoteApi.HOST + "/auth-android.html?lang=" + lang);
         Intent i = new Intent(Intent.ACTION_VIEW, uri);
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -276,10 +276,11 @@ final class CompetitiveMode {
         String word = entry.optString("word", "");
         double pct = entry.has("percent") ? entry.optDouble("percent") : 0;
         String pctLabel = String.format(new java.util.Locale(Lang.get(activity)), "%.1f%%", pct);
-        int plays = entry.optInt("plays", 1);
-        if (plays > 1) pctLabel += " · " + plays;
+        int plays = Math.max(1, entry.optInt("plays", 1));
+        String words = activity.getString(R.string.word_count_n, plays, plays > 1 ? "s" : "");
+        String score = activity.getString(R.string.board_score, pctLabel, words);
         row.setText(entry.optInt("rank") + ".  " + entry.optString("pseudo", "?")
-                + (word.isEmpty() ? "" : "  " + word) + "  " + pctLabel);
+                + (word.isEmpty() ? "" : "  " + word) + "  " + score);
         row.setTextColor(mine ? 0xFFE8C56B : 0xFFF7F2E8);
         row.setPadding(12, 10, 12, 10);
         return row;

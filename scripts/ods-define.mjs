@@ -1,6 +1,7 @@
 // Wiktionnaire lookup for the public ODS page. Not Larousse / ODS wording.
 const WIKI_FR = 'https://fr.wiktionary.org/w/api.php'
 const WIKI_EN = 'https://en.wiktionary.org/w/api.php'
+const WIKI_ES = 'https://es.wiktionary.org/w/api.php'
 const WIKI = WIKI_FR
 const UA = 's.pfa87.cc-ods9/1.0 (https://s.pfa87.cc/; french scrabble word helper)'
 const CACHE_MAX = 400
@@ -59,11 +60,15 @@ const LABEL_TEMPLATES = new Set([
 const cache = new Map()
 const rate = new Map()
 
-export function foldKey(value) {
+export function foldKey(value, lang = 'fr') {
+  const sentinel = '\ue000'
   return String(value || '')
+    .normalize('NFC')
+    .replace(/ñ/gi, lang === 'es' ? sentinel : 'n')
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
     .toLowerCase()
+    .replaceAll(sentinel, 'ñ')
 }
 
 export function cleanWikitext(input) {
@@ -84,6 +89,12 @@ export function cleanWikitext(input) {
         'plural of': 'Plural of',
         'en-plural of': 'Plural of',
         'pluriel de': 'Pluriel de',
+        'forma verbo': 'Forma de',
+        'forma verbal': 'Forma de',
+        'forma sustantivo plural': 'Plural de',
+        'forma adjetivo plural': 'Plural de',
+        'forma sustantivo': 'Forma de',
+        'forma adjetivo': 'Forma de',
         'inflection of': 'Inflection of',
         'infl of': 'Inflection of',
         'present participle of': 'Present participle of',
@@ -100,7 +111,9 @@ export function cleanWikitext(input) {
         'init of': 'Initialism of',
       }
       if (ofLabels[name]) {
-        const lemma = parts.filter((p) => p && !p.includes('=') && p !== name && p !== 'en' && p !== 'fr').pop()
+        const lemma = parts.find((p, index) =>
+          index > 0 && p && !p.includes('=') && p !== 'en' && p !== 'fr' && p !== 'es'
+        )
         return lemma ? `${ofLabels[name]} ${lemma}` : ''
       }
       return ''
@@ -133,6 +146,23 @@ function englishSection(wikitext) {
   return end < 0 ? rest : rest.slice(0, rest.indexOf('\n') + 1 + end)
 }
 
+function spanishSection(wikitext) {
+  const lines = String(wikitext || '').split('\n')
+  const start = lines.findIndex((line) =>
+    /^==\s*.*\{\{(?:lengua|idioma)\|es(?:\||\}\}).*==\s*$/i.test(line)
+    || /^==\s*Español\s*==\s*$/i.test(line)
+  )
+  if (start < 0) return ''
+  let end = lines.length
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^==[^=].*==\s*$/.test(lines[i])) {
+      end = i
+      break
+    }
+  }
+  return lines.slice(start, end).join('\n')
+}
+
 const SKIP_EN_POS = new Set([
   'etymology',
   'pronunciation',
@@ -153,6 +183,7 @@ const SKIP_EN_POS = new Set([
 
 export function extractSenses(wikitext, lang = 'fr') {
   if (lang === 'en') return extractEnglishSenses(wikitext)
+  if (lang === 'es') return extractSpanishSenses(wikitext)
   const fr = frenchSection(String(wikitext || ''))
   if (!fr) return []
   const senses = []
@@ -175,6 +206,40 @@ export function extractSenses(wikitext, lang = 'fr') {
   const kept = senses.filter((s) => s.defs.length)
   const lexical = kept.filter((s) => !s.defs.every((d) => /personne du|impératif de|participe /.test(d.toLowerCase())))
   return lexical.length ? lexical : kept
+}
+
+export function extractSpanishSenses(wikitext) {
+  const es = spanishSection(wikitext)
+  if (!es) return []
+  const skipped = /^(?:etimología|pronunciación|locuciones|refranes|véase también|referencias|traducciones|sinónimos|antónimos|anagramas|conjugación)$/i
+  const senses = []
+  let current = null
+  for (const line of es.split('\n')) {
+    const heading = line.match(/^===+\s*(.*?)\s*===+\s*$/)
+    if (heading) {
+      const template = heading[1].match(/\{\{\s*([^{}|]+)(?:\|[^{}]*)?\}\}/)
+      const templateName = (template?.[1] || '').trim().toLowerCase()
+      const posTemplate = /^(?:sustantivo|adjetivo|verbo|adverbio|pronombre|artículo|interjección|preposición|conjunción|nombre propio|locución)\b/.test(templateName)
+        ? templateName
+        : ''
+      const pos = (posTemplate || cleanWikitext(heading[1]))
+        .replace(/^[-–—]\s*|\s*[-–—]$/g, '')
+        .trim()
+      current = !pos || skipped.test(pos) ? null : { pos: pos.toLowerCase(), defs: [] }
+      if (current) senses.push(current)
+      continue
+    }
+    if (!current) continue
+    const numbered = line.match(/^;\s*\d+\s*:\s*(.*)$/)
+    const hashed = line.match(/^#(?![*:])\s*(.*)$/)
+    const raw = numbered?.[1] ?? hashed?.[1]
+    if (raw == null) continue
+    const text = cleanWikitext(raw).replace(/^\s*([.·,:;])\s*$/, '')
+    if (!text || !/\p{L}/u.test(text)) continue
+    current.defs.push(text)
+    if (current.defs.length >= 5) current = null
+  }
+  return senses.filter((sense) => sense.defs.length)
 }
 
 export function extractEnglishSenses(wikitext) {
@@ -208,39 +273,40 @@ function isWeak(senses) {
 
 const FRENCH_LETTERS = /[àâäéèêëïîôùûüçœæ]/i
 
-function lettersOnly(value) {
-  return foldKey(value).replace(/[^a-z]/g, '')
+function lettersOnly(value, lang = 'fr') {
+  return foldKey(value, lang).replace(lang === 'es' ? /[^a-zñ]/g : /[^a-z]/g, '')
 }
 
-export function lookupQuery(word) {
-  return foldKey(word)
-    .replace(/[^a-z'-]/g, '')
+export function lookupQuery(word, lang = 'fr') {
+  return foldKey(word, lang)
+    .replace(lang === 'es' ? /[^a-zñ'-]/g : /[^a-z'-]/g, '')
     .replace(/^[-']+|[-']+$/g, '')
 }
 
-export function rankTitles(query, titles) {
-  const q = foldKey(query)
-  const qLetters = lettersOnly(query)
+export function rankTitles(query, titles, lang = 'fr') {
+  const q = foldKey(query, lang)
+  const qLetters = lettersOnly(query, lang)
+  const preferredLetters = lang === 'es' ? /[áéíóúüñ]/i : FRENCH_LETTERS
   return [...new Set(titles)]
     .filter((t) => t && !t.startsWith('-') && !t.includes(':'))
     .map((title, index) => {
-      const folded = foldKey(title)
+      const folded = foldKey(title, lang)
       const last = folded.split(/[-\s/]+/).filter(Boolean).pop() || ''
       let score = 0
-      if (folded === q || lettersOnly(title) === qLetters) score += 100
+      if (folded === q || lettersOnly(title, lang) === qLetters) score += 100
       else if (folded.startsWith(q) && folded.length <= q.length + 2) score += 20
-      if (foldKey(last) === q) score += 55
+      if (foldKey(last, lang) === q) score += 55
       if (folded.endsWith('-' + q) || folded.endsWith(' ' + q)) score += 35
       if (title === query || title.toUpperCase() === q) score += 16
       if (title === title.toLowerCase()) score += 10
-      if (FRENCH_LETTERS.test(title)) score += 8
+      if (preferredLetters.test(title)) score += 8
       else if (/[^\u0000-\u007f]/.test(title)) score -= 20
       if (title.includes(' ')) score -= 25
       if (title === title.toUpperCase() && title.length > 3) score -= 4
       score -= index
       return { title, score }
     })
-    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, 'fr'))
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, lang))
     .map((x) => x.title)
 }
 
@@ -318,22 +384,25 @@ async function parsePage(title, wiki = WIKI_FR) {
 }
 
 export async function lookupDefinition(word, lang = 'fr') {
-  const query = lookupQuery(word)
+  lang = lang === 'en' || lang === 'es' ? lang : 'fr'
+  const query = lookupQuery(word, lang)
   const letters = query.replace(/[-']/g, '')
   if (letters.length < 2 || letters.length > 30) return { ok: false, error: 'invalid word' }
   const key = letters.toUpperCase()
-  const english = lang === 'en'
-  const cacheKey = (english ? 'en:' : 'fr:') + query
+  const cacheKey = `${lang}:` + query
   const cached = cacheGet(cacheKey)
   if (cached) return cached
-  const wiki = english ? WIKI_EN : WIKI_FR
-  const host = english ? 'https://en.wiktionary.org/wiki/' : 'https://fr.wiktionary.org/wiki/'
-  const source = english ? 'wiktionary' : 'wiktionnaire'
+  const config = {
+    fr: { wiki: WIKI_FR, host: 'https://fr.wiktionary.org/wiki/', source: 'wiktionnaire' },
+    en: { wiki: WIKI_EN, host: 'https://en.wiktionary.org/wiki/', source: 'wiktionary' },
+    es: { wiki: WIKI_ES, host: 'https://es.wiktionary.org/wiki/', source: 'wikcionario' },
+  }[lang]
+  const { wiki, host, source } = config
 
   let titles = []
   try {
     const lemma = query.toLowerCase()
-    titles = rankTitles(query, [lemma, ...await searchTitles(lemma, wiki)])
+    titles = rankTitles(query, [lemma, ...await searchTitles(lemma, wiki)], lang)
   } catch {
     return { ok: true, found: false, word: key, source }
   }
@@ -342,7 +411,7 @@ export async function lookupDefinition(word, lang = 'fr') {
     try {
       const page = await parsePage(title, wiki)
       if (!page) continue
-      const senses = extractSenses(page.wikitext, english ? 'en' : 'fr')
+      const senses = extractSenses(page.wikitext, lang)
       if (!senses.length || isWeak(senses)) continue
       const value = {
         ok: true,
@@ -378,7 +447,8 @@ export async function handleOdsDefine(req, res, url, helpers) {
     return true
   }
   const word = String(url.searchParams.get('w') || url.searchParams.get('word') || '')
-  const lang = String(url.searchParams.get('lang') || 'fr').toLowerCase() === 'en' ? 'en' : 'fr'
+  const rawLang = String(url.searchParams.get('lang') || 'fr').toLowerCase()
+  const lang = rawLang === 'en' || rawLang === 'es' ? rawLang : 'fr'
   const result = await lookupDefinition(word, lang)
   json(res, result.ok ? 200 : 400, result, { 'Cache-Control': result.found ? 'public, max-age=86400' : 'no-store' }, req.method)
   return true

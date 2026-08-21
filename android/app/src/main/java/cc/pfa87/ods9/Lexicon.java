@@ -16,23 +16,30 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 public final class Lexicon {
+    private static final String ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
     public static final int[] VAL = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 0, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10
     };
     private static final int[] VAL_EN = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 0, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10
+    };
+    private static final int[] VAL_ES = {
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 3, 1, 8, 1, 3, 5, 1, 1, 1, 1, 4, 10, 8, 4, 10
     };
     private static final int[] BAG = {
-        9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1
+        9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 0, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1
     };
     private static final int[] BAG_EN = {
-        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1
+        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 0, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1
     };
-    private static final boolean[] HARD = new boolean[26];
+    private static final int[] BAG_ES = {
+        13, 2, 4, 5, 12, 1, 2, 2, 6, 1, 1, 4, 2, 5, 1, 9, 2, 1, 5, 6, 4, 5, 1, 1, 1, 1, 1
+    };
+    private static final boolean[] HARD = new boolean[ALPHABET.length()];
 
     static {
-        for (char c : new char[] {'J', 'K', 'Q', 'W', 'X', 'Y', 'Z'}) {
-            HARD[c - 'A'] = true;
+        for (char c : new char[] {'J', 'K', 'Ñ', 'Q', 'W', 'X', 'Y', 'Z'}) {
+            HARD[letterIndex(c)] = true;
         }
     }
 
@@ -58,23 +65,27 @@ public final class Lexicon {
         public final List<Play> catalog;
 
         public final String seed;
+        public final int bonusIndex;
 
         Deal(String category, String rack, List<Play> catalog) {
-            this(category, rack, catalog, "");
+            this(category, rack, catalog, "", -1);
         }
 
         Deal(String category, String rack, List<Play> catalog, String seed) {
+            this(category, rack, catalog, seed, -1);
+        }
+
+        Deal(String category, String rack, List<Play> catalog, String seed, int bonusIndex) {
             this.category = category;
             this.rack = rack;
             this.catalog = catalog;
             this.seed = seed == null ? "" : seed;
+            this.bonusIndex = bonusIndex;
         }
     }
 
     private static Lexicon instance;
-    private static Lexicon instanceFr;
-    private static Lexicon instanceEn;
-    private final boolean english;
+    private final String lang;
     private final int[] val;
     private final int[] bag;
     private final HashSet<String> set = new HashSet<>();
@@ -93,27 +104,23 @@ public final class Lexicon {
     }
 
     public static synchronized Lexicon get(Context ctx, String lang) throws IOException {
-        boolean en = "en".equals(lang);
-        if (en) {
-            if (instanceEn == null) instanceEn = new Lexicon(ctx.getApplicationContext(), true);
-            instance = instanceEn;
-            return instanceEn;
+        String wanted = "en".equals(lang) || "es".equals(lang) ? lang : "fr";
+        if (instance == null || !wanted.equals(instance.lang)) {
+            instance = new Lexicon(ctx.getApplicationContext(), wanted);
         }
-        if (instanceFr == null) instanceFr = new Lexicon(ctx.getApplicationContext(), false);
-        instance = instanceFr;
-        return instanceFr;
+        return instance;
     }
 
     public static synchronized boolean ready() {
         return instance != null;
     }
 
-    private Lexicon(Context ctx, boolean english) throws IOException {
-        this.english = english;
-        this.val = english ? VAL_EN : VAL;
-        this.bag = english ? BAG_EN : BAG;
+    private Lexicon(Context ctx, String lang) throws IOException {
+        this.lang = lang;
+        this.val = "en".equals(lang) ? VAL_EN : "es".equals(lang) ? VAL_ES : VAL;
+        this.bag = "en".equals(lang) ? BAG_EN : "es".equals(lang) ? BAG_ES : BAG;
         for (int i = 0; i < byLen.length; i++) byLen[i] = new ArrayList<>();
-        InputStream raw = openLexicon(ctx, english);
+        InputStream raw = openLexicon(ctx, lang);
         try (BufferedReader r = new BufferedReader(new InputStreamReader(raw, StandardCharsets.UTF_8), 64 * 1024)) {
             String line;
             while ((line = r.readLine()) != null) {
@@ -126,9 +133,11 @@ public final class Lexicon {
         buildPools();
     }
 
-    private static InputStream openLexicon(Context ctx, boolean english) throws IOException {
-        String gz = english ? "data/yawl.txt.gz" : "data/ods9.txt.gz";
-        String plain = english ? "data/yawl.txt" : "data/ods9.txt";
+    private static InputStream openLexicon(Context ctx, String lang) throws IOException {
+        String gz = "en".equals(lang) ? "data/yawl.txt.gz"
+                : "es".equals(lang) ? "data/rla-es.txt.gz" : "data/ods9.txt.gz";
+        String plain = "en".equals(lang) ? "data/yawl.txt"
+                : "es".equals(lang) ? "data/rla-es.txt" : "data/ods9.txt";
         try {
             return new GZIPInputStream(ctx.getAssets().open(gz));
         } catch (IOException e) {
@@ -162,10 +171,15 @@ public final class Lexicon {
         return out;
     }
 
+    private static int letterIndex(char ch) {
+        return ALPHABET.indexOf(ch);
+    }
+
     public static int letterScore(char ch) {
-        if (ch < 'A' || ch > 'Z') return 0;
+        int index = letterIndex(ch);
+        if (index < 0) return 0;
         int[] table = instance != null ? instance.val : VAL;
-        return table[ch - 'A'];
+        return table[index];
     }
 
     private int points(String word, Set<Integer> jokers) {
@@ -173,7 +187,8 @@ public final class Lexicon {
         for (int i = 0; i < word.length(); i++) {
             if (jokers != null && jokers.contains(i)) continue;
             char ch = word.charAt(i);
-            if (ch >= 'A' && ch <= 'Z') n += val[ch - 'A'];
+            int index = letterIndex(ch);
+            if (index >= 0) n += val[index];
         }
         return n;
     }
@@ -201,13 +216,23 @@ public final class Lexicon {
     }
 
     private static String normalize(String raw, boolean keepBlanks) {
-        String s = java.text.Normalizer.normalize(String.valueOf(raw == null ? "" : raw), java.text.Normalizer.Form.NFD);
+        String composed = java.text.Normalizer.normalize(
+                String.valueOf(raw == null ? "" : raw),
+                java.text.Normalizer.Form.NFC);
+        String protectedRaw = composed
+                .replace('ñ', '\uE000')
+                .replace('Ñ', '\uE000');
+        String s = java.text.Normalizer.normalize(protectedRaw, java.text.Normalizer.Form.NFD);
         StringBuilder b = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c >= '\u0300' && c <= '\u036f') continue;
+            if (c == '\uE000') {
+                b.append('Ñ');
+                continue;
+            }
             if (c >= 'a' && c <= 'z') c = (char) (c - 32);
-            if (c >= 'A' && c <= 'Z') b.append(c);
+            if (letterIndex(c) >= 0) b.append(c);
             else if (keepBlanks && (c == '?' || c == '.' || c == '*')) b.append('?');
         }
         return b.toString();
@@ -219,7 +244,7 @@ public final class Lexicon {
     }
 
     public List<Play> anagrams(String rack, int minLen, int maxLen) {
-        int[] counts = new int[26];
+        int[] counts = new int[ALPHABET.length()];
         int blanks = 0;
         int tiles = 0;
         for (int i = 0; i < rack.length(); i++) {
@@ -227,8 +252,10 @@ public final class Lexicon {
             if (ch == '?' || ch == '.' || ch == '*') {
                 blanks++;
                 tiles++;
-            } else if (ch >= 'A' && ch <= 'Z') {
-                counts[ch - 'A']++;
+            } else {
+                int index = letterIndex(ch);
+                if (index < 0) continue;
+                counts[index]++;
                 tiles++;
             }
         }
@@ -255,12 +282,12 @@ public final class Lexicon {
     }
 
     private static int[] formable(String word, int[] counts, int blanks) {
-        int[] used = new int[26];
+        int[] used = new int[ALPHABET.length()];
         int need = 0;
         int[] jk = new int[word.length()];
         for (int i = 0; i < word.length(); i++) {
-            int c = word.charAt(i) - 'A';
-            if (c < 0 || c > 25) return null;
+            int c = letterIndex(word.charAt(i));
+            if (c < 0) return null;
             used[c]++;
             if (used[c] > counts[c]) {
                 if (need >= blanks) return null;
@@ -294,7 +321,8 @@ public final class Lexicon {
         for (int i = 0; i < word.length(); i++) {
             if (jk[i]) continue;
             char ch = word.charAt(i);
-            if (ch >= 'A' && ch <= 'Z' && HARD[ch - 'A']) return true;
+            int index = letterIndex(ch);
+            if (index >= 0 && HARD[index]) return true;
         }
         return false;
     }
@@ -337,13 +365,51 @@ public final class Lexicon {
             if (best.word.length() <= 4 && !hardBest && best.score < 12) continue;
             return new Deal(category, rack, catalog);
         }
-        String seed = bingo.isEmpty() ? "LETTRES" : pick(bingo);
+        String fallback = "es".equals(lang) ? "PALABRA" : "LETTRES";
+        String seed = bingo.isEmpty() ? fallback : pick(bingo);
         String rack = shuffle(seed);
         return new Deal("bingo", rack, anagrams(rack, 2, rack.length()));
     }
 
+    public Deal training(String rawPreset) {
+        String preset = rawPreset == null ? "all" : rawPreset;
+        int target = "eight".equals(preset) || "plusOne".equals(preset) ? 8 : 7;
+        List<String> base = byLen[target];
+        if (base == null || base.isEmpty()) return challenge();
+        ArrayList<String> source = new ArrayList<>();
+        if ("hard".equals(preset)) {
+            for (String word : base) if (usesHard(word, null)) source.add(word);
+        }
+        if (source.isEmpty()) source.addAll(base);
+        for (int attempt = 0; attempt < 40; attempt++) {
+            String seed = pick(source);
+            String rack = seed;
+            int bonusIndex = -1;
+            if ("plusOne".equals(preset)) {
+                int at = rng.nextInt(seed.length());
+                char bonus = seed.charAt(at);
+                String seven = seed.substring(0, at) + seed.substring(at + 1);
+                rack = shuffle(seven) + bonus;
+                bonusIndex = rack.length() - 1;
+            }
+            if ("joker".equals(preset)) {
+                int at = rng.nextInt(seed.length());
+                rack = seed.substring(0, at) + "?" + seed.substring(at + 1);
+                rack = shuffle(rack);
+            } else if (!"plusOne".equals(preset)) {
+                rack = shuffle(rack);
+            }
+            int min = "all".equals(preset) || "hard".equals(preset) ? 2 : target;
+            List<Play> catalog = anagrams(rack, min, target);
+            if (!catalog.isEmpty()) {
+                return new Deal("training-" + preset, rack, catalog, seed, bonusIndex);
+            }
+        }
+        return challenge();
+    }
+
     public Deal kidsDeal() {
-        String seed = Kids.pickLong(english, rng);
+        String seed = Kids.pickLong(lang, rng);
         String rack = shuffle(seed);
         return new Deal("kids", rack, kidsAnagrams(rack), seed);
     }
@@ -355,7 +421,8 @@ public final class Lexicon {
     public Deal fromRack(String rack, String seed) {
         String tiles = normalize(rack);
         if (tiles.length() < 2) return challenge();
-        if (tiles.length() > 7) tiles = tiles.substring(0, 7);
+        int max = seed.isEmpty() ? 7 : 8;
+        if (tiles.length() > max) tiles = tiles.substring(0, max);
         List<Play> catalog = seed.isEmpty()
                 ? anagrams(tiles, 2, tiles.length())
                 : kidsAnagrams(tiles);
@@ -363,18 +430,19 @@ public final class Lexicon {
     }
 
     private List<Play> kidsAnagrams(String rack) {
-        int[] counts = new int[26];
+        int[] counts = new int[ALPHABET.length()];
         int tiles = 0;
         for (int i = 0; i < rack.length(); i++) {
             char ch = rack.charAt(i);
-            if (ch >= 'A' && ch <= 'Z') {
-                counts[ch - 'A']++;
+            int index = letterIndex(ch);
+            if (index >= 0) {
+                counts[index]++;
                 tiles++;
             }
         }
         ArrayList<Play> out = new ArrayList<>();
         HashSet<String> seen = new HashSet<>();
-        for (String word : Kids.words(english)) {
+        for (String word : Kids.words(lang)) {
             if (word.length() < 3 || word.length() > tiles || !seen.add(word)) continue;
             if (formable(word, counts, 0) == null) continue;
             out.add(new Play(word, points(word, null), new int[0]));
@@ -413,14 +481,15 @@ public final class Lexicon {
     }
 
     private String fillTiles(String used, int n) {
-        int[] have = new int[26];
+        int[] have = new int[ALPHABET.length()];
         for (int i = 0; i < used.length(); i++) {
             char ch = used.charAt(i);
-            if (ch >= 'A' && ch <= 'Z') have[ch - 'A']++;
+            int index = letterIndex(ch);
+            if (index >= 0) have[index]++;
         }
         StringBuilder bag = new StringBuilder(100);
-        for (int i = 0; i < 26; i++) {
-            for (int k = have[i]; k < this.bag[i]; k++) bag.append((char) ('A' + i));
+        for (int i = 0; i < ALPHABET.length(); i++) {
+            for (int k = have[i]; k < this.bag[i]; k++) bag.append(ALPHABET.charAt(i));
         }
         StringBuilder out = new StringBuilder(n);
         for (int i = 0; i < n && bag.length() > 0; i++) {

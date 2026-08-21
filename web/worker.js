@@ -1,5 +1,5 @@
-/* Verimots lexicon worker — lookup, anagrams, patterns. */
-import { dealKids, kidsAnagrams } from './kids.js?v=58'
+/* Verimots lexicon worker — lookup, anagrams, patterns and training deals. */
+import { dealKids, kidsAnagrams } from './kids.js?v=77'
 
 const FR_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
@@ -10,6 +10,11 @@ const EN_VALUES = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
   J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
   S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
+}
+const ES_VALUES = {
+  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
+  J: 8, K: 10, L: 1, M: 3, N: 1, Ñ: 8, O: 1, P: 3, Q: 5,
+  R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 8, Y: 4, Z: 10,
 }
 let VALUES = FR_VALUES
 
@@ -28,23 +33,23 @@ function scoreWord(word, jokerAt) {
 }
 
 function rackCounts(rack) {
-  const counts = new Uint8Array(26)
+  const counts = Object.create(null)
   let blanks = 0
   for (const ch of rack) {
     if (ch === '?' || ch === '.' || ch === '*') blanks++
-    else if (ch >= 'A' && ch <= 'Z') counts[ch.charCodeAt(0) - 65]++
+    else if (/^[A-ZÑ]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
   }
   return { counts, blanks, tiles: rack.length }
 }
 
 function formable(word, counts, blanks) {
   let need = 0
-  const used = new Uint8Array(26)
+  const used = Object.create(null)
   const jokers = []
   for (let i = 0; i < word.length; i++) {
-    const c = word.charCodeAt(i) - 65
-    used[c]++
-    if (used[c] > counts[c]) {
+    const ch = word[i]
+    used[ch] = (used[ch] || 0) + 1
+    if (used[ch] > (counts[ch] || 0)) {
       need++
       jokers.push(i)
       if (need > blanks) return null
@@ -53,7 +58,7 @@ function formable(word, counts, blanks) {
   return jokers
 }
 
-const HARD = new Set(['J', 'K', 'Q', 'W', 'X', 'Y', 'Z'])
+const HARD = new Set(['J', 'K', 'Ñ', 'Q', 'W', 'X', 'Y', 'Z'])
 const FR_BAG = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
   J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
@@ -64,8 +69,14 @@ const EN_BAG = {
   J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
   S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1,
 }
+const ES_BAG = {
+  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
+  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
+  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1,
+}
 let TILE_COUNTS = FR_BAG
 let currentLang = ''
+let currentDict = ''
 
 let pools = null
 
@@ -118,8 +129,11 @@ function buildPools() {
   return pools
 }
 
-function dealChallenge() {
+function dealChallenge(excludeSeed = '', excludeRack = '') {
   const p = buildPools()
+  const blockedSeed = String(excludeSeed || '').toUpperCase()
+  const rackKey = (value) => String(value || '').toUpperCase().replace(/[^A-ZÑ?]/g, '').split('').sort().join('')
+  const blockedRack = rackKey(excludeRack)
   for (let attempt = 0; attempt < 20; attempt++) {
     const roll = Math.random()
     let category = 'bingo'
@@ -141,6 +155,7 @@ function dealChallenge() {
     } else {
       continue
     }
+    if ((blockedSeed && seed === blockedSeed) || (blockedRack && rackKey(rack) === blockedRack)) continue
     const groups = anagrams(rack, 2, rack.length)
     const best = groups[0]?.words[0]
     if (!best) continue
@@ -158,9 +173,49 @@ function dealChallenge() {
     if (best.word.length <= 4 && !hardBest && best.score < 12) continue
     return { category, rack, groups, seed }
   }
-  const seed = pickWord(p.bingo.length ? p.bingo : ['SCRABBLE'])
+  const allowed = p.bingo.filter((word) =>
+    word !== blockedSeed && (!blockedRack || rackKey(word) !== blockedRack)
+  )
+  const fallback = currentLang === 'es' ? 'PALABRA' : 'SCRABBLE'
+  const seed = pickWord(allowed.length ? allowed : p.bingo.length ? p.bingo : [fallback])
   const rack = shuffleWord(seed)
   return { category: 'bingo', rack, groups: anagrams(rack, 2, rack.length), seed }
+}
+
+function dealTraining(preset = 'all', excludeSeed = '', excludeRack = '') {
+  const mode = ['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(preset)
+    ? preset
+    : 'all'
+  const targetLength = mode === 'eight' || mode === 'plusOne' ? 8 : 7
+  const blockedSeed = String(excludeSeed || '').toUpperCase()
+  const rackKey = (value) => String(value || '').toUpperCase().replace(/[^A-ZÑ?]/g, '').split('').sort().join('')
+  const blockedRack = rackKey(excludeRack)
+  const base = byLen[targetLength] || []
+  const source = mode === 'hard' ? base.filter((word) => usesHard(word)) : base
+  const pool = source.length ? source : base
+  for (let attempt = 0; attempt < 40 && pool.length; attempt++) {
+    const seed = pickWord(pool)
+    let rack = shuffleWord(seed)
+    let bonusIndex = -1
+    if (mode === 'plusOne') {
+      const at = Math.floor(Math.random() * seed.length)
+      const bonus = seed[at]
+      const seven = seed.slice(0, at) + seed.slice(at + 1)
+      rack = shuffleWord(seven) + bonus
+      bonusIndex = rack.length - 1
+    }
+    if (mode === 'joker') {
+      const at = Math.floor(Math.random() * seed.length)
+      rack = shuffleWord(seed.slice(0, at) + '?' + seed.slice(at + 1))
+    }
+    if ((blockedSeed && seed === blockedSeed) || (blockedRack && rackKey(rack) === blockedRack)) continue
+    const min = mode === 'all' || mode === 'hard' ? 2 : targetLength
+    const groups = anagrams(rack, min, targetLength)
+    const total = groups.reduce((sum, group) => sum + group.words.length, 0)
+    if (!total) continue
+    return { category: 'training', rack, groups, seed, preset: mode, targetLength, total, bonusIndex }
+  }
+  return { category: 'training', rack: '', groups: [], seed: '', preset: mode, targetLength, total: 0 }
 }
 
 function anagrams(rack, minLen, maxLen) {
@@ -189,29 +244,74 @@ function anagrams(rack, minLen, maxLen) {
   return groups
 }
 
-function matchFind(mode, q) {
-  if (!q) return []
+function likelyInfinitive(word, lang) {
+  if (lang === 'fr') return /(?:ER|IR|RE|OIR)$/.test(word)
+  if (lang === 'es') return /(?:AR|ER|IR)$/.test(word)
+  return false
+}
+
+function likelyInflection(word, lang) {
+  if (lang === 'fr') {
+    return /(?:AIS|AIT|AIENT|ANT|EES?|ENT|EZ|IONS|ONS|ERA|ERAI|ERAS|ERENT|ERIEZ|ERIONS|ES|IEZ|IMES|IRENT|IS|IT|ITES|ISSENT|ISSONS|IRAI|IRAS|IREZ|IRONT)$/.test(word)
+  }
+  if (lang === 'es') {
+    return /(?:ABA|ABAN|ADA|ADAS|ADO|ADOS|ANDO|ARIA|ARIAN|ASTE|ASTEIS|IA|IAN|IDA|IDAS|IDO|IDOS|IENDO|AMOS|EMOS|IMOS|ARON|IERON|ASE|IESE|EN|ES)$/.test(word)
+  }
+  return /(?:ED|ING)$/.test(word)
+}
+
+function matchFind(mode, q, filters = {}) {
+  if (!q && mode !== 'multi') return []
   const out = []
   const limit = 400
-  if (mode === 'prefix') {
-    for (const w of words) if (w.startsWith(q)) { out.push(w); if (out.length >= limit) break }
-  } else if (mode === 'suffix') {
-    for (const w of words) if (w.endsWith(q)) { out.push(w); if (out.length >= limit) break }
-  } else if (mode === 'has') {
-    for (const w of words) if (w.includes(q)) { out.push(w); if (out.length >= limit) break }
-  } else if (mode === 'pattern') {
+  if (mode === 'pattern') {
     const re = new RegExp('^' + q.replace(/[.?]/g, '.') + '$')
     const pool = byLen[q.length] || []
     for (const w of pool) if (re.test(w)) { out.push(w); if (out.length >= limit) break }
+    return out
+  }
+  const start = String(filters.start || (mode === 'prefix' ? q : '')).toUpperCase()
+  const has = String(filters.has || (mode === 'has' ? q : '')).toUpperCase()
+  const end = String(filters.end || (mode === 'suffix' ? q : '')).toUpperCase()
+  const length = Math.max(0, Math.min(15, Number(filters.length) || 0))
+  const infinitives = !!filters.infinitives
+  const hideInflections = !!filters.hideInflections
+  for (const word of words) {
+    if (start && !word.startsWith(start)) continue
+    if (has && !word.includes(has)) continue
+    if (end && !word.endsWith(end)) continue
+    if (length && word.length !== length) continue
+    if (infinitives && !likelyInfinitive(word, currentLang)) continue
+    if (hideInflections && likelyInflection(word, currentLang)) continue
+    out.push(word)
+    if (out.length >= limit) break
   }
   return out
 }
 
-async function load(lang = 'fr') {
-  const next = lang === 'en' ? 'en' : 'fr'
-  if (ready && currentLang === next) return words.length
-  const file = next === 'en' ? 'data/yawl.txt.gz' : 'data/ods9.txt.gz'
-  const plain = next === 'en' ? 'data/yawl.txt' : 'data/ods9.txt'
+function normalizeDict(dict, lang) {
+  if (dict === 'yawl') return 'csw'
+  if (dict === 'ods' || dict === 'csw' || dict === 'wow24' || dict === 'rla') return dict
+  return lang === 'en' ? 'wow24' : lang === 'es' ? 'rla' : 'ods'
+}
+
+function dictLang(id) {
+  if (id === 'csw' || id === 'wow24') return 'en'
+  if (id === 'rla') return 'es'
+  return 'fr'
+}
+
+async function load(lang = 'fr', dict = '') {
+  const id = normalizeDict(dict, lang === 'en' || lang === 'es' ? lang : 'fr')
+  const next = dictLang(id)
+  if (ready && currentLang === next && currentDict === id) return words.length
+  const files = {
+    ods: ['data/ods9.txt.gz', 'data/ods9.txt'],
+    csw: ['data/yawl.txt.gz', 'data/yawl.txt'],
+    wow24: ['data/wow24.txt.gz', 'data/wow24.txt'],
+    rla: ['data/rla-es.txt.gz', 'data/rla-es.txt'],
+  }
+  const [file, plain] = files[id]
   let res = await fetch(file, { cache: 'force-cache' })
   if (!res.ok) res = await fetch(plain, { cache: 'force-cache' })
   if (!res.ok) throw new Error('lexicon ' + res.status)
@@ -225,22 +325,24 @@ async function load(lang = 'fr') {
   wordSet = new Set(words)
   byLen = Array.from({ length: 16 }, () => [])
   for (const w of words) if (w.length < 16) byLen[w.length].push(w)
-  VALUES = next === 'en' ? EN_VALUES : FR_VALUES
-  TILE_COUNTS = next === 'en' ? EN_BAG : FR_BAG
+  VALUES = next === 'en' ? EN_VALUES : next === 'es' ? ES_VALUES : FR_VALUES
+  TILE_COUNTS = next === 'en' ? EN_BAG : next === 'es' ? ES_BAG : FR_BAG
   pools = null
   currentLang = next
+  currentDict = id
   ready = true
   return words.length
 }
 
 async function handle(msg) {
   if (msg.type === 'load') {
-    const count = await load(msg.lang || 'fr')
-    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang })
+    const count = await load(msg.lang || 'fr', msg.dict || '')
+    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang, dict: currentDict })
     return
   }
-  const want = msg.lang === 'en' || msg.lang === 'fr' ? msg.lang : currentLang || 'fr'
-  if (!ready || currentLang !== want) await load(want)
+  const want = ['fr', 'en', 'es'].includes(msg.lang) ? msg.lang : currentLang || 'fr'
+  const wantDict = normalizeDict(msg.dict, want)
+  if (!ready || currentLang !== want || currentDict !== wantDict) await load(want, wantDict)
   if (msg.type === 'check') {
     const word = String(msg.word || '').toUpperCase()
     const ok = wordSet.has(word)
@@ -251,32 +353,49 @@ async function handle(msg) {
       ok,
       score: ok ? scoreWord(word) : 0,
       lang: currentLang,
+      dict: currentDict,
     })
     return
   }
   if (msg.type === 'anagram') {
     const rack = String(msg.rack || '').toUpperCase()
     const groups = anagrams(rack, Number(msg.min) || 2, Number(msg.max) || rack.length || 15)
-    self.postMessage({ type: 'anagram', id: msg.id, groups, lang: currentLang })
+    self.postMessage({ type: 'anagram', id: msg.id, groups, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'kids') {
-    const rack = String(msg.rack || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 7)
+    const rack = String(msg.rack || '').toUpperCase().replace(/[^A-ZÑ]/g, '').slice(0, 7)
     const deal = rack.length >= 2
       ? { category: 'kids', rack, groups: kidsAnagrams(rack, want), seed: String(msg.seed || '') }
-      : dealKids(want)
-    self.postMessage({ type: 'kids', id: msg.id, ...deal, lang: currentLang })
+      : dealKids(want, Math.random, msg.excludeSeed)
+    self.postMessage({ type: 'kids', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'challenge') {
-    const deal = dealChallenge()
-    self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang })
+    const deal = dealChallenge(msg.excludeSeed, msg.excludeRack)
+    self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
+    return
+  }
+  if (msg.type === 'training') {
+    const deal = dealTraining(msg.preset, msg.excludeSeed, msg.excludeRack)
+    self.postMessage({ type: 'training', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'find') {
     const q = String(msg.q || '').toUpperCase()
-    const wordsOut = matchFind(msg.mode, q)
-    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang })
+    const wordsOut = matchFind(msg.mode, q, msg.filters)
+    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang, dict: currentDict })
+    return
+  }
+  if (msg.type === 'export') {
+    self.postMessage({
+      type: 'export',
+      id: msg.id,
+      text: words.join('\n') + (words.length ? '\n' : ''),
+      count: words.length,
+      lang: currentLang,
+      dict: currentDict,
+    })
     return
   }
   self.postMessage({ type: 'error', id: msg.id, error: 'unknown ' + msg.type, lang: currentLang })

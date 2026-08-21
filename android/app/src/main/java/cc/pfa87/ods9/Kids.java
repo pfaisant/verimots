@@ -3,7 +3,7 @@ package cc.pfa87.ods9;
 import java.util.Random;
 
 final class Kids {
-    private static final String HARD = "JKQWXYZ";
+    private static final String HARD = "JKÑQWXYZ";
     private static final String[] FR_SHORT = (
             "AMI ANE ARC BAL BAR BEC BLE BOL BON BUS BUT CAP CAR CAS COL COR COU CRI DES DOS " +
             "EAU FER FEU FIL FIN FOU GEL ILE LAC LIT LOT LUI MAL MER MUR NEZ NID NOM OIE OUI " +
@@ -52,6 +52,17 @@ final class Kids {
             "SPACE SPOON STARS STONE STORM STORY SUGAR TABLE TEETH TIGER TOAST TRAIN TREES " +
             "TRUCK UNCLE UNDER").split("\\s+");
 
+    private static final String[] ES_SHORT = (
+            "ALA AÑO AVE BAR BUS CAL COL DAR DOS ECO ERA FIN GAS GOL LUZ MAL MAR MES MIEL " +
+            "NIÑA NIÑO OLA ORO OSO PAN PAZ PEZ PIE RIO SAL SOL SUR VEO VOZ " +
+            "AGUA AIRE ALMA AMOR ARCO AUTO AZUL BESO BOLA BOTE CAMA CASA CENA CINE COLA DADO " +
+            "DIA FLOR FUEGO GATO HORA JUEGO LAGO LECHE LIBRO LUNA MANO MESA MIEL MONO MOTO " +
+            "NUBE OJO OLA ORO PATO PELO PERA PISO PLAYA QUESO RANA RISA ROJO ROSA RUTA " +
+            "SILLA TAZA TREN VACA VELA VIDA " +
+            "AMIGO ARBOL AVION BARCO BEBE CAMPO CARA CARTA CIELO COCHE COLOR DULCE FRESA FRUTA " +
+            "GLOBO HUEVO ISLA LAPIZ LEON LLAVE MADRE MAPA NARIZ NOCHE PADRE PAPEL PARQUE PERRO " +
+            "PUERTA RADIO RATON RELOJ RUEDA SALTO SOPA TIERRA TIGRE VASO VERDE ZUMO").split("\\s+");
+
     static final String[] FR_LONG = {
             "CHEVAUX", "CHEVAL", "MAISON", "ECOLE", "BANANE", "TOMATE", "FLEURS",
             "CADEAU", "BONBON", "BATEAU", "AVIONS", "SOLEIL", "GATEAU", "OISEAU",
@@ -67,15 +78,22 @@ final class Kids {
             "FOREST", "ISLAND", "MOTHER", "FATHER", "SISTER", "BROTHER", "WINDOW",
             "SUMMER", "WINTER", "SPRING", "AUTUMN", "FLOWER"
     };
+    static final String[] ES_LONG = {
+            "ABUELOS", "AMIGOS", "ANIMALES", "BANANA", "CABALLO", "CAMION", "COCINA",
+            "COLEGIO", "CONEJO", "CUADERNO", "ESCUELA", "FAMILIA", "FLORES", "GALLETA",
+            "JARDIN", "MAESTRO", "MANZANA", "NARANJA", "OVEJAS", "PAJARO", "PALABRA",
+            "PELOTA", "PERROS", "PLANETA", "PLATANO", "REGALO", "TOMATE", "TORTUGA",
+            "VENTANA", "VERANO"
+    };
 
-    static String pickLong(boolean english, Random rng) {
-        String[] pool = english ? EN_LONG : FR_LONG;
+    static String pickLong(String lang, Random rng) {
+        String[] pool = "en".equals(lang) ? EN_LONG : "es".equals(lang) ? ES_LONG : FR_LONG;
         return pool[rng.nextInt(pool.length)];
     }
 
-    static String[] words(boolean english) {
-        String[] shortWords = english ? EN_SHORT : FR_SHORT;
-        String[] longWords = english ? EN_LONG : FR_LONG;
+    static String[] words(String lang) {
+        String[] shortWords = "en".equals(lang) ? EN_SHORT : "es".equals(lang) ? ES_SHORT : FR_SHORT;
+        String[] longWords = "en".equals(lang) ? EN_LONG : "es".equals(lang) ? ES_LONG : FR_LONG;
         int easyCount = 0;
         for (String word : shortWords) if (!hasHardLetter(word)) easyCount++;
         String[] out = new String[easyCount + longWords.length];

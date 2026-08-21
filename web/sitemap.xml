@@ -3,23 +3,34 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://s.pfa87.cc/</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://s.pfa87.cc/confidentialite.html</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <xhtml:link rel="alternate" hreflang="fr" href="https://s.pfa87.cc/confidentialite.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://s.pfa87.cc/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://s.pfa87.cc/privacidad.html"/>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://s.pfa87.cc/privacy.html</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <xhtml:link rel="alternate" hreflang="fr" href="https://s.pfa87.cc/confidentialite.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://s.pfa87.cc/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://s.pfa87.cc/privacidad.html"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://s.pfa87.cc/privacidad.html</loc>
+    <lastmod>2026-08-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://s.pfa87.cc/confidentialite.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://s.pfa87.cc/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://s.pfa87.cc/privacidad.html"/>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
@@ -28,5 +39,32 @@
     <lastmod>2026-08-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/dictionnaires.html</loc>
+    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/dictionnaires.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/dictionaries.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/diccionarios.html"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/dictionaries.html</loc>
+    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/dictionnaires.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/dictionaries.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/diccionarios.html"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/diccionarios.html</loc>
+    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/dictionnaires.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/dictionaries.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/diccionarios.html"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

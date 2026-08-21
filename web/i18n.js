@@ -17,19 +17,55 @@ const STR = {
     find_prefix: 'Commence',
     find_suffix: 'Finit',
     find_has: 'Contient',
+    find_multi: 'Combiner',
+    find_start: 'Commence par',
+    find_end: 'Finit par',
+    find_length: 'Longueur',
+    find_infinitives: 'Infinitifs',
+    find_hide_inflections: 'Masquer les flexions probables',
+    find_apply: 'Rechercher',
     hint_exact: 'Dans la liste ? Sans accents. Liste hors ligne.',
     hint_prefix: 'Mots de la liste qui commencent ainsi.',
     hint_suffix: 'Mots de la liste qui finissent ainsi.',
     hint_has: 'Mots de la liste qui contiennent ces lettres.',
+    hint_multi: 'Combinez début, contenu, fin et longueur.',
+    find_min: 'Au moins 2 lettres.',
+    find_none: (q) => `Aucun mot de la liste pour « ${q} ».`,
+    find_summary: (n, q) => `${n} mot${n > 1 ? 's' : ''}${q ? ` · ${q}` : ''}`,
     rack_kicker: 'Tiroir',
     rack_title: 'Que pouvez-vous jouer ?',
     rack_help: 'Tapez vos lettres. Un blanc se note ? — jusqu’à deux. Touchez ? pour en poser un.',
+    rack_none: 'Aucun mot de la liste avec ces lettres.',
+    rack_summary: (n) => `${n} mot${n > 1 ? 's' : ''} jouable${n > 1 ? 's' : ''} · ? = joker · score à droite`,
+    values_note: 'Distribution de lettres pour cette langue. Un joker vaut 0.',
+    list_count: (n, len) => `${n} mots de ${len} lettres · touchez pour vérifier`,
     pages: 'Pages',
     dict: 'Dictionnaire',
     game: 'Défi',
     board: 'Classement',
     privacy: 'Confidentialité',
+    dictionaries: 'Dictionnaires',
+    dicts_learn: 'Voir les listes en détail',
     about: 'À propos',
+    settings: 'Réglages',
+    settings_dicts: 'Dictionnaire',
+    settings_dicts_help: 'Une liste communautaire par langue. L’anglais propose CSW (plus proche liste publique) et WGPO WOW24.',
+    dict_group_fr: 'Français',
+    dict_group_en: 'Anglais · deux listes',
+    dict_group_es: 'Espagnol',
+    dict_name_ods: 'ODS',
+    dict_name_csw: 'CSW',
+    dict_name_wow24: 'WGPO WOW24',
+    dict_name_rla: 'RLA-ES',
+    dict_using_ods: 'ODS9',
+    dict_using_csw: 'CSW · YAWL',
+    dict_using_wow24: 'WGPO WOW24',
+    dict_using_rla: 'RLA-ES 2.9',
+    dict_open: 'Changer de dictionnaire',
+    dict_blurb_ods: 'Liste communautaire suivant l’ODS.',
+    dict_blurb_csw: 'Plus proche liste publique suivant CSW. Pas le Collins officiel.',
+    dict_blurb_wow24: 'Liste communautaire suivant WGPO Official Words 2024.',
+    dict_blurb_rla: 'Liste communautaire suivant RLA-ES.',
     advanced: 'Mode avancé',
     simple: 'Mode simple',
     nav_check: 'Vérifier',
@@ -45,8 +81,8 @@ const STR = {
     doc_game: 'Défi · Verimots',
     doc_board: 'Classement · Verimots',
     doc_rack: 'Tiroir · Verimots',
-    playable: 'Jouable · liste hors ligne',
-    not_in_list: 'Pas dans la liste',
+    playable: (d) => `Jouable · ${d}`,
+    not_in_list: (d) => `Pas dans ${d}`,
     not_a_form: "Ce mot n'est pas une forme admise (2 à 15 lettres, sans accents).",
     letters_pts: (n, pts) => `${n} lettres · ${pts} pt${pts > 1 ? 's' : ''}`,
     wiki: 'Wiktionnaire',
@@ -54,24 +90,28 @@ const STR = {
     lex_fail: 'Impossible de charger le lexique. Rechargez la page.',
     lang: 'Langue',
     see: (w) => `Voir ${w}`,
-    word_count: (n) => `${n} mots`,
+    word_count: (n, d) => (d ? `${n} mots · ${d}` : `${n} mots`),
     about_title: 'À propos de Verimots',
-    about_p1: 'Version hors ligne : l’application contient la liste des mots (407 128 formes de 2 à 15 lettres, sans accents). Vérifier un mot, le tiroir et le défi fonctionnent sans réseau.',
+    about_p1: 'Hors ligne : la liste choisie (formes de 2 à 15 lettres) sert à vérifier un mot, le tiroir et le défi, sans réseau.',
     about_p2: 'Une connexion est nécessaire seulement pour les définitions automatiques (Wiktionnaire) et le partage.',
-    about_p3: 'La liste est maintenue par la communauté. Verimots n’est pas l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.',
+    about_p3: 'Verimots n’est pas l’ouvrage Larousse, ni un produit affilié à Scrabble, Mattel, Hasbro ou à une fédération.',
     about_p4: 'Mode simple : vérifier et partager. Mode avancé : tiroir, motifs et listes.',
     board_title: 'Classement de la semaine',
     board_general: 'Général',
     board_plays: (n) => (n === 1 ? '1 partie' : `${n} parties`),
+    board_words: (n) => (n === 1 ? '1 mot' : `${n} mots`),
+    chart_avg: 'moy.',
     board_empty: 'Aucun score pour l’instant. Joue pour être 1er.',
     board_unavailable: 'Classement indisponible.',
     mode_defi: 'Défi',
-    mode_kids: 'Enfant',
+    mode_training: 'Entraînement',
+    mode_kids: 'Débutants',
     mode_comp: 'Compétition',
     cat_bingo: 'Bingo',
     cat_long: 'Mot long',
     cat_hard: 'Lettres dures',
     cat_defi: 'Défi',
+    cat_training: 'Entraînement',
     avg_empty: 'Score moyen —',
     avg_score: (s) => `Score moyen ${s} %`,
     not_on_rack: 'Pas avec ces lettres',
@@ -93,8 +133,8 @@ const STR = {
     kids_found: (n) => (n === 1 ? '1 mot trouvé' : `${n} mots trouvés`),
     kids_cat: 'Trouve un mot',
     kids_play: 'Ton mot',
-    kids_board: 'Enfants',
-    kids_board_empty: 'Aucun score enfant pour l’instant.',
+    kids_board: 'Débutants',
+    kids_board_empty: 'Aucun score débutant pour l’instant.',
     best_words: 'Meilleurs mots',
     def_pending: 'Définition…',
     def_need_net: 'Définition disponible avec une connexion.',
@@ -112,7 +152,10 @@ const STR = {
     share_game_title: 'Verimots — Défi',
     share_game_body: 'Trouve le mot le plus cher avec :',
     share_game_score: (n) => `J'ai fait ${n} %.\n`,
-    chart_last: (p) => `Vos scores, dernier ${p} sur 100`,
+    chart_last: (p, avg) =>
+      avg
+        ? `Vos scores, moyenne ${avg} %, dernier ${p} sur 100`
+        : `Vos scores, dernier ${p} sur 100`,
     chart_empty: 'Vos scores sur 100 — aucune partie encore',
     hist_account: 'Historique · compte',
     hist_local: 'Historique',
@@ -135,6 +178,24 @@ const STR = {
     words_n: (n) => `${n} mot${n > 1 ? 's' : ''}`,
     share_wa: 'Partager sur WhatsApp',
     share_refuse: 'Partager ce refus',
+    share_valid: (word, d) => `${word} est dans ${d}`,
+    share_invalid: (word, d) => `${word} n’est pas dans ${d}`,
+    study: 'Étude du jour',
+    study_today: (when) => `Aujourd’hui · ${when}`,
+    study_twos: 'Mots de 2 lettres',
+    study_threes: 'Mots de 3 lettres',
+    study_share: 'Partager l’étude du jour',
+    study_share_list: 'Partager cette liste',
+    study_share_twos: 'Partager les mots de 2 lettres',
+    share_study_word: 'Partager ce mot',
+    share_study_daily: (when) => `Verimots — Étude du jour · ${when}`,
+    share_study_list: (len, n) => `Verimots — mots de ${len} lettres (${n})`,
+    share_study_twos: '2 lettres',
+    share_study_threes: '3 lettres',
+    dict_download: 'Télécharger la liste',
+    dict_download_help: 'La liste exacte utilisée par le vérificateur, un mot par ligne.',
+    dict_downloading: 'Préparation de la liste…',
+    dict_download_err: 'Impossible d’exporter la liste.',
     feedback: 'Avis',
     feedback_title: 'Un commentaire',
     feedback_help: 'Un mot, un bug, une idée — ça arrive dans ma boîte mail.',
@@ -145,6 +206,20 @@ const STR = {
     feedback_ok: 'Merci, c’est envoyé.',
     feedback_err: 'Impossible d’envoyer. Réessayez.',
     feedback_need: 'Écrivez un petit message.',
+    training_all: 'Tous',
+    training_seven: '7 lettres',
+    training_eight: '8 lettres',
+    training_plus_one: '7 + 1',
+    training_joker: 'Joker',
+    joker_type_letter: 'Tapez la lettre que remplace le joker.',
+    training_hard: 'Difficiles',
+    training_timer: 'Temps',
+    training_no_timer: 'Sans limite',
+    training_reveal: 'Voir les réponses',
+    training_progress: (found, total) => `${found} sur ${total}`,
+    training_new: 'Nouveau tirage',
+    training_complete: 'Tous trouvés !',
+    training_stats: (solved, plays) => `${solved}/${plays} tirages terminés`,
   },
   en: {
     title: 'Verimots — Offline word checker',
@@ -164,19 +239,55 @@ const STR = {
     find_prefix: 'Starts',
     find_suffix: 'Ends',
     find_has: 'Contains',
+    find_multi: 'Combine',
+    find_start: 'Starts with',
+    find_end: 'Ends with',
+    find_length: 'Length',
+    find_infinitives: 'Infinitives',
+    find_hide_inflections: 'Hide likely inflections',
+    find_apply: 'Search',
     hint_exact: 'In the list? No accents. Works offline.',
     hint_prefix: 'List words that start with this.',
     hint_suffix: 'List words that end with this.',
     hint_has: 'List words that contain these letters.',
+    hint_multi: 'Combine start, content, end and length.',
+    find_min: 'At least 2 letters.',
+    find_none: (q) => `No list word for “${q}”.`,
+    find_summary: (n, q) => `${n} word${n === 1 ? '' : 's'}${q ? ` · ${q}` : ''}`,
     rack_kicker: 'Rack',
     rack_title: 'What can you play?',
     rack_help: 'Type your letters. A blank is ? — up to two. Tap ? to add one.',
+    rack_none: 'No list word can be made with these letters.',
+    rack_summary: (n) => `${n} playable word${n === 1 ? '' : 's'} · ? = blank · score on the right`,
+    values_note: 'Tile distribution for this language. A blank scores 0.',
+    list_count: (n, len) => `${n} ${len}-letter words · tap to check`,
     pages: 'Pages',
     dict: 'Dictionary',
     game: 'Challenge',
     board: 'Board',
     privacy: 'Privacy',
+    dictionaries: 'Dictionaries',
+    dicts_learn: 'See the lists in detail',
     about: 'About',
+    settings: 'Settings',
+    settings_dicts: 'Dictionary',
+    settings_dicts_help: 'One community list per language. English has CSW (closest public match) and WGPO WOW24.',
+    dict_group_fr: 'French',
+    dict_group_en: 'English · two lists',
+    dict_group_es: 'Spanish',
+    dict_name_ods: 'ODS',
+    dict_name_csw: 'CSW',
+    dict_name_wow24: 'WGPO WOW24',
+    dict_name_rla: 'RLA-ES',
+    dict_using_ods: 'ODS9',
+    dict_using_csw: 'CSW · YAWL',
+    dict_using_wow24: 'WGPO WOW24',
+    dict_using_rla: 'RLA-ES 2.9',
+    dict_open: 'Change dictionary',
+    dict_blurb_ods: 'Community list following ODS.',
+    dict_blurb_csw: 'Closest public list following CSW. Not official Collins.',
+    dict_blurb_wow24: 'Community list following WGPO Official Words 2024.',
+    dict_blurb_rla: 'Community list following RLA-ES.',
     advanced: 'Advanced',
     simple: 'Simple mode',
     nav_check: 'Check',
@@ -192,8 +303,8 @@ const STR = {
     doc_game: 'Challenge · Verimots',
     doc_board: 'Board · Verimots',
     doc_rack: 'Rack · Verimots',
-    playable: 'Playable · offline list',
-    not_in_list: 'Not in the list',
+    playable: (d) => `Playable · ${d}`,
+    not_in_list: (d) => `Not in ${d}`,
     not_a_form: 'Not a valid form (2 to 15 letters, no accents).',
     letters_pts: (n, pts) => `${n} letters · ${pts} pt${pts > 1 ? 's' : ''}`,
     wiki: 'Wiktionary',
@@ -201,24 +312,28 @@ const STR = {
     lex_fail: 'Could not load the word list. Reload the page.',
     lang: 'Language',
     see: (w) => `See ${w}`,
-    word_count: (n) => `${n} words`,
+    word_count: (n, d) => (d ? `${n} words · ${d}` : `${n} words`),
     about_title: 'About Verimots',
-    about_p1: 'Offline first: the English list is YAWL (257,218 forms from 2 to 15 letters). Checking a word, the rack and the challenge work with no network.',
+    about_p1: 'Offline first: the selected list (forms of 2 to 15 letters) checks a word, the rack and the challenge with no network.',
     about_p2: 'A connection is needed only for automatic definitions (Wiktionary) and sharing.',
-    about_p3: 'Not affiliated with NASPA, Mattel or Hasbro. Switch to FR for the French community list.',
+    about_p3: 'Verimots is not affiliated with Scrabble, NASPA, Mattel or Hasbro.',
     about_p4: 'Simple mode: check and share. Advanced: rack, patterns and lists.',
     board_title: "This week's board",
     board_general: 'General',
     board_plays: (n) => (n === 1 ? '1 game' : `${n} games`),
+    board_words: (n) => (n === 1 ? '1 word' : `${n} words`),
+    chart_avg: 'avg',
     board_empty: 'No scores yet. Play to take 1st.',
     board_unavailable: 'Board unavailable.',
     mode_defi: 'Challenge',
-    mode_kids: 'Kids',
+    mode_training: 'Training',
+    mode_kids: 'Beginners',
     mode_comp: 'Competition',
     cat_bingo: 'Bingo',
     cat_long: 'Long word',
     cat_hard: 'Hard letters',
     cat_defi: 'Challenge',
+    cat_training: 'Training',
     avg_empty: 'Average —',
     avg_score: (s) => `Average ${s}%`,
     not_on_rack: 'Not with these letters',
@@ -240,8 +355,8 @@ const STR = {
     kids_found: (n) => (n === 1 ? '1 word found' : `${n} words found`),
     kids_cat: 'Find a word',
     kids_play: 'Your word',
-    kids_board: 'Kids',
-    kids_board_empty: 'No kids scores yet.',
+    kids_board: 'Beginners',
+    kids_board_empty: 'No beginner scores yet.',
     best_words: 'Best words',
     def_pending: 'Definition…',
     def_need_net: 'Definition available when online.',
@@ -259,7 +374,10 @@ const STR = {
     share_game_title: 'Verimots — Challenge',
     share_game_body: 'Find the dearest word with:',
     share_game_score: (n) => `I scored ${n}%.\n`,
-    chart_last: (p) => `Your scores, last ${p} of 100`,
+    chart_last: (p, avg) =>
+      avg
+        ? `Your scores, average ${avg}%, last ${p} of 100`
+        : `Your scores, last ${p} of 100`,
     chart_empty: 'Your scores out of 100 — no games yet',
     hist_account: 'History · account',
     hist_local: 'History',
@@ -282,6 +400,24 @@ const STR = {
     words_n: (n) => `${n} word${n > 1 ? 's' : ''}`,
     share_wa: 'Share on WhatsApp',
     share_refuse: 'Share this miss',
+    share_valid: (word, d) => `${word} is in ${d}`,
+    share_invalid: (word, d) => `${word} is not in ${d}`,
+    study: 'Word study',
+    study_today: (when) => `Today · ${when}`,
+    study_twos: '2-letter words',
+    study_threes: '3-letter words',
+    study_share: 'Share today’s words',
+    study_share_list: 'Share this list',
+    study_share_twos: 'Share the 2-letter words',
+    share_study_word: 'Share this word',
+    share_study_daily: (when) => `Verimots — Word study · ${when}`,
+    share_study_list: (len, n) => `Verimots — ${len}-letter words (${n})`,
+    share_study_twos: '2 letters',
+    share_study_threes: '3 letters',
+    dict_download: 'Download the word list',
+    dict_download_help: 'The exact list this checker uses, one word per line.',
+    dict_downloading: 'Preparing the list…',
+    dict_download_err: 'Could not export the list.',
     feedback: 'Feedback',
     feedback_title: 'A comment',
     feedback_help: 'A word, a bug, an idea — it lands in my inbox.',
@@ -292,13 +428,275 @@ const STR = {
     feedback_ok: 'Thanks, it’s sent.',
     feedback_err: 'Could not send. Try again.',
     feedback_need: 'Write a short message.',
+    training_all: 'All',
+    training_seven: '7 letters',
+    training_eight: '8 letters',
+    training_plus_one: '7 + 1',
+    training_joker: 'Blank',
+    joker_type_letter: 'Type the letter represented by the blank.',
+    training_hard: 'Hard letters',
+    training_timer: 'Time',
+    training_no_timer: 'No limit',
+    training_reveal: 'Show answers',
+    training_progress: (found, total) => `${found} of ${total}`,
+    training_new: 'New rack',
+    training_complete: 'All found!',
+    training_stats: (solved, plays) => `${solved}/${plays} racks completed`,
+  },
+  es: {
+    title: 'Verimots — Verificador sin conexión',
+    skip: 'Ir a la entrada',
+    brand_sub: 'Lista comunitaria',
+    hist: 'Historial de la sesión',
+    loading: 'Cargando…',
+    q_label: 'Palabra que comprobar',
+    q_label_rack: 'Letras de tu atril',
+    placeholder: 'Escribe una palabra',
+    placeholder_find: 'Ej. CASA',
+    placeholder_rack: 'Ej. AERTIN?',
+    add_blank: 'Añadir un comodín',
+    clear: 'Borrar',
+    find_type: 'Tipo de búsqueda',
+    find_exact: 'Esta palabra',
+    find_prefix: 'Empieza',
+    find_suffix: 'Termina',
+    find_has: 'Contiene',
+    find_multi: 'Combinar',
+    find_start: 'Empieza por',
+    find_end: 'Termina en',
+    find_length: 'Longitud',
+    find_infinitives: 'Infinitivos',
+    find_hide_inflections: 'Ocultar flexiones probables',
+    find_apply: 'Buscar',
+    hint_exact: '¿Está en la lista? Sin tildes. Funciona sin conexión.',
+    hint_prefix: 'Palabras de la lista que empiezan así.',
+    hint_suffix: 'Palabras de la lista que terminan así.',
+    hint_has: 'Palabras de la lista que contienen estas letras.',
+    hint_multi: 'Combina inicio, contenido, final y longitud.',
+    find_min: 'Al menos 2 letras.',
+    find_none: (q) => `Ninguna palabra de la lista para «${q}».`,
+    find_summary: (n, q) => `${n} palabra${n === 1 ? '' : 's'}${q ? ` · ${q}` : ''}`,
+    rack_kicker: 'Atril',
+    rack_title: '¿Qué puedes jugar?',
+    rack_help: 'Escribe tus letras. Un comodín se indica con ? — hasta dos. Pulsa ? para añadirlo.',
+    rack_none: 'Ninguna palabra de la lista se forma con estas letras.',
+    rack_summary: (n) => `${n} palabra${n === 1 ? '' : 's'} válida${n === 1 ? '' : 's'} · ? = comodín · puntos a la derecha`,
+    values_note: 'Distribución de fichas para este idioma. Un comodín vale 0.',
+    list_count: (n, len) => `${n} palabras de ${len} letras · pulsa para comprobar`,
+    pages: 'Páginas',
+    dict: 'Diccionario',
+    game: 'Reto',
+    board: 'Clasificación',
+    privacy: 'Privacidad',
+    dictionaries: 'Diccionarios',
+    dicts_learn: 'Ver las listas en detalle',
+    about: 'Acerca de',
+    settings: 'Ajustes',
+    settings_dicts: 'Diccionario',
+    settings_dicts_help: 'Una lista comunitaria por idioma. El inglés ofrece CSW (lista pública más cercana) y WGPO WOW24.',
+    dict_group_fr: 'Francés',
+    dict_group_en: 'Inglés · dos listas',
+    dict_group_es: 'Español',
+    dict_name_ods: 'ODS',
+    dict_name_csw: 'CSW',
+    dict_name_wow24: 'WGPO WOW24',
+    dict_name_rla: 'RLA-ES',
+    dict_using_ods: 'ODS9',
+    dict_using_csw: 'CSW · YAWL',
+    dict_using_wow24: 'WGPO WOW24',
+    dict_using_rla: 'RLA-ES 2.9',
+    dict_open: 'Cambiar de diccionario',
+    dict_blurb_ods: 'Lista comunitaria según ODS.',
+    dict_blurb_csw: 'Lista pública más cercana a CSW. No es el Collins oficial.',
+    dict_blurb_wow24: 'Lista comunitaria según WGPO Official Words 2024.',
+    dict_blurb_rla: 'Lista comunitaria según RLA-ES.',
+    advanced: 'Modo avanzado',
+    simple: 'Modo sencillo',
+    nav_check: 'Comprobar',
+    nav_rack: 'Atril',
+    nav_lists: 'Listas',
+    nav_info: 'Información',
+    title_check: 'Comprobar',
+    title_rack: 'Atril',
+    title_lists: 'Listas útiles',
+    title_info: 'Acerca de',
+    title_game: 'Reto',
+    title_board: 'Clasificación',
+    doc_game: 'Reto · Verimots',
+    doc_board: 'Clasificación · Verimots',
+    doc_rack: 'Atril · Verimots',
+    playable: (d) => `Válida · ${d}`,
+    not_in_list: (d) => `No está en ${d}`,
+    not_a_form: 'No es una forma válida (2 a 15 letras, sin tildes; Ñ se conserva).',
+    letters_pts: (n, pts) => `${n} letras · ${pts} pto${pts === 1 ? '' : 's'}`,
+    wiki: 'Wikcionario',
+    loading_lex: 'Cargando la lista de palabras…',
+    lex_fail: 'No se pudo cargar el léxico. Vuelve a cargar la página.',
+    lang: 'Idioma',
+    see: (w) => `Ver ${w}`,
+    word_count: (n, d) => (d ? `${n} palabras · ${d}` : `${n} palabras`),
+    about_title: 'Acerca de Verimots',
+    about_p1: 'Sin conexión: la lista elegida (formas de 2 a 15 letras) sirve para comprobar una palabra, el atril y el reto.',
+    about_p2: 'Solo se necesita conexión para las definiciones automáticas (Wikcionario), compartir y la clasificación.',
+    about_p3: 'Verimots no está afiliado a FILE, FISE, Mattel ni Hasbro. RLA-ES se distribuye bajo MPL 1.1.',
+    about_p4: 'Modo sencillo: comprobar y compartir. Modo avanzado: atril, búsquedas combinadas y listas.',
+    board_title: 'Clasificación de la semana',
+    board_general: 'General',
+    board_plays: (n) => (n === 1 ? '1 partida' : `${n} partidas`),
+    board_words: (n) => (n === 1 ? '1 palabra' : `${n} palabras`),
+    chart_avg: 'med.',
+    board_empty: 'Aún no hay puntuaciones. Juega para ser el primero.',
+    board_unavailable: 'Clasificación no disponible.',
+    mode_defi: 'Reto',
+    mode_training: 'Entrenar',
+    mode_kids: 'Principiantes',
+    mode_comp: 'Competición',
+    cat_bingo: 'Bingo',
+    cat_long: 'Palabra larga',
+    cat_hard: 'Letras difíciles',
+    cat_defi: 'Reto',
+    cat_training: 'Entrenamiento',
+    avg_empty: 'Media —',
+    avg_score: (s) => `Media ${s} %`,
+    not_on_rack: 'No se forma con estas letras',
+    not_playable: 'No es válida en este atril.',
+    need_best: 'Una palabra, la de mayor valor.',
+    loading_deal: 'Repartiendo…',
+    deal_fail: 'No se pudo repartir. Inténtalo de nuevo.',
+    best_word: 'Mejor palabra',
+    tied: (w, pts) => `Empate · ${w} ${pts}`,
+    top_word: (w, pts) => `Mejor ${w} ${pts}`,
+    again: 'Siguiente',
+    kids_hint: 'Pista',
+    kids_hint_letter: (ch) => `Una palabra empieza por ${ch}`,
+    kids_hint_word: (w) => `Prueba ${w}`,
+    kids_need: 'Una palabra con estas letras.',
+    kids_yes: '¡Sí!',
+    kids_bravo: 'Muy bien',
+    kids_also: 'Otras palabras',
+    kids_found: (n) => (n === 1 ? '1 palabra encontrada' : `${n} palabras encontradas`),
+    kids_cat: 'Encuentra una palabra',
+    kids_play: 'Tu palabra',
+    kids_board: 'Principiantes',
+    kids_board_empty: 'Aún no hay puntuaciones de principiantes.',
+    best_words: 'Mejores palabras',
+    def_pending: 'Definición…',
+    def_need_net: 'La definición está disponible con conexión.',
+    def_missing: 'No hay definición en Wikcionario.',
+    def_missing_of: (w) => `No hay definición para ${w}.`,
+    form_of: 'Forma de',
+    sense_of: (w) => `Significado de ${w}…`,
+    wiki_open: 'Abrir en Wikcionario',
+    wiki_search: 'Buscar en Wikcionario',
+    auth_help: 'Inicia sesión para aparecer en la clasificación',
+    sign_out: 'Cerrar sesión',
+    user_fallback: 'Jugador',
+    play_hint: 'Tu palabra',
+    play_label: 'Tu mejor palabra',
+    share_game_title: 'Verimots — Reto',
+    share_game_body: 'Encuentra la palabra de mayor valor con:',
+    share_game_score: (n) => `He conseguido ${n} %.\n`,
+    chart_last: (p, avg) =>
+      avg
+        ? `Tus puntuaciones, media ${avg} %, última ${p} de 100`
+        : `Tus puntuaciones, última ${p} de 100`,
+    chart_empty: 'Tus puntuaciones sobre 100 — aún no hay partidas',
+    hist_account: 'Historial · cuenta',
+    hist_local: 'Historial',
+    hist_empty_user: 'Las palabras comprobadas y jugadas quedan en tu cuenta.',
+    hist_empty_guest: 'Inicia sesión para conservar el historial. Las palabras de esta sesión quedan aquí.',
+    hist_open: 'Historial',
+    hist_clear: 'Borrar historial',
+    hist_clear_confirm: '¿Borrar todo el historial?',
+    hist_when: 'Fecha',
+    hist_kind: 'Tipo',
+    hist_word: 'Palabra',
+    hist_pts: 'Ptos',
+    hist_dico: 'Consulta',
+    hist_defi: 'Reto',
+    def_heading: 'Definición',
+    lemma_entry: 'Entrada:',
+    def_src: 'Definición:',
+    wiki_need_net: '(requiere conexión)',
+    streak_d: (n) => `${n} d`,
+    words_n: (n) => `${n} palabra${n === 1 ? '' : 's'}`,
+    share_wa: 'Compartir por WhatsApp',
+    share_refuse: 'Compartir este rechazo',
+    share_valid: (word, d) => `${word} está en ${d}`,
+    share_invalid: (word, d) => `${word} no está en ${d}`,
+    study: 'Estudio del día',
+    study_today: (when) => `Hoy · ${when}`,
+    study_twos: 'Palabras de 2 letras',
+    study_threes: 'Palabras de 3 letras',
+    study_share: 'Compartir el estudio de hoy',
+    study_share_list: 'Compartir esta lista',
+    study_share_twos: 'Compartir las palabras de 2 letras',
+    share_study_word: 'Compartir esta palabra',
+    share_study_daily: (when) => `Verimots — Estudio del día · ${when}`,
+    share_study_list: (len, n) => `Verimots — palabras de ${len} letras (${n})`,
+    share_study_twos: '2 letras',
+    share_study_threes: '3 letras',
+    dict_download: 'Descargar la lista',
+    dict_download_help: 'La lista exacta que usa el verificador, una palabra por línea.',
+    dict_downloading: 'Preparando la lista…',
+    dict_download_err: 'No se pudo exportar la lista.',
+    feedback: 'Opinión',
+    feedback_title: 'Un comentario',
+    feedback_help: 'Una palabra, un error o una idea — llega a mi buzón.',
+    feedback_placeholder: 'Tu mensaje',
+    feedback_email: 'Email (si quieres respuesta)',
+    feedback_send: 'Enviar',
+    feedback_sending: 'Enviando…',
+    feedback_ok: 'Gracias, enviado.',
+    feedback_err: 'No se pudo enviar. Inténtalo de nuevo.',
+    feedback_need: 'Escribe un mensaje corto.',
+    training_all: 'Todas',
+    training_seven: '7 letras',
+    training_eight: '8 letras',
+    training_plus_one: '7 + 1',
+    training_joker: 'Comodín',
+    joker_type_letter: 'Escribe la letra que representa el comodín.',
+    training_hard: 'Difíciles',
+    training_timer: 'Tiempo',
+    training_no_timer: 'Sin límite',
+    training_reveal: 'Ver respuestas',
+    training_progress: (found, total) => `${found} de ${total}`,
+    training_new: 'Nuevo reparto',
+    training_complete: '¡Todas encontradas!',
+    training_stats: (solved, plays) => `${solved}/${plays} repartos completados`,
   },
 }
 
 let lang = 'fr'
+let dict = 'ods'
+let lastEnDict = 'wow24'
+
+export const DICTS = [
+  { id: 'ods', lang: 'fr' },
+  { id: 'csw', lang: 'en' },
+  { id: 'wow24', lang: 'en' },
+  { id: 'rla', lang: 'es' },
+]
 
 export function getLang() {
   return lang
+}
+
+export function getDict() {
+  return dict
+}
+
+export function dictSpec(id) {
+  const key = id === 'yawl' ? 'csw' : id
+  return DICTS.find((item) => item.id === key) || DICTS[0]
+}
+
+export function defaultDictFor(nextLang) {
+  return nextLang === 'en' ? 'wow24' : nextLang === 'es' ? 'rla' : 'ods'
+}
+
+export function dictLabel(id = getDict()) {
+  return t(`dict_using_${dictSpec(id).id}`)
 }
 
 export function t(key, ...args) {
@@ -311,8 +709,7 @@ export function applyDom() {
   if (typeof document === 'undefined') return
   document.documentElement.lang = lang
   const title = document.querySelector('title')
-  if (title && lang === 'fr') title.textContent = STR.fr.title
-  if (title && lang === 'en') title.textContent = STR.en.title
+  if (title) title.textContent = t('title')
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.getAttribute('data-i18n')
     if (key) el.textContent = t(key)
@@ -327,33 +724,89 @@ export function applyDom() {
   })
   const fr = document.getElementById('lang-fr')
   const en = document.getElementById('lang-en')
+  const es = document.getElementById('lang-es')
   if (fr) fr.setAttribute('aria-pressed', lang === 'fr' ? 'true' : 'false')
   if (en) en.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false')
+  if (es) es.setAttribute('aria-pressed', lang === 'es' ? 'true' : 'false')
 }
 
-export function setLang(next) {
-  lang = next === 'en' ? 'en' : 'fr'
+function persist() {
+  if (lang === 'en') lastEnDict = dict
   try {
     localStorage.setItem('verimots-lang', lang)
+    localStorage.setItem('verimots-dict', dict)
+    if (lang === 'en') localStorage.setItem('verimots-dict-en', dict)
   } catch {
     /* ignore */
   }
+}
+
+function notify() {
   applyDom()
   try {
     document.dispatchEvent(new CustomEvent('verimots-lang', { detail: lang }))
+    document.dispatchEvent(new CustomEvent('verimots-dict', { detail: dict }))
   } catch {
     /* ignore */
   }
 }
 
-export function initLang() {
-  let saved = ''
+function lastEnglishDict() {
   try {
-    saved = localStorage.getItem('verimots-lang') || ''
+    const saved = localStorage.getItem('verimots-dict-en') || lastEnDict
+    return saved === 'csw' || saved === 'yawl' ? 'csw' : 'wow24'
   } catch {
-    saved = ''
+    return lastEnDict === 'csw' || lastEnDict === 'yawl' ? 'csw' : 'wow24'
   }
-  lang = saved === 'en' ? 'en' : 'fr'
+}
+
+export function setDict(id) {
+  const spec = dictSpec(id)
+  dict = spec.id
+  lang = spec.lang
+  persist()
+  notify()
+  return dict
+}
+
+export function setLang(next) {
+  lang = next === 'en' || next === 'es' ? next : 'fr'
+  if (dictSpec(dict).lang !== lang) dict = lang === 'en' ? lastEnglishDict() : defaultDictFor(lang)
+  persist()
+  notify()
+}
+
+export function initLang() {
+  let savedLang = ''
+  let savedDict = ''
+  try {
+    savedLang = localStorage.getItem('verimots-lang') || ''
+    savedDict = localStorage.getItem('verimots-dict') || ''
+  } catch {
+    savedLang = ''
+    savedDict = ''
+  }
+  let urlLang = ''
+  let urlDict = ''
+  try {
+    const query = new URLSearchParams(location.search)
+    urlLang = query.get('lang') || ''
+    urlDict = query.get('dict') || ''
+  } catch {
+    urlLang = ''
+    urlDict = ''
+  }
+  if (urlLang === 'en' || urlLang === 'es' || urlLang === 'fr') savedLang = urlLang
+  lang = savedLang === 'en' || savedLang === 'es' ? savedLang : 'fr'
+  const spec = dictSpec(savedDict)
+  dict = spec.lang === lang ? spec.id : lang === 'en' ? lastEnglishDict() : defaultDictFor(lang)
+  if (urlDict) {
+    const fromUrl = dictSpec(urlDict)
+    dict = fromUrl.id
+    lang = fromUrl.lang
+  }
+  if (lang === 'en') lastEnDict = dict
+  persist()
   applyDom()
   return lang
 }

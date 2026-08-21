@@ -1,21 +1,30 @@
-const CACHE = 'verimots-v63'
+const CACHE = 'verimots-v77'
 const SHELL = [
   './',
   './index.html',
-  './app.css?v=61',
+  './app.css?v=77',
   './analytics.js?v=28',
-  './app.js?v=58',
-  './game.js?v=58',
-  './history.js?v=58',
-  './i18n.js?v=58',
-  './worker.js?v=58',
-  './kids.js?v=58',
+  './app.js?v=77',
+  './competitive.js?v=77',
+  './game.js?v=77',
+  './history.js?v=77',
+  './i18n.js?v=77',
+  './worker.js?v=77',
+  './kids.js?v=77',
   './favicon.svg',
   './manifest.webmanifest',
   './data/meta.json',
   './data/meta-en.json',
+  './data/meta-en-wow24.json',
+  './data/meta-es.json',
   './data/ods9.txt.gz',
   './data/yawl.txt.gz',
+  './data/wow24.txt.gz',
+  './data/rla-es.txt.gz',
+  './privacidad.html',
+  './dictionnaires.html',
+  './dictionaries.html',
+  './diccionarios.html',
 ]
 
 self.addEventListener('install', (event) => {
@@ -57,14 +66,11 @@ self.addEventListener('fetch', (event) => {
         .then((res) => {
           if (res.ok) {
             const copy = res.clone()
-            caches.open(CACHE).then((cache) => {
-              cache.put(req, copy)
-              cache.put('./index.html', copy.clone())
-            })
+            caches.open(CACHE).then((cache) => cache.put(req, copy))
           }
           return res
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(async () => (await caches.match(req)) || caches.match('./index.html'))
     )
     return
   }

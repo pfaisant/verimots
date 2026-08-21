@@ -37,6 +37,19 @@
             android:textSize="12sp" />
 
         <TextView
+            android:id="@+id/game_training"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_pill"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="6dp"
+            android:text="@string/training"
+            android:textColor="@color/gold"
+            android:textSize="11sp" />
+
+        <TextView
             android:id="@+id/game_kids"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -60,6 +73,69 @@
             android:text="@string/avg_empty"
             android:textColor="@color/dim"
             android:textSize="11sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/training_tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="false"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/training_presets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/training_progress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/gold"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/training_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_pill"
+                android:gravity="center"
+                android:paddingHorizontal="9dp"
+                android:text="@string/training_no_timer"
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/training_reveal"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_pill"
+                android:gravity="center"
+                android:paddingHorizontal="9dp"
+                android:text="@string/training_reveal"
+                android:textColor="@color/gold"
+                android:textSize="11sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -90,7 +166,7 @@
             android:importantForAutofill="no"
             android:inputType="textCapCharacters|textNoSuggestions"
             android:letterSpacing="0.1"
-            android:maxLength="7"
+            android:maxLength="8"
             android:paddingHorizontal="16dp"
             android:textColor="@color/ink"
             android:textColorHint="@color/dim"
@@ -268,6 +344,34 @@
             android:padding="10dp"
             android:src="@drawable/ic_wa"
             android:visibility="invisible" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="end"
+            android:minWidth="44dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/game_chart_avg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:textColor="@color/gold"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/game_chart_avg_unit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/chart_avg"
+                android:textColor="@color/dim"
+                android:textSize="11sp"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <cc.pfa87.ods9.ScoreChartView
             android:id="@+id/game_chart"

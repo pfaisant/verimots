@@ -1,7 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues } from './game.js?v=58'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=58'
-import { isCompetitive, isKids, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=58'
-import { initLang, setLang, getLang, t } from './i18n.js?v=58'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, lexiconFileName, STUDY_TWOS, STUDY_THREES } from './game.js?v=77'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=77'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=77'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t } from './i18n.js?v=77'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -13,11 +13,16 @@ const EN_COUNTS = {
   J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
   S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1, '?': 2,
 }
+const ES_COUNTS = {
+  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
+  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
+  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1, '?': 2,
+}
 function letterValues() {
   return tileValues(getLang())
 }
 function letterCounts() {
-  return getLang() === 'en' ? EN_COUNTS : FR_COUNTS
+  return getLang() === 'en' ? EN_COUNTS : getLang() === 'es' ? ES_COUNTS : FR_COUNTS
 }
 
 const q = document.getElementById('q')
@@ -42,9 +47,16 @@ const histCount = document.getElementById('hist-count')
 const histSheet = document.getElementById('hist-sheet')
 const histOut = document.getElementById('hist-out')
 const histClose = document.getElementById('hist-close')
+const multiTools = document.getElementById('find-multi-tools')
+const multiStart = document.getElementById('find-start')
+const multiHas = document.getElementById('find-contains')
+const multiEnd = document.getElementById('find-end')
+const multiLength = document.getElementById('find-length')
+const multiInfinitives = document.getElementById('find-infinitives')
+const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=58', { type: 'module' })
+const worker = new Worker('worker.js?v=77', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -63,12 +75,17 @@ let gameCat = ''
 
 const WA_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.73.46 3.41 1.33 4.9L2 22l5.43-1.42a10.1 10.1 0 0 0 4.61 1.11h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.75 13.99c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.12.11-1.81-.11-.41-.14-.94-.3-1.62-.59-2.85-1.23-4.7-4.1-4.84-4.29-.14-.19-1.15-1.53-1.15-2.92 0-1.39.73-2.07.99-2.36.26-.28.57-.35.76-.35h.55c.17 0 .41-.07.64.49.24.58.82 2 .89 2.15.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.3.37-.42.49-.14.14-.28.29-.12.56.16.28.72 1.19 1.55 1.93 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.61-.07.16-.19.7-.81.89-1.09.19-.28.37-.23.64-.14.26.09 1.66.78 1.95.93.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>`
 
+function staleResult(result) {
+  return (result.lang && result.lang !== getLang()) || (result.dict && result.dict !== getDict())
+}
+
 function ask(type, payload = {}) {
   const id = ++seq
   const lang = getLang()
+  const dict = getDict()
   return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject, lang })
-    worker.postMessage({ type, id, lang, ...payload })
+    pending.set(id, { resolve, reject, lang, dict })
+    worker.postMessage({ type, id, lang, dict, ...payload })
   })
 }
 
@@ -82,11 +99,15 @@ worker.onmessage = (ev) => {
 }
 
 function normalize(value) {
+  const sentinel = '\ue000'
   return String(value || '')
+    .normalize('NFC')
+    .replace(/ñ/gi, sentinel)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
-    .replace(/[^A-Z?.*]/g, '')
+    .replaceAll(sentinel.toUpperCase(), 'Ñ')
+    .replace(/[^A-ZÑ?.*]/g, '')
 }
 
 function tilesHtml(word, jokers = [], opts = {}) {
@@ -104,7 +125,11 @@ function tilesHtml(word, jokers = [], opts = {}) {
 
 function wikiUrl(word, lemma) {
   const title = lemma || String(word || '').toLowerCase()
-  const host = getLang() === 'en' ? 'en.wiktionary.org' : 'fr.wiktionary.org'
+  const host = getLang() === 'en'
+    ? 'en.wiktionary.org'
+    : getLang() === 'es'
+      ? 'es.wiktionary.org'
+      : 'fr.wiktionary.org'
   return `https://${host}/wiki/${encodeURIComponent(title)}`
 }
 
@@ -112,8 +137,40 @@ function isCompoundLemma(value) {
   return /[-'’]/.test(String(value || ''))
 }
 
+const DEF_CACHE_KEY = 'verimots-definitions-v2'
+const DEF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000
+const DEF_CACHE_MAX = 80
 const defCache = new Map()
 let defSeq = 0
+
+function readStoredDefinition(key) {
+  try {
+    const all = JSON.parse(localStorage.getItem(DEF_CACHE_KEY) || '{}')
+    const hit = all?.[key]
+    if (!hit || Date.now() - Number(hit.at || 0) > DEF_CACHE_TTL) return null
+    const value = hit.value
+    if (!value?.found || !value.senses?.some((sense) =>
+      sense?.defs?.some((definition) => /\p{L}/u.test(String(definition || '')))
+    )) return null
+    return value
+  } catch {
+    return null
+  }
+}
+
+function storeDefinition(key, value) {
+  if (!value?.ok || !value.found || value.offline) return
+  try {
+    const all = JSON.parse(localStorage.getItem(DEF_CACHE_KEY) || '{}')
+    all[key] = { at: Date.now(), value }
+    const ordered = Object.entries(all)
+      .sort((a, b) => Number(b[1]?.at || 0) - Number(a[1]?.at || 0))
+      .slice(0, DEF_CACHE_MAX)
+    localStorage.setItem(DEF_CACHE_KEY, JSON.stringify(Object.fromEntries(ordered)))
+  } catch {
+    /* private mode or storage quota */
+  }
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -124,10 +181,14 @@ function escapeHtml(value) {
 }
 
 function foldKeyClient(value) {
+  const sentinel = '\ue000'
   return String(value || '')
+    .normalize('NFC')
+    .replace(/ñ/gi, sentinel)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replaceAll(sentinel, 'ñ')
 }
 
 function wordLink(word) {
@@ -140,9 +201,9 @@ function shareMessage(share) {
   const link = wordLink(share.word)
   if (share.ok) {
     const def = share.def ? `\n${share.def}\n` : '\n'
-    return `Verimots\n\n*${share.word}* est dans la liste\n${share.word.length} lettres · ${share.score} pt${share.score > 1 ? 's' : ''}\n${def}\n${link}`
+    return `Verimots · ${dictLabel()}\n\n*${t('share_valid', share.word, dictLabel())}*\n${t('letters_pts', share.word.length, share.score)}\n${def}\n${link}`
   }
-  return `Verimots\n\n*${share.word}* n'est pas dans la liste\n\n${link}`
+  return `Verimots · ${dictLabel()}\n\n*${t('share_invalid', share.word, dictLabel())}*\n\n${link}`
 }
 
 function waHref(share) {
@@ -190,16 +251,24 @@ async function loadDefinition(word, opts = {}) {
   if (!key) return { ok: true, found: false, word: '' }
   const cacheKey = `${getLang()}:${foldKeyClient(key)}`
   if (defCache.has(cacheKey)) return defCache.get(cacheKey)
+  const stored = readStoredDefinition(cacheKey)
+  if (stored) {
+    defCache.set(cacheKey, stored)
+    return stored
+  }
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return { ok: true, found: false, offline: true, word: key }
   }
   const mine = opts.stable ? defSeq : ++defSeq
   try {
-    const langQ = getLang() === 'en' ? '&lang=en' : ''
+    const langQ = `&lang=${encodeURIComponent(getLang())}`
     const res = await fetch(`/api/define?w=${encodeURIComponent(key)}${langQ}`)
     const data = await res.json()
     if (!opts.stable && mine !== defSeq) return null
-    if (data?.ok) defCache.set(cacheKey, data)
+    if (data?.ok && data.found) {
+      defCache.set(cacheKey, data)
+      storeDefinition(cacheKey, data)
+    }
     return data
   } catch {
     if (!opts.stable && mine !== defSeq) return null
@@ -213,6 +282,15 @@ function challengeFromUrl() {
     rack: parseRack(p.get('d') || p.get('tirage') || ''),
     category: p.get('c') || '',
   }
+}
+
+function dictsPage() {
+  return getLang() === 'en' ? '/dictionaries.html' : getLang() === 'es' ? '/diccionarios.html' : '/dictionnaires.html'
+}
+
+function liveCount(n) {
+  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  return t('word_count', Number(n).toLocaleString(locale), dictLabel())
 }
 
 function setLive(text) {
@@ -272,7 +350,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=58').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=77').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -281,7 +359,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=58')
+    const { fetchHistory } = await import('./competitive.js?v=77')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -289,7 +367,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=58')
+    const { saveHistoryWord } = await import('./competitive.js?v=77')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -323,6 +401,8 @@ function showPanel(name) {
 
 function writeUrl() {
   const p = new URLSearchParams()
+  p.set('lang', getLang())
+  p.set('dict', getDict())
   const word = normalize(q.value)
   if (nav !== 'game' && word) p.set('w', word)
   if (inApp) p.set('app', '1')
@@ -369,21 +449,13 @@ function readUrl() {
             ? vue
             : 'check'
   if (!advanced && nav !== 'game' && nav !== 'info' && nav !== 'board') nav = 'check'
-  findMode = ['prefix', 'suffix', 'has', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
+  findMode = ['prefix', 'suffix', 'has', 'multi', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
   if (p.get('len') && /^\d+$/.test(p.get('len'))) rackLen = p.get('len')
   if (word) q.value = word
   return word
 }
 
 function syncChrome() {
-  const titles = {
-    check: advanced ? t('title_check') : t('brand_sub'),
-    rack: t('title_rack'),
-    lists: t('title_lists'),
-    info: t('title_info'),
-    game: t('title_game'),
-    board: t('title_board'),
-  }
   const placeholders = {
     check: findMode === 'exact' ? t('placeholder') : t('placeholder_find'),
     rack: t('placeholder_rack'),
@@ -393,10 +465,14 @@ function syncChrome() {
     prefix: t('hint_prefix'),
     suffix: t('hint_suffix'),
     has: t('hint_has'),
+    multi: t('hint_multi'),
   }
   const keepClosed = nav === 'game' && document.body.classList.contains('game-closed')
-  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}`
-  brandSub.textContent = titles[nav] || titles.check
+  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}${isTraining() ? ' training' : ''}`
+  if (brandSub) {
+    brandSub.textContent = dictLabel()
+    brandSub.setAttribute('aria-label', `${t('dict_open')} · ${dictLabel()}`)
+  }
   document.title =
     nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : t('title')
   const apk = document.querySelector('.apk-link')
@@ -404,8 +480,11 @@ function syncChrome() {
   document.querySelectorAll('.legal-link').forEach((el) => {
     el.hidden = nav === 'game' || nav === 'board'
     const href = el.getAttribute('href') || ''
-    if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy'))) {
-      el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : '/confidentialite.html')
+    if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy') || href.includes('privacidad'))) {
+      el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : getLang() === 'es' ? '/privacidad.html' : '/confidentialite.html')
+    }
+    if (el.tagName === 'A' && (href.includes('dictionnair') || href.includes('diccionari'))) {
+      el.setAttribute('href', dictsPage())
     }
   })
   advToggle.textContent = advanced ? t('simple') : t('advanced')
@@ -420,11 +499,20 @@ function syncChrome() {
       (nav !== 'game' && nav !== 'board' && btn.dataset.fab === 'check')
     btn.setAttribute('aria-current', on ? 'page' : 'false')
   })
+  paintDicts()
   qLabel.textContent = nav === 'rack' ? t('q_label_rack') : t('q_label')
   q.placeholder = placeholders[nav] || placeholders.check
   q.maxLength = nav === 'rack' ? 16 : 15
   if (qJoker) qJoker.hidden = nav !== 'rack'
   if (hint) hint.textContent = hints[findMode] || hints.exact
+  if (multiTools) multiTools.hidden = findMode !== 'multi'
+  if (multiInfinitives) {
+    const supported = getLang() !== 'en'
+    multiInfinitives.disabled = !supported
+    if (!supported) multiInfinitives.checked = false
+    const label = multiInfinitives.closest('label')
+    if (label) label.hidden = !supported
+  }
   rackPreview.hidden = nav !== 'rack'
   document.querySelectorAll('#adv-nav [data-nav]').forEach((btn) => {
     btn.setAttribute('aria-current', btn.dataset.nav === nav ? 'page' : 'false')
@@ -463,6 +551,7 @@ function setNav(name) {
   syncChrome()
   showPanel(name)
   if (name === 'lists') renderLists()
+  if (name === 'info') renderStudy()
   if (name === 'game') game?.open(challengeFromUrl())
   if (name === 'board') game?.showBoard?.()
   if (name === 'check' || name === 'rack') {
@@ -482,12 +571,28 @@ function setAdvanced(on) {
   syncChrome()
   showPanel(nav)
   if (nav === 'lists') renderLists()
+  if (nav === 'info') renderStudy()
   if (nav === 'check' || nav === 'rack') run()
   writeUrl()
 }
 
 function blankCount(raw) {
   return [...raw].filter((c) => c === '?' || c === '.' || c === '*').length
+}
+
+function multiFilters() {
+  return {
+    start: normalize(multiStart?.value || '').replace(/[?.*]/g, ''),
+    has: normalize(multiHas?.value || '').replace(/[?.*]/g, ''),
+    end: normalize(multiEnd?.value || '').replace(/[?.*]/g, ''),
+    length: Math.max(0, Math.min(15, Number(multiLength?.value) || 0)),
+    infinitives: getLang() !== 'en' && !!multiInfinitives?.checked,
+    hideInflections: !!multiHideInflections?.checked,
+  }
+}
+
+function hasMultiFilter(filters = multiFilters()) {
+  return !!(filters.start || filters.has || filters.end || filters.length || filters.infinitives || filters.hideInflections)
 }
 
 function addBlankToRack() {
@@ -541,7 +646,7 @@ function renderCheck(word, result) {
     verdict.className = 'verdict ok'
     verdict.innerHTML = `
       ${back}
-      <div class="status">${t('playable')}</div>
+      <div class="status">${t('playable', dictLabel())}</div>
       <p class="word">${result.word}</p>
       ${tilesHtml(result.word)}
       <div class="meta-line">
@@ -554,7 +659,7 @@ function renderCheck(word, result) {
     verdict.className = 'verdict no'
     verdict.innerHTML = `
       ${back}
-      <div class="status">${t('not_in_list')}</div>
+      <div class="status">${t('not_in_list', dictLabel())}</div>
       <p class="word">${word}</p>
       <p class="empty">${t('not_a_form')}</p>
       ${shareHtml(lastShare)}`
@@ -587,7 +692,7 @@ function renderFind(words, query) {
   verdict.hidden = true
   findOut.hidden = false
   if (!words.length) {
-    findOut.innerHTML = `<p class="empty">Aucun mot de la liste pour « ${escapeHtml(query)} ».</p>`
+    findOut.innerHTML = `<p class="empty">${escapeHtml(t('find_none', query))}</p>`
     return
   }
   const groups = []
@@ -599,8 +704,93 @@ function renderFind(words, query) {
   for (const len of [...by.keys()].sort((a, b) => a - b)) {
     groups.push({ len, words: by.get(len) })
   }
-  const labels = { prefix: 'qui commencent par', suffix: 'qui finissent par', has: 'qui contiennent' }
-  renderGroups(findOut, groups, '', `${words.length.toLocaleString('fr-FR')} mot${words.length > 1 ? 's' : ''} ${labels[findMode] || ''} ${query}`)
+  renderGroups(findOut, groups, '', t('find_summary', words.length, query))
+}
+
+function paintDicts() {
+  const current = getDict()
+  document.querySelectorAll('[data-dict]').forEach((btn) => {
+    const on = btn.dataset.dict === current
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false')
+    btn.setAttribute('aria-checked', on ? 'true' : 'false')
+  })
+}
+
+function setDictOpen(on) {
+  const sheet = document.getElementById('dict-sheet')
+  if (!sheet) return
+  sheet.hidden = !on
+  if (on) {
+    paintDicts()
+    document.getElementById('dict-sheet-close')?.focus()
+  }
+}
+
+function waStudyHref(text) {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`
+}
+
+function studyChips(words) {
+  return (words || []).map((w) => `<button type="button" class="chip" data-word="${escapeHtml(w)}">${escapeHtml(w)}</button>`).join('')
+}
+
+function renderStudy() {
+  const when = document.getElementById('study-when')
+  const twosEl = document.getElementById('study-twos')
+  const threesEl = document.getElementById('study-threes')
+  const studyWa = document.getElementById('study-wa')
+  const studyWaTwos = document.getElementById('study-wa-twos')
+  const twosAll = meta?.letters2 || []
+  const threesAll = meta?.letters3 || []
+  const twos = dailyStudySlice(twosAll, new Date(), STUDY_TWOS)
+  const threes = dailyStudySlice(threesAll, new Date(), STUDY_THREES)
+  if (when) when.textContent = t('study_today', studyDateLabel())
+  if (twosEl) twosEl.innerHTML = studyChips(twos)
+  if (threesEl) threesEl.innerHTML = studyChips(threes)
+  if (studyWa) {
+    const readyStudy = twos.length || threes.length
+    studyWa.hidden = !readyStudy
+    studyWa.innerHTML = `${WA_ICON}${t('study_share')}`
+    if (readyStudy) studyWa.href = waStudyHref(`${dailyStudyText(twos, threes)}\n${location.origin}${location.pathname}`)
+    else studyWa.removeAttribute('href')
+  }
+  if (studyWaTwos) {
+    studyWaTwos.hidden = !twosAll.length
+    studyWaTwos.innerHTML = `${WA_ICON}${t('study_share_twos')}`
+    if (twosAll.length) studyWaTwos.href = waStudyHref(`${studyListText(twosAll, 2)}\n${location.origin}${location.pathname}`)
+    else studyWaTwos.removeAttribute('href')
+  }
+}
+
+async function downloadLexicon() {
+  const btn = document.getElementById('dict-download')
+  if (!ready) {
+    setLive(t('loading_lex'))
+    return
+  }
+  const label = btn?.textContent
+  if (btn) {
+    btn.disabled = true
+    btn.textContent = t('dict_downloading')
+  }
+  try {
+    const result = await ask('export')
+    const blob = new Blob([result.text || ''], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = lexiconFileName(getLang())
+    a.click()
+    URL.revokeObjectURL(url)
+    setLive(liveCount(result.count || 0))
+  } catch {
+    setLive(t('dict_download_err'))
+  } finally {
+    if (btn) {
+      btn.disabled = false
+      btn.textContent = label || t('dict_download')
+    }
+  }
 }
 
 function renderLists() {
@@ -618,12 +808,16 @@ function renderLists() {
         ×2
       </div>
     </div>
-    <p class="empty">Distribution française officielle. Un joker vaut 0.</p>`
+    <p class="empty">${t('values_note')}</p>`
     return
   }
   const list = listKind === '2' ? meta?.letters2 || [] : meta?.letters3 || []
   const cls = listKind === '2' ? 'grid2' : 'grid3'
-  listsOut.innerHTML = `<p class="result-sum">${list.length} mots de ${listKind} lettres · touchez pour vérifier</p>
+  const share = list.length
+    ? `<div class="list-share"><a class="wa-share" href="${escapeHtml(waStudyHref(studyListText(list, Number(listKind))))}" target="_blank" rel="noopener noreferrer">${WA_ICON}${t('study_share_list')}</a></div>`
+    : ''
+  listsOut.innerHTML = `<p class="result-sum">${t('list_count', list.length, listKind)}</p>
+    ${share}
     <div class="${cls}">${list.map((w) => `<button type="button" class="chip" data-word="${w}">${w}</button>`).join('')}</div>`
 }
 
@@ -654,7 +848,7 @@ async function run() {
       return
     }
     const result = await ask('check', { word: raw })
-    if (result.lang && result.lang !== getLang()) return
+    if (staleResult(result)) return
     if (normalize(q.value) !== raw || nav !== 'check' || findMode !== 'exact') return
     renderCheck(raw, result)
     if (result.ok) {
@@ -668,9 +862,10 @@ async function run() {
 
   if (nav === 'check') {
     verdict.hidden = true
-    if (raw.length < 2) {
+    const filters = findMode === 'multi' ? multiFilters() : null
+    if (findMode === 'multi' ? !hasMultiFilter(filters) : raw.length < 2) {
       findOut.hidden = false
-      findOut.innerHTML = `<p class="empty">Au moins 2 lettres.</p>`
+      findOut.innerHTML = `<p class="empty">${t('find_min')}</p>`
       return
     }
     if (!ready) {
@@ -678,9 +873,14 @@ async function run() {
       findOut.innerHTML = `<p class="pending">Dictionnaire en cours de chargement…</p>`
       return
     }
-    const result = await ask('find', { mode: findMode, q: raw })
-    if (result.lang && result.lang !== getLang()) return
-    if (normalize(q.value) === raw && nav === 'check') renderFind(result.words, raw)
+    const result = await ask('find', { mode: findMode, q: raw, filters })
+    if (staleResult(result)) return
+    if (normalize(q.value) === raw && nav === 'check') {
+      const summary = findMode === 'multi'
+        ? [filters.start, filters.has, filters.end, filters.length || ''].filter(Boolean).join(' · ')
+        : raw
+      renderFind(result.words, summary)
+    }
     return
   }
 
@@ -697,14 +897,14 @@ async function run() {
     const max = rackLen === 'all' ? raw.length : Number(rackLen)
     const min = rackLen === 'all' ? 2 : Number(rackLen)
     const result = await ask('anagram', { rack: raw, min, max })
-    if (result.lang && result.lang !== getLang()) return
+    if (staleResult(result)) return
     if (normalize(q.value) !== raw || nav !== 'rack') return
     const n = (result.groups || []).reduce((c, g) => c + g.words.length, 0)
     renderGroups(
       rackOut,
       result.groups,
-      'Aucun mot de la liste avec ces lettres.',
-      `${n.toLocaleString('fr-FR')} mot${n > 1 ? 's' : ''} jouable${n > 1 ? 's' : ''} · ? = joker · score à droite`
+      t('rack_none'),
+      t('rack_summary', n)
     )
   }
 }
@@ -722,7 +922,7 @@ async function showCompoundDef(lemma) {
   const definition = await loadDefinition(lemma, { stable: true })
   if (current && ready) {
     const result = await ask('check', { word: current })
-    if (result.lang && result.lang !== getLang()) return
+    if (staleResult(result)) return
     if (normalize(q.value) !== current || nav !== 'check') return
     if (result.ok) {
       renderCheck(current, { ...result, definition })
@@ -769,6 +969,7 @@ function applyUrl() {
   syncChrome()
   showPanel(nav)
   if (nav === 'lists') renderLists()
+  if (nav === 'info') renderStudy()
   if (nav === 'game') game?.open(challengeFromUrl())
   if (nav === 'board') game?.showBoard?.()
   if (nav === 'check' || nav === 'rack') run()
@@ -859,6 +1060,7 @@ feedbackForm?.addEventListener('submit', async (e) => {
 histBtn?.addEventListener('click', () => setHistOpen(histSheet.hidden))
 histClose?.addEventListener('click', () => setHistOpen(false))
 document.getElementById('about-hist')?.addEventListener('click', () => setHistOpen(true))
+document.getElementById('dict-download')?.addEventListener('click', () => downloadLexicon())
 document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (!loadHistory().length) return
   if (!window.confirm(t('hist_clear_confirm'))) return
@@ -867,7 +1069,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=58')
+      const { clearCloudHistory } = await import('./competitive.js?v=77')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -884,9 +1086,25 @@ histOut?.addEventListener('click', (e) => {
 })
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && histSheet && !histSheet.hidden) setHistOpen(false)
+  if (e.key === 'Escape') setDictOpen(false)
 })
 
 document.getElementById('about-link')?.addEventListener('click', () => setNav('info'))
+document.querySelectorAll('[data-dict-list], #settings-dicts').forEach((list) => {
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-dict]')
+    if (!btn) return
+    const next = btn.dataset.dict
+    if (dictSpec(next).id === next) {
+      switchDict(next)
+      setDictOpen(false)
+    }
+  })
+})
+document.getElementById('dict-sheet-close')?.addEventListener('click', () => setDictOpen(false))
+document.getElementById('dict-sheet')?.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('dict-sheet')) setDictOpen(false)
+})
 
 advToggle.addEventListener('click', () => setAdvanced(!advanced))
 
@@ -906,6 +1124,12 @@ document.querySelectorAll('.find-tools [data-find]').forEach((btn) => {
     q.focus()
   })
 })
+
+multiTools?.querySelectorAll('input, select').forEach((field) => {
+  field.addEventListener('input', schedule)
+  field.addEventListener('change', run)
+})
+document.getElementById('find-apply')?.addEventListener('click', run)
 
 document.querySelectorAll('.list-switch [data-list]').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -997,35 +1221,60 @@ const game = initGame({
   define: loadDefinition,
   isCompetitive,
   isKids,
+  isTraining,
   onDeal(tiles, cat) {
     gameRack = tiles
     gameCat = cat
     writeUrl()
   },
-  onPlayed({ word, pts, best, bestPts }) {
-    const rows = [{ word, pts, src: 'defi' }]
-    if (best && best !== word) rows.push({ word: best, pts: bestPts, src: 'defi' })
-    recordWords(rows)
+  onPlayed({ word, pts }) {
+    recordWords([{ word, pts, src: 'defi' }])
   },
 })
 
+function metaFile(id = getDict()) {
+  if (id === 'csw' || id === 'yawl') return 'data/meta-en.json'
+  if (id === 'wow24') return 'data/meta-en-wow24.json'
+  if (id === 'rla') return 'data/meta-es.json'
+  return 'data/meta.json'
+}
+
 async function loadMeta() {
-  const file = getLang() === 'en' ? 'data/meta-en.json' : 'data/meta.json'
-  meta = await (await fetch(file)).json()
-  setLive(t('word_count', meta.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+  meta = await (await fetch(metaFile())).json()
+  setLive(liveCount(meta.count))
+  renderStudy()
 }
 
 async function reloadLexicon() {
   ready = false
   setLive(t('loading'))
-  const wanted = getLang()
-  const result = await ask('load', { lang: wanted })
-  if (getLang() !== wanted) return
+  const wantedLang = getLang()
+  const wantedDict = getDict()
+  const result = await ask('load', { lang: wantedLang, dict: wantedDict })
+  if (getLang() !== wantedLang || getDict() !== wantedDict) return
   ready = true
-  setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+  setLive(liveCount(result.count))
   if (nav === 'check' || nav === 'rack') run()
   else if (nav === 'lists') renderLists()
+  else if (nav === 'info') renderStudy()
   else if (nav === 'game' || nav === 'board') game?.refresh?.()
+}
+
+async function switchDict(id) {
+  if (id === getDict()) return
+  setDict(id)
+  syncChrome()
+  try {
+    await loadMeta()
+  } catch {
+    /* keep previous meta */
+  }
+  try {
+    await reloadLexicon()
+  } catch (err) {
+    setLive(t('lex_fail'))
+    console.error(err)
+  }
 }
 
 async function switchLang(next) {
@@ -1049,6 +1298,8 @@ async function boot() {
   initLang()
   document.getElementById('lang-fr')?.addEventListener('click', () => switchLang('fr'))
   document.getElementById('lang-en')?.addEventListener('click', () => switchLang('en'))
+  document.getElementById('lang-es')?.addEventListener('click', () => switchLang('es'))
+  brandSub?.addEventListener('click', () => setDictOpen(true))
   readUrl()
   syncChrome()
   paintApkLink()
@@ -1063,15 +1314,17 @@ async function boot() {
   try {
     await loadMeta()
     renderLists()
+    renderStudy()
   } catch {
     setLive(t('lex_fail'))
   }
   try {
     const result = await ask('load', { lang: getLang() })
     ready = true
-    setLive(t('word_count', result.count.toLocaleString(getLang() === 'en' ? 'en-GB' : 'fr-FR')))
+    setLive(liveCount(result.count))
     if (nav === 'check' || nav === 'rack') run()
     else if (nav === 'lists') renderLists()
+    else if (nav === 'info') renderStudy()
     else if (nav === 'game') game.open(challengeFromUrl())
     else if (nav === 'board') game.showBoard()
   } catch (err) {
@@ -1082,7 +1335,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=63').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=77').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
@@ -1104,6 +1357,14 @@ document.getElementById('mode-kids')?.addEventListener('click', async () => {
   setGameMode('kids')
   if (nav === 'board') setNav('game')
   await game.switchMode('kids')
+  syncChrome()
+  showPanel(nav)
+})
+
+document.getElementById('mode-training')?.addEventListener('click', async () => {
+  setGameMode('training')
+  if (nav === 'board') setNav('game')
+  await game.switchMode('training')
   syncChrome()
   showPanel(nav)
 })
