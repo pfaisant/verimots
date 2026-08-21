@@ -1,25 +1,30 @@
-const CACHE = 'verimots-v69'
+const CACHE = 'verimots-v75'
 const SHELL = [
   './',
   './index.html',
-  './app.css?v=68',
+  './app.css?v=75',
   './analytics.js?v=28',
-  './app.js?v=69',
+  './app.js?v=75',
   './competitive.js?v=68',
-  './game.js?v=68',
-  './history.js?v=68',
-  './i18n.js?v=68',
-  './worker.js?v=68',
+  './game.js?v=75',
+  './history.js?v=75',
+  './i18n.js?v=75',
+  './worker.js?v=75',
   './kids.js?v=68',
   './favicon.svg',
   './manifest.webmanifest',
   './data/meta.json',
   './data/meta-en.json',
+  './data/meta-en-wow24.json',
   './data/meta-es.json',
   './data/ods9.txt.gz',
   './data/yawl.txt.gz',
+  './data/wow24.txt.gz',
   './data/rla-es.txt.gz',
   './privacidad.html',
+  './dictionnaires.html',
+  './dictionaries.html',
+  './diccionarios.html',
 ]
 
 self.addEventListener('install', (event) => {

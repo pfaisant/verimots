@@ -11,9 +11,9 @@
     <string name="tab_about">About</string>
     <string name="loading">Loading the list…</string>
     <string name="lex_unavailable">List unavailable</string>
-    <string name="word_count">%1$s words</string>
-    <string name="playable">Playable · offline list</string>
-    <string name="not_in_list">Not in the list</string>
+    <string name="word_count">%1$s words · %2$s</string>
+    <string name="playable">Playable · %1$s</string>
+    <string name="not_in_list">Not in %1$s</string>
     <string name="def_pending">Definition…</string>
     <string name="def_need_net">Definition available when online.</string>
     <string name="def_missing">No Wiktionary definition.</string>
@@ -25,7 +25,23 @@
     <string name="see_lemma">See %1$s</string>
     <string name="clear">Clear</string>
     <string name="about_title">About Verimots</string>
-    <string name="about_body">Offline first: the English list is YAWL (257,218 forms from 2 to 15 letters). Checking a word and the challenge work with no network.\n\nA connection is needed only for automatic definitions (Wiktionary) and sharing.\n\nNot affiliated with NASPA, Mattel or Hasbro. Switch to FR for the French community list.</string>
+    <string name="about_body">Offline first: the selected list (forms of 2 to 15 letters) checks a word and the challenge with no network.\n\nA connection is needed only for automatic definitions (Wiktionary) and sharing.\n\nVerimots is not affiliated with NASPA, Mattel or Hasbro.</string>
+    <string name="settings">Settings</string>
+    <string name="settings_dicts">Dictionary</string>
+    <string name="settings_dicts_help">One community list per language. English has CSW (closest public match) and WGPO WOW24.</string>
+    <string name="dict_row_fr">FR · ODS</string>
+    <string name="dict_row_en">EN · CSW</string>
+    <string name="dict_row_wow24">EN · WGPO WOW24</string>
+    <string name="dict_row_es">ES · RLA-ES</string>
+    <string name="dict_using_ods">ODS9</string>
+    <string name="dict_using_csw">CSW · YAWL</string>
+    <string name="dict_using_wow24">WGPO WOW24</string>
+    <string name="dict_using_rla">RLA-ES 2.9</string>
+    <string name="dict_open">Change dictionary</string>
+    <string name="dict_blurb_fr">Community list following ODS.</string>
+    <string name="dict_blurb_en">Closest public list following CSW. Not official Collins.</string>
+    <string name="dict_blurb_wow24">Community list following WGPO Official Words 2024.</string>
+    <string name="dict_blurb_es">Community list following RLA-ES.</string>
     <string name="privacy_title">Privacy</string>
     <string name="privacy_body">No ads. Local history stays on the device. Signed in with Google, checked and played words are also saved to your account so you can find them on the web and on the phone.\n\nIn anonymous mode only the percent (0 to 100) is sent for the public average. Optional competition: Google ID, name and photo for this week’s board. Definitions go through s.pfa87.cc to Wiktionary.</string>
     <string name="hint_prefix">List words that start with this.</string>
@@ -106,14 +122,14 @@
     <string name="google_bad_token">Invalid Google token</string>
     <string name="score_ranked">Score ranked</string>
     <string name="already_ranked">Already ranked this week</string>
-    <string name="share_check_ok">Verimots\n\n*%1$s* is in the list\n%2$d letters · %3$d pts\nhttps://s.pfa87.cc/?w=%1$s</string>
-    <string name="share_check_no">Verimots\n\n*%1$s* is not in the list\nhttps://s.pfa87.cc/?w=%1$s</string>
+    <string name="share_check_ok">Verimots · %5$s\n\n*%1$s* is in %5$s\n%2$d letters · %3$d pts\n%4$shttps://s.pfa87.cc/?w=%1$s</string>
+    <string name="share_check_no">Verimots · %2$s\n\n*%1$s* is not in %2$s\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="share_game">Verimots — Challenge\n\nFind the dearest word with:\n%1$s\n%2$shttps://s.pfa87.cc/?vue=jeu&amp;d=%3$s&amp;c=%4$s</string>
     <string name="share_game_score">I scored %1$d%%.\n</string>
     <string name="board_unavailable">Board unavailable</string>
     <string name="trail_unavailable">Challenge unavailable</string>
     <string name="need_connection">Connection required</string>
-    <string name="mode_kids">Kids</string>
+    <string name="mode_kids">Beginners</string>
     <string name="kids_hint">Hint</string>
     <string name="kids_hint_letter">A word starts with %1$s</string>
     <string name="kids_hint_word">Try %1$s</string>
@@ -121,8 +137,20 @@
     <string name="kids_need">A word with these letters.</string>
     <string name="kids_cat">Find a word</string>
     <string name="board_general">General</string>
-    <string name="kids_board">Kids</string>
-    <string name="kids_board_empty">No kids scores yet.</string>
+    <string name="kids_board">Beginners</string>
+    <string name="kids_board_empty">No beginner scores yet.</string>
+    <string name="study">Word study</string>
+    <string name="study_today">Today · %1$s</string>
+    <string name="study_pack">%1$s\n\n2 letters\n%2$s\n\n3 letters\n%3$s</string>
+    <string name="study_share">Share today’s words</string>
+    <string name="study_share_twos">Share the 2-letter words</string>
+    <string name="share_study_daily">Verimots — Word study · %1$s</string>
+    <string name="share_study_list">Verimots — %1$d-letter words (%2$d)\n\n%3$s\n</string>
+    <string name="share_study_word_body">Verimots\n\n*%1$s* is in the list\n%2$d letters · %3$d pts\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
+    <string name="dict_download">Download the word list</string>
+    <string name="dict_download_help">The exact list this checker uses, one word per line.</string>
+    <string name="dict_downloading">Preparing the list…</string>
+    <string name="dict_download_err">Could not export the list.</string>
     <string name="hist_open">History</string>
     <string name="hist_clear">Clear history</string>
     <string name="hist_clear_confirm">Clear all history?</string>

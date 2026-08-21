@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots hors ligne, maintenue par la communauté. Définitions automatiques avec une connexion." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=68" />
+  <link rel="stylesheet" href="app.css?v=75" />
 </head>
 <body class="simple">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -27,7 +27,7 @@
       <span class="mark" aria-hidden="true">V</span>
       <div>
         <h1>Verimots</h1>
-        <p id="brand-sub" data-i18n="brand_sub">Communautaire</p>
+        <button type="button" id="brand-sub" class="dict-badge" data-i18n-aria="dict_open" aria-label="Changer de dictionnaire">ODS9</button>
       </div>
     </div>
     <div class="top-tools">
@@ -149,10 +149,62 @@
         <p data-i18n="about_p4">
           Mode simple : vérifier et partager. Mode avancé : tiroir, motifs et listes.
         </p>
+        <div class="settings-card" id="settings-card">
+          <h3 data-i18n="settings">Réglages</h3>
+          <p class="settings-label" data-i18n="settings_dicts">Dictionnaire</p>
+          <p class="fine" data-i18n="settings_dicts_help">Une liste communautaire par langue. L’anglais propose CSW (plus proche liste publique) et WGPO WOW24.</p>
+          <p class="fine"><a class="legal-link" href="/dictionnaires.html" data-i18n="dicts_learn">Voir les listes en détail</a></p>
+          <div class="dict-list" id="settings-dicts" role="radiogroup" data-i18n-aria="settings_dicts" aria-label="Dictionnaire">
+            <button type="button" class="dict-opt" data-dict="ods" role="radio" aria-checked="true" aria-pressed="true">
+              <span class="dict-opt-head">
+                <span class="dict-lang">FR</span>
+                <strong class="dict-name" data-i18n="dict_name_ods">ODS</strong>
+              </span>
+              <span class="dict-blurb" data-i18n="dict_blurb_ods">Liste communautaire suivant l’ODS.</span>
+            </button>
+            <button type="button" class="dict-opt" data-dict="csw" role="radio" aria-checked="false" aria-pressed="false">
+              <span class="dict-opt-head">
+                <span class="dict-lang">EN</span>
+                <strong class="dict-name" data-i18n="dict_name_csw">CSW</strong>
+              </span>
+              <span class="dict-blurb" data-i18n="dict_blurb_csw">Plus proche liste publique suivant CSW. Pas le Collins officiel.</span>
+            </button>
+            <button type="button" class="dict-opt" data-dict="wow24" role="radio" aria-checked="false" aria-pressed="false">
+              <span class="dict-opt-head">
+                <span class="dict-lang">EN</span>
+                <strong class="dict-name" data-i18n="dict_name_wow24">WGPO WOW24</strong>
+              </span>
+              <span class="dict-blurb" data-i18n="dict_blurb_wow24">Liste communautaire suivant WGPO Official Words 2024.</span>
+            </button>
+            <button type="button" class="dict-opt" data-dict="rla" role="radio" aria-checked="false" aria-pressed="false">
+              <span class="dict-opt-head">
+                <span class="dict-lang">ES</span>
+                <strong class="dict-name" data-i18n="dict_name_rla">RLA-ES</strong>
+              </span>
+              <span class="dict-blurb" data-i18n="dict_blurb_rla">Liste communautaire suivant RLA-ES.</span>
+            </button>
+          </div>
+        </div>
+        <div class="study-card" id="study-card">
+          <h3 data-i18n="study">Étude du jour</h3>
+          <p class="study-when" id="study-when"></p>
+          <p class="study-label" data-i18n="study_twos">Mots de 2 lettres</p>
+          <div class="study-words" id="study-twos"></div>
+          <p class="study-label" data-i18n="study_threes">Mots de 3 lettres</p>
+          <div class="study-words" id="study-threes"></div>
+          <div class="study-actions">
+            <a class="wa-share" id="study-wa" target="_blank" rel="noopener noreferrer" hidden></a>
+            <a class="wa-share" id="study-wa-twos" target="_blank" rel="noopener noreferrer" hidden></a>
+            <button type="button" class="about-hist" id="dict-download" data-i18n="dict_download">Télécharger la liste</button>
+          </div>
+          <p class="fine" data-i18n="dict_download_help">La liste exacte utilisée par le vérificateur, un mot par ligne.</p>
+        </div>
         <p>
           <button type="button" class="about-hist" id="about-hist" data-i18n="hist_open">Historique</button>
         </p>
         <p class="fine">
+          <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
+          ·
           <a href="/confidentialite.html">Politique de confidentialité</a>
         </p>
       </article>
@@ -169,7 +221,7 @@
         <button type="button" id="mode-defi" class="mode-btn" data-mode="defi" aria-pressed="true" data-i18n="mode_defi">Défi</button>
         <button type="button" id="mode-training" class="mode-btn" data-mode="training" aria-pressed="false" data-i18n="mode_training">Entraînement</button>
         <button type="button" id="mode-comp" class="mode-btn" data-mode="competitive" aria-pressed="false" data-i18n="mode_comp">Compétition</button>
-        <button type="button" id="mode-kids" class="mode-btn" data-mode="kids" aria-pressed="false" data-i18n="mode_kids">Enfant</button>
+        <button type="button" id="mode-kids" class="mode-btn" data-mode="kids" aria-pressed="false" data-i18n="mode_kids">Débutants</button>
       </div>
       <div class="training-tools" id="training-tools" hidden>
         <div class="training-presets" role="group" aria-label="Entraînement">
@@ -238,7 +290,8 @@
     <a
       id="game-wa"
       class="game-wa-icon is-off"
-      aria-label="Partager le défi sur WhatsApp"
+      data-i18n-aria="share_wa"
+      aria-label="Partager sur WhatsApp"
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -284,6 +337,7 @@
   <footer class="foot">
     <div class="foot-links">
       <a class="apk-link" href="verimots-3.20.apk" download="verimots-3.20.apk" title="Télécharger verimots-3.20.apk">verimots-3.20.apk</a>
+      <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
       <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
       <button type="button" class="legal-link" id="about-link" data-i18n="about">À propos</button>
       <button type="button" class="legal-link" data-cookies>Cookies</button>
@@ -309,7 +363,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=69" type="module"></script>
+  <script src="app.js?v=75" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

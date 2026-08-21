@@ -48,8 +48,8 @@ for (const w of words) {
 }
 
 const meta = {
-  edition: 'YAWL',
-  name: 'YAWL English word list',
+  edition: 'CSW · YAWL',
+  name: 'Community list following CSW',
   inForce: null,
   until: null,
   count: words.length,
@@ -59,7 +59,7 @@ const meta = {
   letters2,
   letters3,
   source:
-    'Public-domain YAWL (Yet Another Word List) by M. Leo Cooper, 2 to 15 letters. Not affiliated with NASPA, Mattel or Hasbro.',
+    'Public-domain YAWL (Yet Another Word List) by M. Leo Cooper, used as the closest public-domain match to Collins Scrabble Words. Not official CSW. Not affiliated with HarperCollins, WESPA, NASPA, Mattel or Hasbro.',
 }
 
 await mkdir(dest, { recursive: true })

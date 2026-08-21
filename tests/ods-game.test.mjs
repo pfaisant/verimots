@@ -12,6 +12,13 @@ import {
   formatBoardPercent,
   parseRack,
   defiShareText,
+  dailyStudySlice,
+  dailyStudyText,
+  studyListText,
+  studyWordText,
+  studyDateLabel,
+  lexiconFileName,
+  utcDayIndex,
   extractFormOf,
   isInflectionDef,
   linkifyDef,
@@ -28,6 +35,7 @@ import {
 import { loadHistory, rememberWord, historyLabel, clearHistory } from '../web/history.js'
 import { kidsWords } from '../web/kids.js'
 import { competeAccepted } from '../web/competitive.js'
+import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js'
 
 test('rack tile usage assigns unmatched letters to blanks', () => {
   assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
@@ -67,6 +75,99 @@ test('WhatsApp défi does not reveal the answer', () => {
   assert.match(text, /L I E I R A T/)
   assert.match(text, /19 %/)
   assert.doesNotMatch(text, /AJOUREE|LITERAI|meilleur mot/i)
+})
+
+test('Kids mode is labelled Beginners', () => {
+  setLang('en')
+  assert.equal(t('mode_kids'), 'Beginners')
+  assert.equal(t('kids_board'), 'Beginners')
+  setLang('fr')
+  assert.equal(t('mode_kids'), 'Débutants')
+  setLang('es')
+  assert.equal(t('mode_kids'), 'Principiantes')
+  setLang('fr')
+})
+
+test('each language dictionary is a community list following a named source', () => {
+  setLang('en')
+  assert.equal(t('dict_name_ods'), 'ODS')
+  assert.equal(t('dict_name_csw'), 'CSW')
+  assert.equal(t('dict_name_wow24'), 'WGPO WOW24')
+  assert.equal(t('dict_name_rla'), 'RLA-ES')
+  assert.equal(t('dict_blurb_ods'), 'Community list following ODS.')
+  assert.match(t('dict_blurb_csw'), /Closest public list following CSW/)
+  assert.equal(t('dictionaries'), 'Dictionaries')
+  assert.match(t('dicts_learn'), /lists in detail/)
+  assert.equal(t('dict_blurb_wow24'), 'Community list following WGPO Official Words 2024.')
+  assert.equal(t('dict_blurb_rla'), 'Community list following RLA-ES.')
+  setLang('fr')
+  assert.match(t('dict_blurb_ods'), /communautaire suivant l’ODS/)
+  assert.match(t('dict_blurb_wow24'), /WGPO Official Words 2024/)
+  setLang('es')
+  assert.match(t('dict_blurb_ods'), /comunitaria según ODS/)
+  setLang('fr')
+})
+
+test('English defaults to WGPO WOW24 and names the list everywhere', () => {
+  assert.equal(defaultDictFor('en'), 'wow24')
+  setDict('wow24')
+  assert.equal(dictLabel(), 'WGPO WOW24')
+  assert.equal(t('playable', dictLabel()), 'Playable · WGPO WOW24')
+  assert.equal(t('not_in_list', dictLabel()), 'Not in WGPO WOW24')
+  assert.equal(t('word_count', '195,383', dictLabel()), '195,383 words · WGPO WOW24')
+  setLang('fr')
+  assert.equal(dictLabel(), 'ODS9')
+  assert.match(t('playable', dictLabel()), /ODS9/)
+})
+
+test('English can switch between CSW and WOW24', () => {
+  setDict('wow24')
+  assert.equal(getLang(), 'en')
+  assert.equal(getDict(), 'wow24')
+  assert.equal(lexiconFileName('wow24'), 'verimots-en-wow24.txt')
+  setLang('fr')
+  assert.equal(getDict(), 'ods')
+  setLang('en')
+  assert.equal(getDict(), 'wow24')
+  setDict('csw')
+  assert.equal(getDict(), 'csw')
+  assert.equal(dictLabel(), 'CSW · YAWL')
+  assert.equal(lexiconFileName('csw'), 'verimots-en-csw.txt')
+  setDict('yawl')
+  assert.equal(getDict(), 'csw')
+  setLang('fr')
+})
+
+test('daily study slice is deterministic and wraps', () => {
+  const list = ['AA', 'AB', 'AD', 'AE', 'AG']
+  const day = new Date(2026, 7, 21)
+  const a = dailyStudySlice(list, day, 3)
+  assert.deepEqual(a, dailyStudySlice(list, day, 3))
+  assert.equal(a.length, 3)
+  assert.equal(new Set(a).size, 3)
+  const next = dailyStudySlice(list, new Date(2026, 7, 22), 3)
+  assert.notDeepEqual(a, next)
+  assert.deepEqual(dailyStudySlice([], day, 10), [])
+  assert.equal(dailyStudySlice(list, day, 8).length, 5)
+  assert.equal(utcDayIndex(day), utcDayIndex(new Date(2026, 7, 21, 23, 59)))
+})
+
+test('WhatsApp study pack is compact and dated', () => {
+  const when = studyDateLabel(new Date(2026, 7, 21))
+  assert.equal(when, '21/08/2026')
+  const daily = dailyStudyText(['AA', 'AB'], ['ACE', 'ACT'], new Date(2026, 7, 21))
+  assert.match(daily, /21\/08\/2026/)
+  assert.match(daily, /AA · AB/)
+  assert.match(daily, /ACE · ACT/)
+  const list = studyListText(['AA', 'AB', 'AD'], 2)
+  assert.match(list, /2 lettres \(3\)/)
+  assert.match(list, /AA · AB · AD/)
+  const word = studyWordText('QI', 11, 'A vital energy.', 'https://s.pfa87.cc/?w=QI')
+  assert.match(word, /\*QI est dans ODS9\*/)
+  assert.match(word, /Verimots · ODS9/)
+  assert.match(word, /A vital energy/)
+  assert.equal(lexiconFileName('csw'), 'verimots-en-csw.txt')
+  assert.equal(lexiconFileName('ods'), 'verimots-fr-ods.txt')
 })
 
 test('top words keep the five best and still include the played word', () => {

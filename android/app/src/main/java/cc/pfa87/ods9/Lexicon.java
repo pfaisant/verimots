@@ -8,11 +8,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 
 public final class Lexicon {
@@ -86,6 +88,7 @@ public final class Lexicon {
 
     private static Lexicon instance;
     private final String lang;
+    private final String dict;
     private final int[] val;
     private final int[] bag;
     private final HashSet<String> set = new HashSet<>();
@@ -100,13 +103,15 @@ public final class Lexicon {
     private ArrayList<String> hard;
 
     public static synchronized Lexicon get(Context ctx) throws IOException {
-        return get(ctx, "fr");
+        return get(ctx, Dict.get(ctx));
     }
 
-    public static synchronized Lexicon get(Context ctx, String lang) throws IOException {
-        String wanted = "en".equals(lang) || "es".equals(lang) ? lang : "fr";
-        if (instance == null || !wanted.equals(instance.lang)) {
-            instance = new Lexicon(ctx.getApplicationContext(), wanted);
+    public static synchronized Lexicon get(Context ctx, String dictOrLang) throws IOException {
+        String dict = Dict.normalize(dictOrLang);
+        if (dict.isEmpty()) dict = Dict.defaultFor(dictOrLang);
+        String wanted = Dict.langOf(dict);
+        if (instance == null || !wanted.equals(instance.lang) || !dict.equals(instance.dict)) {
+            instance = new Lexicon(ctx.getApplicationContext(), wanted, dict);
         }
         return instance;
     }
@@ -115,12 +120,13 @@ public final class Lexicon {
         return instance != null;
     }
 
-    private Lexicon(Context ctx, String lang) throws IOException {
+    private Lexicon(Context ctx, String lang, String dict) throws IOException {
         this.lang = lang;
+        this.dict = dict;
         this.val = "en".equals(lang) ? VAL_EN : "es".equals(lang) ? VAL_ES : VAL;
         this.bag = "en".equals(lang) ? BAG_EN : "es".equals(lang) ? BAG_ES : BAG;
         for (int i = 0; i < byLen.length; i++) byLen[i] = new ArrayList<>();
-        InputStream raw = openLexicon(ctx, lang);
+        InputStream raw = openLexicon(ctx, dict);
         try (BufferedReader r = new BufferedReader(new InputStreamReader(raw, StandardCharsets.UTF_8), 64 * 1024)) {
             String line;
             while ((line = r.readLine()) != null) {
@@ -133,11 +139,13 @@ public final class Lexicon {
         buildPools();
     }
 
-    private static InputStream openLexicon(Context ctx, String lang) throws IOException {
-        String gz = "en".equals(lang) ? "data/yawl.txt.gz"
-                : "es".equals(lang) ? "data/rla-es.txt.gz" : "data/ods9.txt.gz";
-        String plain = "en".equals(lang) ? "data/yawl.txt"
-                : "es".equals(lang) ? "data/rla-es.txt" : "data/ods9.txt";
+    private static InputStream openLexicon(Context ctx, String dict) throws IOException {
+        String gz = Dict.CSW.equals(dict) ? "data/yawl.txt.gz"
+                : Dict.WOW24.equals(dict) ? "data/wow24.txt.gz"
+                : Dict.RLA.equals(dict) ? "data/rla-es.txt.gz" : "data/ods9.txt.gz";
+        String plain = Dict.CSW.equals(dict) ? "data/yawl.txt"
+                : Dict.WOW24.equals(dict) ? "data/wow24.txt"
+                : Dict.RLA.equals(dict) ? "data/rla-es.txt" : "data/ods9.txt";
         try {
             return new GZIPInputStream(ctx.getAssets().open(gz));
         } catch (IOException e) {
@@ -147,6 +155,50 @@ public final class Lexicon {
 
     public int size() {
         return count;
+    }
+
+    public List<String> wordsOfLength(int len) {
+        if (len < 0 || len >= byLen.length) return Collections.emptyList();
+        return new ArrayList<>(byLen[len]);
+    }
+
+    public String exportText() {
+        StringBuilder b = new StringBuilder(Math.max(16, count * 8));
+        for (int len = 2; len < byLen.length; len++) {
+            for (String w : byLen[len]) b.append(w).append('\n');
+        }
+        return b.toString();
+    }
+
+    public static String exportFileName(String dictOrLang) {
+        String dict = Dict.normalize(dictOrLang);
+        if (dict.isEmpty()) dict = Dict.defaultFor(dictOrLang);
+        if (Dict.CSW.equals(dict)) return "verimots-en-csw.txt";
+        if (Dict.WOW24.equals(dict)) return "verimots-en-wow24.txt";
+        if (Dict.RLA.equals(dict)) return "verimots-es-rla.txt";
+        return "verimots-fr-ods.txt";
+    }
+
+    public static List<String> dailyStudySlice(List<String> words, int year, int month, int day, int size) {
+        if (words == null || words.isEmpty() || size <= 0) return Collections.emptyList();
+        int take = Math.min(size, words.size());
+        Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        utc.clear();
+        utc.set(year, month, day);
+        int start = Math.floorMod((int) (utc.getTimeInMillis() / 86_400_000L), words.size());
+        ArrayList<String> out = new ArrayList<>(take);
+        for (int i = 0; i < take; i++) out.add(words.get((start + i) % words.size()));
+        return out;
+    }
+
+    public static String joinWords(List<String> words) {
+        if (words == null || words.isEmpty()) return "";
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < words.size(); i++) {
+            if (i > 0) b.append(" · ");
+            b.append(words.get(i));
+        }
+        return b.toString();
     }
 
     public boolean has(String word) {

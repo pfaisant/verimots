@@ -48,6 +48,64 @@
                 android:text="@string/about_body"
                 android:textColor="@color/muted"
                 android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/study"
+                android:textColor="@color/ink"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/about_study"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingMultiplier="1.3"
+                android:textColor="@color/muted"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/about_study_share"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_gold_btn"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="@string/study_share"
+                android:textColor="@color/tile_ink" />
+
+            <TextView
+                android:id="@+id/about_study_twos"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="@string/study_share_twos"
+                android:textColor="@color/gold" />
+
+            <TextView
+                android:id="@+id/about_dict"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_gold_btn"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="@string/dict_download"
+                android:textColor="@color/tile_ink" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/dict_download_help"
+                android:textColor="@color/muted"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -123,21 +181,51 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_card"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:padding="20dp">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/settings"
+                android:textColor="@color/ink"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:letterSpacing="0.04"
+                android:text="@string/settings_dicts"
+                android:textAllCaps="true"
+                android:textColor="@color/muted"
+                android:textSize="11sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/settings_dicts_help"
+                android:textColor="@color/muted"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@+id/dict_fr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_chip"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="12dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:text="@string/advanced_mode"
+                    android:text="@string/dict_row_fr"
                     android:textColor="@color/ink"
                     android:textSize="16sp" />
 
@@ -145,16 +233,131 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="@string/advanced_help"
+                    android:text="@string/dict_blurb_fr"
                     android:textColor="@color/muted"
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <Switch
-                android:id="@+id/advanced_toggle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/dict_en"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:checked="false" />
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_chip"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/dict_row_en"
+                    android:textColor="@color/ink"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/dict_blurb_en"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/dict_wow24"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_chip"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/dict_row_wow24"
+                    android:textColor="@color/ink"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/dict_blurb_wow24"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/dict_es"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_chip"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/dict_row_es"
+                    android:textColor="@color/ink"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/dict_blurb_es"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/advanced_mode"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/advanced_help"
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/advanced_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

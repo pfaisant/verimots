@@ -40,4 +40,31 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/dictionnaires.html</loc>
+    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/dictionnaires.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/dictionaries.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/diccionarios.html"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/dictionaries.html</loc>
+    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/dictionnaires.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/dictionaries.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/diccionarios.html"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/diccionarios.html</loc>
+    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/dictionnaires.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/dictionaries.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/diccionarios.html"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

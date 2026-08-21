@@ -99,10 +99,28 @@ body {
   letter-spacing: 0.04em;
   line-height: 1;
 }
-.brand p {
+.brand p,
+.dict-badge {
   margin: 3px 0 0;
   color: var(--muted);
   font-size: 12px;
+}
+.dict-badge {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gold);
+  cursor: pointer;
+  text-align: left;
+}
+.dict-badge:hover,
+.dict-badge:focus-visible {
+  color: var(--tile);
+  text-decoration: underline;
 }
 .top-tools {
   display: flex;
@@ -714,6 +732,90 @@ body.view-rack #q { padding-right: 96px; }
 .info ul { padding-left: 18px; }
 .info a { color: var(--gold); }
 .fine { font-size: 13px !important; }
+.settings-card,
+.study-card {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.settings-label {
+  margin: 10px 0 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim) !important;
+  font-size: 11px !important;
+}
+.dict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+.dict-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+}
+.dict-opt[aria-pressed="true"] {
+  border-color: rgba(232, 197, 107, 0.45);
+  background: var(--felt);
+}
+.dict-opt-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.dict-lang {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+.dict-name {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+}
+.dict-blurb {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.study-when,
+.study-label {
+  margin: 0 0 6px;
+  font-size: 13px !important;
+}
+.study-label {
+  margin-top: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim) !important;
+  font-size: 11px !important;
+}
+.study-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 4px;
+}
+.study-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 8px;
+}
+.study-actions .about-hist,
+.study-actions .wa-share { width: 100%; }
+.list-share { margin: 12px 0 4px; }
 
 .foot {
   position: fixed;

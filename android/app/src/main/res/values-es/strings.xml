@@ -11,9 +11,9 @@
     <string name="tab_about">Acerca de</string>
     <string name="loading">Cargando la lista…</string>
     <string name="lex_unavailable">Lista no disponible</string>
-    <string name="word_count">%1$s palabras</string>
-    <string name="playable">Válida · lista sin conexión</string>
-    <string name="not_in_list">No está en la lista</string>
+    <string name="word_count">%1$s palabras · %2$s</string>
+    <string name="playable">Válida · %1$s</string>
+    <string name="not_in_list">No está en %1$s</string>
     <string name="def_pending">Definición…</string>
     <string name="def_need_net">La definición está disponible con conexión.</string>
     <string name="def_missing">No hay definición en Wikcionario.</string>
@@ -25,7 +25,23 @@
     <string name="see_lemma">Ver %1$s</string>
     <string name="clear">Borrar</string>
     <string name="about_title">Acerca de Verimots</string>
-    <string name="about_body">Primero sin conexión: la lista española procede de RLA-ES y contiene palabras de 2 a 15 letras. La consulta, el atril, el reto y el entrenamiento funcionan sin red.\n\nSolo se necesita conexión para las definiciones automáticas, compartir y la clasificación.\n\nRLA-ES se distribuye bajo MPL 1.1. Verimots no está afiliado a FILE, FISE, Mattel ni Hasbro.</string>
+    <string name="about_body">Sin conexión: la lista elegida (formas de 2 a 15 letras) sirve para comprobar una palabra y el reto.\n\nSolo se necesita conexión para las definiciones automáticas, compartir y la clasificación.\n\nVerimots no está afiliado a FILE, FISE, Mattel ni Hasbro. RLA-ES se distribuye bajo MPL 1.1.</string>
+    <string name="settings">Ajustes</string>
+    <string name="settings_dicts">Diccionario</string>
+    <string name="settings_dicts_help">Una lista comunitaria por idioma. El inglés ofrece CSW (lista pública más cercana) y WGPO WOW24.</string>
+    <string name="dict_row_fr">FR · ODS</string>
+    <string name="dict_row_en">EN · CSW</string>
+    <string name="dict_row_wow24">EN · WGPO WOW24</string>
+    <string name="dict_row_es">ES · RLA-ES</string>
+    <string name="dict_using_ods">ODS9</string>
+    <string name="dict_using_csw">CSW · YAWL</string>
+    <string name="dict_using_wow24">WGPO WOW24</string>
+    <string name="dict_using_rla">RLA-ES 2.9</string>
+    <string name="dict_open">Cambiar de diccionario</string>
+    <string name="dict_blurb_fr">Lista comunitaria según ODS.</string>
+    <string name="dict_blurb_en">Lista pública más cercana a CSW. No es el Collins oficial.</string>
+    <string name="dict_blurb_wow24">Lista comunitaria según WGPO Official Words 2024.</string>
+    <string name="dict_blurb_es">Lista comunitaria según RLA-ES.</string>
     <string name="privacy_title">Privacidad</string>
     <string name="privacy_body">Sin publicidad. El historial, las preferencias, las puntuaciones y la caché de definiciones quedan en el dispositivo. Al iniciar sesión con Google, las palabras también se guardan en tu cuenta.\n\nEn modo anónimo solo se envía el porcentaje para la media pública. La competición opcional usa el identificador, nombre y foto de Google para la clasificación semanal. Las definiciones pasan por s.pfa87.cc hacia Wikcionario.</string>
     <string name="hint_prefix">Palabras de la lista que empiezan así.</string>
@@ -106,14 +122,14 @@
     <string name="google_bad_token">Token de Google no válido</string>
     <string name="score_ranked">Puntuación clasificada</string>
     <string name="already_ranked">Ya estás en la clasificación de esta semana</string>
-    <string name="share_check_ok">Verimots\n\n*%1$s* está en la lista\n%2$d letras · %3$d ptos\nhttps://s.pfa87.cc/?w=%1$s</string>
-    <string name="share_check_no">Verimots\n\n*%1$s* no está en la lista\nhttps://s.pfa87.cc/?w=%1$s</string>
+    <string name="share_check_ok">Verimots · %5$s\n\n*%1$s* está en %5$s\n%2$d letras · %3$d ptos\n%4$shttps://s.pfa87.cc/?w=%1$s</string>
+    <string name="share_check_no">Verimots · %2$s\n\n*%1$s* no está en %2$s\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="share_game">Verimots — Reto\n\nEncuentra la palabra de mayor valor con:\n%1$s\n%2$shttps://s.pfa87.cc/?vue=jeu&amp;d=%3$s&amp;c=%4$s</string>
     <string name="share_game_score">He conseguido %1$d %%.\n</string>
     <string name="board_unavailable">Clasificación no disponible</string>
     <string name="trail_unavailable">Reto no disponible</string>
     <string name="need_connection">Se necesita conexión</string>
-    <string name="mode_kids">Niños</string>
+    <string name="mode_kids">Principiantes</string>
     <string name="kids_hint">Pista</string>
     <string name="kids_hint_letter">Una palabra empieza por %1$s</string>
     <string name="kids_hint_word">Prueba %1$s</string>
@@ -121,8 +137,20 @@
     <string name="kids_need">Una palabra con estas letras.</string>
     <string name="kids_cat">Encuentra una palabra</string>
     <string name="board_general">General</string>
-    <string name="kids_board">Niños</string>
-    <string name="kids_board_empty">Aún no hay puntuaciones infantiles.</string>
+    <string name="kids_board">Principiantes</string>
+    <string name="kids_board_empty">Aún no hay puntuaciones de principiantes.</string>
+    <string name="study">Estudio del día</string>
+    <string name="study_today">Hoy · %1$s</string>
+    <string name="study_pack">%1$s\n\n2 letras\n%2$s\n\n3 letras\n%3$s</string>
+    <string name="study_share">Compartir el estudio de hoy</string>
+    <string name="study_share_twos">Compartir las palabras de 2 letras</string>
+    <string name="share_study_daily">Verimots — Estudio del día · %1$s</string>
+    <string name="share_study_list">Verimots — palabras de %1$d letras (%2$d)\n\n%3$s\n</string>
+    <string name="share_study_word_body">Verimots\n\n*%1$s* está en la lista\n%2$d letras · %3$d ptos\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
+    <string name="dict_download">Descargar la lista</string>
+    <string name="dict_download_help">La lista exacta que usa el verificador, una palabra por línea.</string>
+    <string name="dict_downloading">Preparando la lista…</string>
+    <string name="dict_download_err">No se pudo exportar la lista.</string>
     <string name="hist_open">Historial</string>
     <string name="hist_clear">Borrar historial</string>
     <string name="hist_clear_confirm">¿Borrar todo el historial?</string>

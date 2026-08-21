@@ -76,6 +76,7 @@ const ES_BAG = {
 }
 let TILE_COUNTS = FR_BAG
 let currentLang = ''
+let currentDict = ''
 
 let pools = null
 
@@ -288,15 +289,29 @@ function matchFind(mode, q, filters = {}) {
   return out
 }
 
-async function load(lang = 'fr') {
-  const next = lang === 'en' || lang === 'es' ? lang : 'fr'
-  if (ready && currentLang === next) return words.length
+function normalizeDict(dict, lang) {
+  if (dict === 'yawl') return 'csw'
+  if (dict === 'ods' || dict === 'csw' || dict === 'wow24' || dict === 'rla') return dict
+  return lang === 'en' ? 'wow24' : lang === 'es' ? 'rla' : 'ods'
+}
+
+function dictLang(id) {
+  if (id === 'csw' || id === 'wow24') return 'en'
+  if (id === 'rla') return 'es'
+  return 'fr'
+}
+
+async function load(lang = 'fr', dict = '') {
+  const id = normalizeDict(dict, lang === 'en' || lang === 'es' ? lang : 'fr')
+  const next = dictLang(id)
+  if (ready && currentLang === next && currentDict === id) return words.length
   const files = {
-    fr: ['data/ods9.txt.gz', 'data/ods9.txt'],
-    en: ['data/yawl.txt.gz', 'data/yawl.txt'],
-    es: ['data/rla-es.txt.gz', 'data/rla-es.txt'],
+    ods: ['data/ods9.txt.gz', 'data/ods9.txt'],
+    csw: ['data/yawl.txt.gz', 'data/yawl.txt'],
+    wow24: ['data/wow24.txt.gz', 'data/wow24.txt'],
+    rla: ['data/rla-es.txt.gz', 'data/rla-es.txt'],
   }
-  const [file, plain] = files[next]
+  const [file, plain] = files[id]
   let res = await fetch(file, { cache: 'force-cache' })
   if (!res.ok) res = await fetch(plain, { cache: 'force-cache' })
   if (!res.ok) throw new Error('lexicon ' + res.status)
@@ -314,18 +329,20 @@ async function load(lang = 'fr') {
   TILE_COUNTS = next === 'en' ? EN_BAG : next === 'es' ? ES_BAG : FR_BAG
   pools = null
   currentLang = next
+  currentDict = id
   ready = true
   return words.length
 }
 
 async function handle(msg) {
   if (msg.type === 'load') {
-    const count = await load(msg.lang || 'fr')
-    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang })
+    const count = await load(msg.lang || 'fr', msg.dict || '')
+    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang, dict: currentDict })
     return
   }
   const want = ['fr', 'en', 'es'].includes(msg.lang) ? msg.lang : currentLang || 'fr'
-  if (!ready || currentLang !== want) await load(want)
+  const wantDict = normalizeDict(msg.dict, want)
+  if (!ready || currentLang !== want || currentDict !== wantDict) await load(want, wantDict)
   if (msg.type === 'check') {
     const word = String(msg.word || '').toUpperCase()
     const ok = wordSet.has(word)
@@ -336,13 +353,14 @@ async function handle(msg) {
       ok,
       score: ok ? scoreWord(word) : 0,
       lang: currentLang,
+      dict: currentDict,
     })
     return
   }
   if (msg.type === 'anagram') {
     const rack = String(msg.rack || '').toUpperCase()
     const groups = anagrams(rack, Number(msg.min) || 2, Number(msg.max) || rack.length || 15)
-    self.postMessage({ type: 'anagram', id: msg.id, groups, lang: currentLang })
+    self.postMessage({ type: 'anagram', id: msg.id, groups, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'kids') {
@@ -350,23 +368,34 @@ async function handle(msg) {
     const deal = rack.length >= 2
       ? { category: 'kids', rack, groups: kidsAnagrams(rack, want), seed: String(msg.seed || '') }
       : dealKids(want, Math.random, msg.excludeSeed)
-    self.postMessage({ type: 'kids', id: msg.id, ...deal, lang: currentLang })
+    self.postMessage({ type: 'kids', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'challenge') {
     const deal = dealChallenge(msg.excludeSeed, msg.excludeRack)
-    self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang })
+    self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'training') {
     const deal = dealTraining(msg.preset, msg.excludeSeed, msg.excludeRack)
-    self.postMessage({ type: 'training', id: msg.id, ...deal, lang: currentLang })
+    self.postMessage({ type: 'training', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'find') {
     const q = String(msg.q || '').toUpperCase()
     const wordsOut = matchFind(msg.mode, q, msg.filters)
-    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang })
+    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang, dict: currentDict })
+    return
+  }
+  if (msg.type === 'export') {
+    self.postMessage({
+      type: 'export',
+      id: msg.id,
+      text: words.join('\n') + (words.length ? '\n' : ''),
+      count: words.length,
+      lang: currentLang,
+      dict: currentDict,
+    })
     return
   }
   self.postMessage({ type: 'error', id: msg.id, error: 'unknown ' + msg.type, lang: currentLang })

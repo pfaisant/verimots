@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=68'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=75'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -219,6 +219,51 @@ export function defiShareText(rack, percent) {
   const tiles = [...rack].join(' ')
   const score = percent != null ? `\n${t('share_game_score', percent)}` : '\n'
   return `${t('share_game_title')}\n\n${t('share_game_body')}\n${tiles}\n${score}`
+}
+
+export const STUDY_TWOS = 10
+export const STUDY_THREES = 12
+
+export function utcDayIndex(date = new Date()) {
+  return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000)
+}
+
+export function dailyStudySlice(list, date = new Date(), size = 10) {
+  const words = Array.isArray(list) ? list : []
+  if (!words.length || size <= 0) return []
+  const take = Math.min(size, words.length)
+  const start = ((utcDayIndex(date) % words.length) + words.length) % words.length
+  const out = new Array(take)
+  for (let i = 0; i < take; i++) out[i] = words[(start + i) % words.length]
+  return out
+}
+
+export function lexiconFileName(id = getDict()) {
+  if (id === 'csw' || id === 'yawl') return 'verimots-en-csw.txt'
+  if (id === 'wow24') return 'verimots-en-wow24.txt'
+  if (id === 'rla') return 'verimots-es-rla.txt'
+  return 'verimots-fr-ods.txt'
+}
+
+export function studyDateLabel(date = new Date()) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${d}/${m}/${y}`
+}
+
+export function studyListText(words, len) {
+  const list = Array.isArray(words) ? words : []
+  return `${t('share_study_list', len, list.length)}\n\n${list.join(' · ')}\n`
+}
+
+export function dailyStudyText(twos, threes, date = new Date()) {
+  return `${t('share_study_daily', studyDateLabel(date))}\n\n${t('share_study_twos')}\n${(twos || []).join(' · ')}\n\n${t('share_study_threes')}\n${(threes || []).join(' · ')}\n`
+}
+
+export function studyWordText(word, score, def, link) {
+  const defLine = def ? `\n${def}\n` : '\n'
+  return `Verimots · ${dictLabel()}\n\n*${t('share_valid', word, dictLabel())}*\n${t('letters_pts', word.length, score)}${defLine}\n${link}`
 }
 
 export function isInflectionDef(text) {
@@ -524,6 +569,12 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return `https://wa.me/?text=${encodeURIComponent(text)}`
   }
 
+  function wordStudyUrl(word) {
+    const u = new URL(location.origin + location.pathname)
+    u.searchParams.set('w', word)
+    return u.toString()
+  }
+
   function paintShare(percent) {
     if (!waEl) return
     if (!rack) {
@@ -533,6 +584,14 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     waEl.classList.remove('is-off')
     waEl.href = waHref(percent)
+    waEl.setAttribute('aria-label', t('share_wa'))
+  }
+
+  function paintStudyShare(word, pts, def = '') {
+    if (!waEl || !word) return
+    waEl.classList.remove('is-off')
+    waEl.href = `https://wa.me/?text=${encodeURIComponent(studyWordText(word, pts, def, wordStudyUrl(word)))}`
+    waEl.setAttribute('aria-label', t('share_study_word'))
   }
 
   function paintChart(rows, kids) {
@@ -666,6 +725,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const requestId = ++dealSeq
     const requestMode = activeMode
     const requestLang = getLang()
+    const requestDict = getDict()
     stopTrainingTimer()
     dealPending = true
     trainingRoundReady = false
@@ -700,8 +760,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           excludeSeed: dealSeed,
           excludeRack: rack,
         })
-        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
-        if (res.lang && res.lang !== requestLang) throw new Error('stale')
+        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang() || requestDict !== getDict()) return
+        if ((res.lang && res.lang !== requestLang) || (res.dict && res.dict !== requestDict)) throw new Error('stale')
         if (!res?.rack) throw new Error('empty')
         tiles = res.rack
         cat = 'training'
@@ -712,8 +772,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         const res = wanted.length >= 2
           ? await ask('kids', { rack: wanted, seed: opts.seed || dealSeed || '' })
           : await ask('kids', { excludeSeed: dealSeed })
-        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
-        if (res.lang && res.lang !== requestLang) throw new Error('stale')
+        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang() || requestDict !== getDict()) return
+        if ((res.lang && res.lang !== requestLang) || (res.dict && res.dict !== requestDict)) throw new Error('stale')
         if (wanted.length >= 2) {
           tiles = wanted
           cat = 'kids'
@@ -727,15 +787,15 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         groups = res.groups || []
       } else if (wanted.length >= 2) {
         const res = await ask('anagram', { rack: wanted, min: 2, max: wanted.length })
-        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
-        if (res.lang && res.lang !== requestLang) throw new Error('stale')
+        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang() || requestDict !== getDict()) return
+        if ((res.lang && res.lang !== requestLang) || (res.dict && res.dict !== requestDict)) throw new Error('stale')
         tiles = wanted
         cat = forcedCat || ''
         groups = res.groups || []
       } else {
         const res = await ask('challenge', { excludeSeed: dealSeed, excludeRack: rack })
-        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
-        if (res.lang && res.lang !== requestLang) throw new Error('stale')
+        if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang() || requestDict !== getDict()) return
+        if ((res.lang && res.lang !== requestLang) || (res.dict && res.dict !== requestDict)) throw new Error('stale')
         if (!res?.rack) throw new Error('empty')
         tiles = res.rack
         cat = res.category || ''
@@ -743,14 +803,14 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         groups = res.groups || []
       }
     } catch {
-      if (requestId === dealSeq && requestMode === activeMode && requestLang === getLang()) {
+      if (requestId === dealSeq && requestMode === activeMode && requestLang === getLang() && requestDict === getDict()) {
         dealPending = false
         paintTrainingControls()
         setLive(t('deal_fail'))
       }
       return
     }
-    if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang()) return
+    if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang() || requestDict !== getDict()) return
     applyDeal(tiles, cat, groups, seed, trainingMeta)
     setLive('')
     input.disabled = false
@@ -980,7 +1040,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     setLive('')
     if (playKids) {
       rememberKidsFound()
-      if (waEl) waEl.classList.add('is-off')
+      paintStudyShare(hit.word, hit.pts)
       paintChart(rememberScore(percent, null, true))
       if (globalEl) globalEl.textContent = t('kids_found', loadKidsFound())
     } else {
@@ -1020,6 +1080,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       ? syncRankedScore(percent, hit.word, playContext)
       : null
     if (define) await showTop(tops[start]?.word)
+    if (playKids && isPlayContextCurrent(playContext)) {
+      const resolved = shown.get(tops[start]?.word)
+      paintStudyShare(hit.word, hit.pts, resolved?.payload?.senses?.[0]?.defs?.[0] || '')
+    }
     if (!isPlayContextCurrent(playContext)) return
     if (playContext.ranked) {
       await rankedPromise

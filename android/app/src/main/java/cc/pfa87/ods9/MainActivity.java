@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import androidx.core.content.FileProvider;
 import android.text.format.DateFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,7 +40,11 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -107,6 +112,13 @@ public class MainActivity extends Activity {
     private boolean advanced;
     private String findMode = "exact";
     private String lastShare;
+    private String lastPlayedWord = "";
+    private int lastPlayedPts;
+    private String lastPlayedDef = "";
+    private TextView aboutStudy;
+    private TextView aboutStudyShare;
+    private TextView aboutStudyTwos;
+    private TextView aboutDict;
     private View checkClear;
     private final Handler checkHandler = new Handler(Looper.getMainLooper());
     private int checkSeq;
@@ -184,6 +196,7 @@ public class MainActivity extends Activity {
         tabAbout = findViewById(R.id.tab_about);
         live = findViewById(R.id.live);
         brandSub = findViewById(R.id.brand_sub);
+        if (brandSub != null) brandSub.setOnClickListener(v -> showTab(3));
         tabCheck.setOnClickListener(v -> showTab(0));
         tabGame.setOnClickListener(v -> showTab(1));
         tabBoard.setOnClickListener(v -> showTab(2));
@@ -193,10 +206,12 @@ public class MainActivity extends Activity {
         advanced = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("advanced", false);
         paintBuildStamp();
         bindLang();
+        bindDicts();
         bindCheck();
         bindGame();
         bindAuth();
         bindAdvanced();
+        bindStudy();
         bindFeedback();
         paintAuth();
         paintHistory();
@@ -205,11 +220,11 @@ public class MainActivity extends Activity {
         setEnabled(false);
         new Thread(() -> {
             try {
-                lex = Lexicon.get(this, Lang.get(this));
+                lex = Lexicon.get(this, Dict.get(this));
                 runOnUiThread(() -> {
-                    java.util.Locale locale = new java.util.Locale(Lang.get(this));
-                    live.setText(getString(R.string.word_count, String.format(locale, "%,d", lex.size()).replace('\u00a0', ' ')));
+                    paintWordCount();
                     setEnabled(true);
+                    paintStudy();
                     applyIntent(getIntent());
                     if (tab == 1 && deal == null) requestDeal();
                 });
@@ -297,12 +312,62 @@ public class MainActivity extends Activity {
         stamp.setText(getString(R.string.build_stamp, name, code, BuildConfig.BUILD_TIME));
     }
 
+    private void bindDicts() {
+        View fr = findViewById(R.id.dict_fr);
+        View en = findViewById(R.id.dict_en);
+        View wow = findViewById(R.id.dict_wow24);
+        View es = findViewById(R.id.dict_es);
+        if (fr == null || en == null || wow == null || es == null) return;
+        fr.setOnClickListener(v -> setDictionary(Dict.ODS));
+        en.setOnClickListener(v -> setDictionary(Dict.CSW));
+        wow.setOnClickListener(v -> setDictionary(Dict.WOW24));
+        es.setOnClickListener(v -> setDictionary(Dict.RLA));
+        paintDicts();
+    }
+
+    private void paintDicts() {
+        View fr = findViewById(R.id.dict_fr);
+        View en = findViewById(R.id.dict_en);
+        View wow = findViewById(R.id.dict_wow24);
+        View es = findViewById(R.id.dict_es);
+        if (fr == null || en == null || wow == null || es == null) return;
+        String dict = Dict.get(this);
+        styleDictRow(fr, Dict.ODS.equals(dict));
+        styleDictRow(en, Dict.CSW.equals(dict));
+        styleDictRow(wow, Dict.WOW24.equals(dict));
+        styleDictRow(es, Dict.RLA.equals(dict));
+        paintDictBadge();
+    }
+
+    private void paintDictBadge() {
+        if (brandSub == null) return;
+        String label = Dict.label(this);
+        brandSub.setText(label);
+        brandSub.setContentDescription(getString(R.string.dict_open) + " · " + label);
+    }
+
+    private void paintWordCount() {
+        if (lex == null || live == null) return;
+        java.util.Locale locale = new java.util.Locale(Lang.get(this));
+        live.setText(getString(
+                R.string.word_count,
+                String.format(locale, "%,d", lex.size()).replace('\u00a0', ' '),
+                Dict.label(this)));
+        paintDictBadge();
+    }
+
+    private void styleDictRow(View row, boolean on) {
+        row.setBackgroundResource(on ? R.drawable.bg_chip_on : R.drawable.bg_chip);
+        row.setSelected(on);
+    }
+
     private void bindLang() {
         TextView fr = findViewById(R.id.lang_fr);
         TextView en = findViewById(R.id.lang_en);
         TextView es = findViewById(R.id.lang_es);
         if (fr == null || en == null || es == null) return;
         paintLangToggle(fr, en, es);
+        paintDicts();
         fr.setOnClickListener(v -> setLang(Lang.FR));
         en.setOnClickListener(v -> setLang(Lang.EN));
         es.setOnClickListener(v -> setLang(Lang.ES));
@@ -323,8 +388,40 @@ public class MainActivity extends Activity {
 
     private void setLang(String lang) {
         if (lang.equals(Lang.get(this))) return;
+        Dict.syncFromLang(this, lang);
         Lang.set(this, lang);
         if (Build.VERSION.SDK_INT < 33) recreate();
+    }
+
+    private void setDictionary(String dict) {
+        if (dict.equals(Dict.get(this))) return;
+        String nextLang = Dict.langOf(dict);
+        Dict.set(this, dict);
+        paintDicts();
+        if (!nextLang.equals(Lang.get(this))) {
+            Lang.set(this, nextLang);
+            if (Build.VERSION.SDK_INT < 33) recreate();
+            return;
+        }
+        reloadLexicon();
+    }
+
+    private void reloadLexicon() {
+        setEnabled(false);
+        live.setText(R.string.loading);
+        new Thread(() -> {
+            try {
+                lex = Lexicon.get(this, Dict.get(this));
+                runOnUiThread(() -> {
+                    paintWordCount();
+                    setEnabled(true);
+                    paintStudy();
+                    if (tab == 1) requestDeal();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> live.setText(R.string.lex_unavailable));
+            }
+        }).start();
     }
 
     private String fmtAvg(boolean has, double avg) {
@@ -366,12 +463,7 @@ public class MainActivity extends Activity {
         styleTab(tabGame, which == 1);
         styleTab(tabBoard, which == 2);
         styleTab(tabAbout, which == 3);
-        brandSub.setText(which == 1
-                ? getString(isKidsMode ? R.string.mode_kids
-                        : isCompetitiveMode ? R.string.competition
-                        : isTrainingMode ? R.string.training : R.string.challenge)
-                : which == 2 ? getString(R.string.daily_board)
-                : which == 3 ? getString(R.string.tab_about_sub) : getString(R.string.brand_sub));
+        paintDictBadge();
         if (which == 2) {
             boardKidsTab = isKidsMode;
             styleBoardTabs();
@@ -568,7 +660,9 @@ public class MainActivity extends Activity {
         boolean ok = lex.has(word);
         int pts = ok ? lex.score(word, null) : 0;
         checkCard.setVisibility(View.VISIBLE);
-        checkStatus.setText(ok ? R.string.playable : R.string.not_in_list);
+        checkStatus.setText(ok
+                ? getString(R.string.playable, Dict.label(this))
+                : getString(R.string.not_in_list, Dict.label(this)));
         checkStatus.setTextColor(getColor(ok ? R.color.ok : R.color.no));
         checkWord.setText(word);
         Tiles.fill(checkTiles, word, null, null);
@@ -579,8 +673,8 @@ public class MainActivity extends Activity {
         checkWiki.setVisibility(View.GONE);
         checkShare.setVisibility(View.VISIBLE);
         lastShare = ok
-                ? getString(R.string.share_check_ok, word, word.length(), pts)
-                : getString(R.string.share_check_no, word);
+                ? getString(R.string.share_check_ok, word, word.length(), pts, "", Dict.label(this))
+                : getString(R.string.share_check_no, word, Dict.label(this));
         if (!ok) {
             checkHandler.removeCallbacksAndMessages(null);
             return;
@@ -598,6 +692,8 @@ public class MainActivity extends Activity {
                 paintDef(checkDef, checkLemma, text, lemma, wanted);
                 checkWiki.setVisibility(View.VISIBLE);
                 checkWiki.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
+                String def = text == null || text.isEmpty() ? "" : text + "\n";
+                lastShare = getString(R.string.share_check_ok, wanted, wanted.length(), pts, def, Dict.label(this));
             }
 
             @Override
@@ -946,6 +1042,120 @@ public class MainActivity extends Activity {
             });
         }
         paintModes();
+    }
+
+    private void bindStudy() {
+        aboutStudy = findViewById(R.id.about_study);
+        aboutStudyShare = findViewById(R.id.about_study_share);
+        aboutStudyTwos = findViewById(R.id.about_study_twos);
+        aboutDict = findViewById(R.id.about_dict);
+        if (aboutStudyShare != null) aboutStudyShare.setOnClickListener(v -> shareDailyStudy());
+        if (aboutStudyTwos != null) aboutStudyTwos.setOnClickListener(v -> shareTwoLetterList());
+        if (aboutDict != null) aboutDict.setOnClickListener(v -> exportLexicon());
+        paintStudy();
+    }
+
+    private String studyDate() {
+        Calendar cal = Calendar.getInstance();
+        int d = cal.get(Calendar.DAY_OF_MONTH);
+        int m = cal.get(Calendar.MONTH) + 1;
+        int y = cal.get(Calendar.YEAR);
+        return String.format(java.util.Locale.US, "%02d/%02d/%d", d, m, y);
+    }
+
+    private void paintStudy() {
+        if (aboutStudy == null) return;
+        if (lex == null) {
+            aboutStudy.setText(R.string.loading);
+            return;
+        }
+        Calendar cal = Calendar.getInstance();
+        List<String> twos = Lexicon.dailyStudySlice(
+                lex.wordsOfLength(2),
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH),
+                10);
+        List<String> threes = Lexicon.dailyStudySlice(
+                lex.wordsOfLength(3),
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH),
+                12);
+        aboutStudy.setText(getString(
+                R.string.study_pack,
+                getString(R.string.study_today, studyDate()),
+                Lexicon.joinWords(twos),
+                Lexicon.joinWords(threes)));
+    }
+
+    private void shareDailyStudy() {
+        if (lex == null) return;
+        Calendar cal = Calendar.getInstance();
+        List<String> twos = Lexicon.dailyStudySlice(
+                lex.wordsOfLength(2),
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH),
+                10);
+        List<String> threes = Lexicon.dailyStudySlice(
+                lex.wordsOfLength(3),
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH),
+                12);
+        share(getString(
+                R.string.share_study_daily,
+                studyDate()) + "\n\n" + getString(
+                R.string.study_pack,
+                "",
+                Lexicon.joinWords(twos),
+                Lexicon.joinWords(threes)).trim() + "\n");
+    }
+
+    private void shareTwoLetterList() {
+        if (lex == null) return;
+        List<String> twos = lex.wordsOfLength(2);
+        share(getString(R.string.share_study_list, 2, twos.size(), Lexicon.joinWords(twos)));
+    }
+
+    private void exportLexicon() {
+        if (lex == null) {
+            Toast.makeText(this, R.string.lex_unavailable, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (aboutDict != null) {
+            aboutDict.setEnabled(false);
+            aboutDict.setText(R.string.dict_downloading);
+        }
+        new Thread(() -> {
+            try {
+                File out = new File(getCacheDir(), Lexicon.exportFileName(Dict.get(this)));
+                try (FileOutputStream fos = new FileOutputStream(out)) {
+                    fos.write(lex.exportText().getBytes(StandardCharsets.UTF_8));
+                }
+                Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".files", out);
+                runOnUiThread(() -> {
+                    Intent i = new Intent(Intent.ACTION_SEND);
+                    i.setType("text/plain");
+                    i.putExtra(Intent.EXTRA_STREAM, uri);
+                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(i, getString(R.string.dict_download)));
+                    if (aboutDict != null) {
+                        aboutDict.setEnabled(true);
+                        aboutDict.setText(R.string.dict_download);
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.dict_download_err, Toast.LENGTH_SHORT).show();
+                    if (aboutDict != null) {
+                        aboutDict.setEnabled(true);
+                        aboutDict.setText(R.string.dict_download);
+                    }
+                });
+            }
+        }).start();
     }
 
     private void addJoker() {
@@ -1448,6 +1658,9 @@ public class MainActivity extends Activity {
         pendingRankedWord = "";
         deal = next;
         closed = false;
+        lastPlayedWord = "";
+        lastPlayedPts = 0;
+        lastPlayedDef = "";
         trainingFound.clear();
         trainingRecorded = false;
         stopTrainingTimer();
@@ -1584,7 +1797,12 @@ public class MainActivity extends Activity {
         showDef(tops.get(start).word);
         List<Integer> scores = ScoreStore.add(this, percent, isKidsMode);
         paintChart(scores);
-        if (!isKidsMode && !isCompetitiveMode) {
+        if (isKidsMode) {
+            lastPlayedWord = hit.word;
+            lastPlayedPts = hit.pts();
+            lastPlayedDef = "";
+            paintShare(percent);
+        } else if (!isCompetitiveMode) {
             paintShare(percent);
             RemoteApi.postScore(percent, (has, avg) -> {
                 publicAverageHas = has;
@@ -1690,6 +1908,10 @@ public class MainActivity extends Activity {
             public void ok(String pos, String text, String url, String lemma) {
                 gamePos.setText(pos);
                 paintDef(gameDef, gameLemma, text, lemma, word);
+                if (isKidsMode && word.equals(lastPlayedWord)) {
+                    lastPlayedDef = text == null ? "" : text;
+                    paintShare(null);
+                }
             }
 
             @Override
@@ -1702,8 +1924,18 @@ public class MainActivity extends Activity {
     }
 
     private void paintShare(Integer percent) {
-        if (deal == null) {
+        if (deal == null || isTrainingMode) {
             gameWa.setVisibility(View.INVISIBLE);
+            return;
+        }
+        if (isKidsMode) {
+            if (closed && lastPlayedWord != null && !lastPlayedWord.isEmpty()) {
+                String def = lastPlayedDef == null || lastPlayedDef.isEmpty() ? "" : lastPlayedDef;
+                waText = getString(R.string.share_study_word_body, lastPlayedWord, lastPlayedWord.length(), lastPlayedPts, def);
+                gameWa.setVisibility(View.VISIBLE);
+            } else {
+                gameWa.setVisibility(View.INVISIBLE);
+            }
             return;
         }
         StringBuilder tiles = new StringBuilder();
@@ -1713,7 +1945,7 @@ public class MainActivity extends Activity {
         }
         String score = percent != null ? getString(R.string.share_game_score, percent) : "\n";
         waText = getString(R.string.share_game, tiles.toString(), score, deal.rack, deal.category);
-        gameWa.setVisibility(isKidsMode || isTrainingMode ? View.INVISIBLE : View.VISIBLE);
+        gameWa.setVisibility(View.VISIBLE);
     }
 
     private void paintChart() {

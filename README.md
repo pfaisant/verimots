@@ -3,7 +3,9 @@
 Offline French, English and Spanish word checker, rack search and letter challenge.
 Web at [s.pfa87.cc](https://s.pfa87.cc/) and native Android (`cc.pfa87.verimots`).
 
-The bundled word list is community-maintained. Verimots is not Larousse, Mattel or any federation.
+The bundled word lists are community-maintained. Verimots is not Larousse, Mattel, WGPO or any federation.
+
+English has two lists in Settings: a community list following CSW (YAWL, the closest public-domain match — not official Collins) and WGPO Official Words 2024 (WOW24). Official CSW is HarperCollins copyright and is not bundled. New English sessions default to WOW24.
 
 ## Layout
 
@@ -32,6 +34,11 @@ Needs a JDK 17, Android SDK, and the release keystore at `~/.config/aiconglomera
 
 Play package: `cc.pfa87.verimots`. Listing copy and icons are in `android/play/`.
 
+## English lexicons
+
+- CSW stand-in (YAWL): `node scripts/build-en-lexicon.mjs`
+- WGPO WOW24: `node scripts/build-wow24-lexicon.mjs`
+
 ## Spanish lexicon
 
 Spanish uses the MPL-1.1 RLA-ES dictionary, normalized for single-letter word-game
@@ -50,3 +57,6 @@ See `THIRD_PARTY_NOTICES.md` for attribution and transformation details.
 - https://s.pfa87.cc/privacy.html
 - https://s.pfa87.cc/privacidad.html
 - https://s.pfa87.cc/support.html
+- https://verimots.pfa87.cc/dictionnaires.html
+- https://verimots.pfa87.cc/dictionaries.html
+- https://verimots.pfa87.cc/diccionarios.html

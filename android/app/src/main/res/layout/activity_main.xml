@@ -42,9 +42,12 @@
                 android:id="@+id/brand_sub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/brand_sub"
-                android:textColor="@color/dim"
+                android:text="@string/dict_using_ods"
+                android:textColor="@color/gold"
                 android:textSize="12sp" />
         </LinearLayout>
 
