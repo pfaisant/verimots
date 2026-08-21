@@ -1,7 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, lexiconFileName, STUDY_TWOS, STUDY_THREES } from './game.js?v=75'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=75'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, lexiconFileName, STUDY_TWOS, STUDY_THREES } from './game.js?v=76'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=76'
 import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=68'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t } from './i18n.js?v=75'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t } from './i18n.js?v=76'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -56,7 +56,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=75', { type: 'module' })
+const worker = new Worker('worker.js?v=76', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -1320,7 +1320,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=75').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=76').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

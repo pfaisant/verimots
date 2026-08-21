@@ -1,4 +1,4 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=75'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=76'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
