@@ -1267,6 +1267,7 @@ body.view-board .game-dock { display: flex; }
   stroke: var(--gold);
   stroke-width: 1.2;
 }
+.game-chart-avg,
 .game-chart-last {
   flex: 0 0 auto;
   color: var(--gold);
@@ -1275,6 +1276,19 @@ body.view-board .game-dock { display: flex; }
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
+}
+.game-chart-avg {
+  text-align: right;
+  min-width: 2.4em;
+}
+.game-chart-avg small {
+  display: block;
+  margin-top: 2px;
+  color: var(--dim);
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 .game-chart-last small {
   display: block;

@@ -1,5 +1,6 @@
 package cc.pfa87.ods9;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -22,6 +23,7 @@ final class RemoteApi {
     private static final ExecutorService IO = Executors.newCachedThreadPool();
     private static final Handler UI = new Handler(Looper.getMainLooper());
     private static String sessionToken = "";
+    private static String appLabel = "";
 
     private static String language(String lang) {
         return "en".equals(lang) || "es".equals(lang) ? lang : "fr";
@@ -29,6 +31,11 @@ final class RemoteApi {
 
     static void setSessionToken(String token) {
         sessionToken = token == null ? "" : token;
+    }
+
+    static void setAppLabel(String versionName, int versionCode) {
+        String name = versionName == null || versionName.isEmpty() ? "?" : versionName;
+        appLabel = name + " (" + versionCode + ")";
     }
 
     interface DefCb {
@@ -141,6 +148,14 @@ final class RemoteApi {
                 body.put("email", email == null ? "" : email);
                 body.put("lang", language(lang));
                 body.put("source", "android");
+                if (appLabel != null && !appLabel.isEmpty()) body.put("app", appLabel);
+                String maker = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.trim();
+                String model = Build.MODEL == null ? "" : Build.MODEL.trim();
+                String device = (maker + " " + model).trim();
+                if (!device.isEmpty()) {
+                    String release = Build.VERSION.RELEASE == null ? "" : Build.VERSION.RELEASE;
+                    body.put("device", release.isEmpty() ? device : device + " · Android " + release);
+                }
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/feedback").openConnection();
                 auth(c);
                 c.setConnectTimeout(8000);
@@ -399,6 +414,7 @@ final class RemoteApi {
                 if (word != null && !word.isEmpty()) payload.put("word", word);
                 payload.put("lang", language(lang));
                 if (kids) payload.put("kids", true);
+                if (rack != null && !rack.isEmpty()) payload.put("rack", rack);
                 byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
                 try (OutputStream os = c.getOutputStream()) {
                     os.write(body);

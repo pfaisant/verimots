@@ -79,6 +79,8 @@
     <string name="training_new">Nouveau tirage</string>
     <string name="avg_empty">Score moyen —</string>
     <string name="avg_score">Score moyen %1$s %%</string>
+    <string name="chart_avg">moy.</string>
+    <string name="board_score">%1$s · %2$s</string>
     <string name="mode_exact">Exact</string>
     <string name="mode_prefix">Début</string>
     <string name="mode_suffix">Fin</string>

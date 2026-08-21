@@ -10,6 +10,9 @@ import {
   playPercent,
   formatAverage,
   formatBoardPercent,
+  formatChartAverage,
+  averageScore,
+  boardScoreHtml,
   parseRack,
   defiShareText,
   dailyStudySlice,
@@ -33,7 +36,7 @@ import {
   usedTiles,
 } from '../web/game.js'
 import { loadHistory, rememberWord, historyLabel, clearHistory } from '../web/history.js'
-import { kidsWords } from '../web/kids.js'
+import { kidsWords, kidsLong } from '../web/kids.js'
 import { competeAccepted } from '../web/competitive.js'
 import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js'
 
@@ -62,6 +65,14 @@ test('score moyen uses a French decimal comma', () => {
   assert.equal(formatAverage(null), 'Score moyen —')
   assert.equal(formatBoardPercent(38.5), '38,5%')
   assert.equal(formatBoardPercent(100), '100,0%')
+  assert.equal(formatChartAverage(38.5), '38,5')
+  assert.equal(averageScore([{ p: 40 }, { p: 80 }]), 60)
+  assert.equal(averageScore([{ p: 100 }, { p: 70 }, { p: 80 }]), 83.3)
+  assert.equal(averageScore([]), null)
+  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /58,0%/)
+  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /9 parties/)
+  assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /100,0%/)
+  assert.doesNotMatch(boardScoreHtml({ percent: 100, plays: 1 }), /partie/)
 })
 
 test('shared rack is letters only', () => {
@@ -602,6 +613,14 @@ test('leaderboard stores the server score for the official weekly word', async (
   const history = await apiRequest('GET', '/api/game/history', cookie)
   const savedWord = history.body.history.find((row) => row.word === worse.word)
   assert.equal(savedWord.pts, scored.pts)
+
+  if (worse.word !== best.word) {
+    const improved = await postCompete(cookie, { percent: 100, word: best.word, lang: 'fr' })
+    const mean = Math.round((10 * (scored.percent + 100)) / 2) / 10
+    assert.equal(improved.ok, true)
+    assert.equal(improved.plays, 2)
+    assert.equal(improved.percent, mean)
+  }
 })
 
 test('concurrent board reads cannot erase a ranked submission', async () => {
@@ -914,7 +933,7 @@ test('kids weekly trail is a long easy word and a separate board', async () => {
   assert.equal(board.kids, true)
 })
 
-test('kids competition only accepts the official restricted deal once', async () => {
+test('kids competition averages later plays and rejects arbitrary racks', async () => {
   resetGameStatsForTests(
     join(dir, 'kids-update.json'),
     join(dir, 'kids-update-salt.txt'),
@@ -966,8 +985,23 @@ test('kids competition only accepts the official restricted deal once', async ()
     kids: true,
     rack: trail.rack,
   })
-  assert.equal(again.ok, false)
-  assert.equal(again.error, 'already_submitted')
+  const second = await scoreOfficialPlay(trail.trailId, plays[0].word)
+  const mean = Math.round((10 * (scored.percent + second.percent)) / 2) / 10
+  assert.equal(again.ok, true)
+  assert.equal(again.plays, 2)
+  assert.equal(again.percent, mean)
+
+  const extraSeed = kidsLong('fr').find((word) => word !== trail.seed)
+  assert.ok(extraSeed)
+  const extra = await postCompete(cookie, {
+    percent: 0,
+    word: extraSeed,
+    lang: 'fr',
+    kids: true,
+    rack: extraSeed,
+  })
+  assert.equal(extra.ok, true)
+  assert.equal(extra.plays, 3)
   const boardOut = collectRes()
   await handleOdsGame(
     { method: 'GET', headers: { cookie } },
@@ -977,10 +1011,10 @@ test('kids competition only accepts the official restricted deal once', async ()
   )
   const board = boardOut.body()
   assert.equal(board.kids, true)
-  assert.equal(board.me.word, first.word)
-  assert.equal(board.me.percent, scored.percent)
-  assert.equal(board.me.plays, 1)
-  assert.equal(board.top[0].percent, scored.percent)
+  assert.equal(board.me.word, extraSeed)
+  assert.equal(board.me.plays, 3)
+  assert.equal(board.me.percent, extra.percent)
+  assert.equal(board.top[0].percent, extra.percent)
 })
 
 async function postFeedback(payload) {

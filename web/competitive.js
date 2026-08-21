@@ -195,6 +195,7 @@ export async function submitCompete(percent, word, lang, opts = {}) {
         word,
         lang: language(lang),
         kids: !!opts.kids,
+        rack: opts.rack ? String(opts.rack).toUpperCase() : undefined,
       }),
     })
     const data = await res.json()

@@ -79,6 +79,8 @@
     <string name="training_new">New rack</string>
     <string name="avg_empty">Average —</string>
     <string name="avg_score">Average %1$s%%</string>
+    <string name="chart_avg">avg</string>
+    <string name="board_score">%1$s · %2$s</string>
     <string name="mode_exact">Exact</string>
     <string name="mode_prefix">Starts</string>
     <string name="mode_suffix">Ends</string>

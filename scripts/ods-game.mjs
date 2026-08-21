@@ -24,6 +24,16 @@ import { gunzipSync } from 'node:zlib'
 import { OAuth2Client } from 'google-auth-library'
 import { kidsAnagrams, kidsLong } from '../web/kids.js'
 
+function flagEmoji() {
+  return ''
+}
+function ipInfo() {
+  return {}
+}
+async function enrichIpInfo(geo) {
+  return geo || {}
+}
+
 let FILE =
   process.env.ODS9_GAME_FILE ||
   join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-game.json')
@@ -43,6 +53,9 @@ let AUTH_DB_FILE =
 let FEEDBACK_FILE =
   process.env.ODS9_FEEDBACK_FILE ||
   join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-feedback.jsonl')
+let SIGNUP_FILE =
+  process.env.ODS9_SIGNUP_FILE ||
+  join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-signup.jsonl')
 const FEEDBACK_TO = process.env.ODS9_FEEDBACK_TO || 'pfanokif@gmail.com'
 const MAIL_RELAY_URL = process.env.MAIL_RELAY_URL || 'http://127.0.0.1:8790/send'
 let skipFeedbackMail = false
@@ -362,14 +375,7 @@ async function generateTrail(trailId) {
       const pool = await loadKidsLong(lang)
       const hiddenSeed = pickWord(pool)
       const rack = shuffleWord(hiddenSeed)
-      const groups = kidsAnagrams(rack, lang).map((group) => ({
-        ...group,
-        words: group.words.map((entry) => ({
-          ...entry,
-          score: scoreWord(entry.word, new Set(), values),
-        })),
-      }))
-      return { trailId, category: 'kids', rack, groups, seed: hiddenSeed }
+      return { trailId, category: 'kids', rack, groups: kidsCatalog(rack, lang, values), seed: hiddenSeed }
     }
 
     // Build pools
@@ -476,6 +482,26 @@ function catalogFromGroups(groups) {
   return list
 }
 
+function kidsCatalog(rack, lang, values) {
+  return kidsAnagrams(rack, lang).map((group) => ({
+    ...group,
+    words: group.words.map((entry) => ({
+      ...entry,
+      score: scoreWord(entry.word, new Set(), values),
+    })),
+  }))
+}
+
+function sortedLetters(word) {
+  return [...String(word || '')].sort().join('')
+}
+
+function isKidsDealRack(lang, rack) {
+  const key = sortedLetters(rack)
+  if (key.length < 2) return false
+  return kidsLong(lang).some((word) => sortedLetters(word) === key)
+}
+
 export async function officialPlays(trailId) {
   const trail = await getTrail(trailId)
   const lang = trailLang(trailId)
@@ -527,6 +553,34 @@ export async function scorePlayOnRack(lang, rackRaw, word) {
   const values = valuesFor(lang)
   const plays = catalogFromGroups(anagrams(rack, byLen, values))
   return scoreFromPlays(plays, form, { lang, rack })
+}
+
+export async function scoreKidsPlayOnRack(lang, rackRaw, word) {
+  lang = parseLang(lang)
+  const rack = String(rackRaw || '')
+    .toUpperCase()
+    .replace(/[^A-ZÑ?]/g, '')
+    .slice(0, 7)
+  const form = String(word || '')
+    .toUpperCase()
+    .replace(/[^A-ZÑ]/g, '')
+  if (rack.length < 2 || form.length < 2 || form.length > rack.length) return { ok: false, error: 'not_playable' }
+  if (!isKidsDealRack(lang, rack)) return { ok: false, error: 'not_playable' }
+  return scoreFromPlays(catalogFromGroups(kidsCatalog(rack, lang, valuesFor(lang))), form, { lang, rack })
+}
+
+async function scoreCompetePlay(trailId, word, opts = {}) {
+  const official = await scoreOfficialPlay(trailId, word)
+  if (official.ok) return official
+  const rack = String(opts.rack || '')
+    .toUpperCase()
+    .replace(/[^A-ZÑ?]/g, '')
+    .slice(0, 7)
+  if (rack.length < 2) return official
+  const lang = opts.lang || trailLang(trailId)
+  return trailKids(trailId) || opts.kids
+    ? scoreKidsPlayOnRack(lang, rack, word)
+    : scorePlayOnRack(lang, rack, word)
 }
 
 // ========== Anonymous game stats (unchanged) ==========
@@ -615,19 +669,95 @@ async function persistFeedback(row) {
   await appendFile(FEEDBACK_FILE, JSON.stringify(row) + '\n', { mode: 0o600 })
 }
 
-async function mailFeedback(row) {
+async function persistSignup(row) {
+  await mkdir(dirname(SIGNUP_FILE), { recursive: true, mode: 0o700 })
+  await appendFile(SIGNUP_FILE, JSON.stringify(row) + '\n', { mode: 0o600 })
+}
+
+function placeLine(row) {
+  const flag = flagEmoji(row.country)
+  return [flag, row.countryName || row.country, row.region, row.city].filter(Boolean).join(' · ')
+}
+
+function formatWhen(iso) {
+  const d = new Date(iso || Date.now())
+  if (Number.isNaN(d.getTime())) return String(iso || '')
+  return d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+}
+
+function mailSnippet(text, max = 56) {
+  const one = String(text || '').replace(/\s+/g, ' ').trim()
+  if (!one) return ''
+  return one.length > max ? `${one.slice(0, max - 1)}…` : one
+}
+
+function geoMetaLines(row) {
+  const place = placeLine(row)
+  return [
+    place ? `Place: ${place}` : '',
+    row.isp ? `Network: ${row.isp}` : '',
+    row.ip ? `IP: ${row.ip}` : '',
+    row.ua ? `UA: ${row.ua}` : '',
+    row.acceptLang ? `Accept-Language: ${row.acceptLang}` : '',
+  ].filter(Boolean)
+}
+
+export function formatFeedbackMail(row) {
+  const meta = [
+    row.email ? `Reply-to: ${row.email}` : 'Reply-to: (none)',
+    row.account ? `Account: ${row.account}` : '',
+    row.name && row.name !== row.account ? `Name: ${row.name}` : '',
+    `When: ${formatWhen(row.at)}`,
+    `Lang: ${row.lang || 'fr'}`,
+    `Source: ${row.source || 'web'}`,
+    row.app ? `App: ${row.app}` : '',
+    row.device ? `Device: ${row.device}` : '',
+    row.page ? `Page: ${row.page}` : '',
+    ...geoMetaLines(row),
+  ].filter(Boolean)
+  return [row.message || '', '', ...meta].join('\n')
+}
+
+export function formatSignupMail(row) {
+  return [
+    `Email: ${row.email}`,
+    `Play beta: ${row.beta ? 'yes' : 'no'}`,
+    `Newsletter: ${row.newsletter ? 'yes' : 'no'}`,
+    `When: ${formatWhen(row.at)}`,
+    `Lang: ${row.lang || 'fr'}`,
+    `Source: ${row.source || 'landing'}`,
+    ...geoMetaLines(row),
+  ].join('\n')
+}
+
+function feedbackSubject(row) {
+  const where = [row.lang, row.source, row.country].filter(Boolean).join('/')
+  const bit = mailSnippet(row.message)
+  return bit ? `Verimots feedback (${where}): ${bit}` : `Verimots feedback (${where})`
+}
+
+async function requestContext(req) {
+  const geo = await enrichIpInfo(ipInfo(req))
+  return {
+    ip: geo.ip || clientIp(req),
+    country: geo.country || '',
+    countryName: geo.countryName || '',
+    region: geo.region || '',
+    city: geo.city || '',
+    isp: geo.isp || geo.org || geo.asName || '',
+    ua: cleanFeedbackText(req.headers['user-agent'], 180),
+    acceptLang: cleanFeedbackText(req.headers['accept-language'], 80),
+  }
+}
+
+async function mailSignup(row) {
   if (skipFeedbackMail) return { mailed: false, skipped: true }
   const secret = mailRelaySecret()
   if (!secret) return { mailed: false, skipped: true }
-  const bits = [
-    row.message,
-    '',
-    row.email ? `Reply-to: ${row.email}` : 'Reply-to: (none)',
-    row.name ? `Name: ${row.name}` : '',
-    `Lang: ${row.lang}`,
-    `Source: ${row.source}`,
-    row.ip ? `IP: ${row.ip}` : '',
-  ].filter(Boolean)
+  const kinds = []
+  if (row.beta) kinds.push('Play beta')
+  if (row.newsletter) kinds.push('newsletter')
+  const place = row.country || row.countryName || ''
   const res = await fetch(MAIL_RELAY_URL, {
     method: 'POST',
     headers: {
@@ -636,8 +766,34 @@ async function mailFeedback(row) {
     },
     body: JSON.stringify({
       to: [FEEDBACK_TO],
-      subject: 'Verimots feedback',
-      text: bits.join('\n'),
+      subject: `Verimots signup (${kinds.join(' + ') || 'email'}${place ? ` · ${place}` : ''}): ${row.email}`,
+      text: formatSignupMail(row),
+      replyTo: row.email,
+      fromName: 'Verimots',
+    }),
+    signal: AbortSignal.timeout(12_000),
+  })
+  if (!res.ok) {
+    const err = await res.text().catch(() => '')
+    throw new Error(`mail ${res.status} ${err.slice(0, 180)}`)
+  }
+  return { mailed: true }
+}
+
+async function mailFeedback(row) {
+  if (skipFeedbackMail) return { mailed: false, skipped: true }
+  const secret = mailRelaySecret()
+  if (!secret) return { mailed: false, skipped: true }
+  const res = await fetch(MAIL_RELAY_URL, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${secret}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: [FEEDBACK_TO],
+      subject: feedbackSubject(row),
+      text: formatFeedbackMail(row),
       replyTo: row.email || '',
       fromName: 'Verimots',
     }),
@@ -761,7 +917,7 @@ function sortBoard(board) {
   })
 }
 
-async function recordCompete(trailId, sub, pseudo, scored, opts = {}) {
+async function recordCompete(trailId, sub, pseudo, scored) {
   return withBoardLock(async () => {
   await loadLeaderboards()
   if (!leaderboards[trailId]) {
@@ -771,7 +927,6 @@ async function recordCompete(trailId, sub, pseudo, scored, opts = {}) {
   const idx = board.entries.findIndex((e) => e.sub === sub)
   const stamp = new Date().toISOString()
   if (idx >= 0) {
-    if (!opts.replace) return { ok: false, error: 'already_submitted' }
     const prev = board.entries[idx]
     const plays = (Number(prev.plays) || 1) + 1
     const sumPercent = (Number(prev.sumPercent) || Number(prev.percent) || 0) + scored.percent
@@ -1160,7 +1315,11 @@ export async function handleOdsGame(req, res, url, helpers) {
         json(res, 401, { ok: false, error: 'user_not_found' }, {}, req.method)
         return true
       }
-      const scored = await scoreOfficialPlay(trailId, word)
+      const rack = String(body.rack || '')
+        .toUpperCase()
+        .replace(/[^A-ZÑ?]/g, '')
+        .slice(0, 7)
+      const scored = await scoreCompetePlay(trailId, word, { lang, kids, rack })
       if (!scored.ok) {
         json(res, 400, scored, { 'Cache-Control': 'no-store' }, req.method)
         return true
@@ -1315,14 +1474,21 @@ export async function handleOdsGame(req, res, url, helpers) {
         json(res, 400, { ok: false, error: 'bad_email' }, {}, req.method)
         return true
       }
+      const ctx = await requestContext(req)
+      const me = await getMe(getSessionFromRequest(req))
       const row = {
         at: new Date().toISOString(),
         message,
         email: email || '',
-        name: cleanFeedbackText(body.name, 80),
+        name: cleanFeedbackText(body.name, 80) || me?.name || '',
+        account: me?.name || '',
         lang: parseLang(body.lang),
         source: cleanFeedbackText(body.source, 40) || 'web',
-        ip,
+        app: cleanFeedbackText(body.app || body.version, 60),
+        device: cleanFeedbackText(body.device, 80),
+        page: cleanFeedbackText(body.page || body.path, 160),
+        ...ctx,
+        ip: ctx.ip || ip,
       }
       await persistFeedback(row)
       try {
@@ -1333,6 +1499,60 @@ export async function handleOdsGame(req, res, url, helpers) {
         return true
       }
       json(res, 200, { ok: true }, { 'Cache-Control': 'no-store' }, req.method)
+    } catch {
+      json(res, 400, { ok: false, error: 'invalid' }, {}, req.method)
+    }
+    return true
+  }
+
+  if (path === '/api/game/signup') {
+    if (req.method !== 'POST') {
+      json(res, 405, { ok: false, error: 'POST only' }, {}, req.method)
+      return true
+    }
+    const ip = clientIp(req)
+    if (!allowFeedbackRate(ip)) {
+      json(res, 429, { ok: false, error: 'too_many' }, {}, req.method)
+      return true
+    }
+    try {
+      const body = await readJson(req, 2048)
+      if (String(body.website || body.hp || '').trim()) {
+        json(res, 200, { ok: true }, { 'Cache-Control': 'no-store' }, req.method)
+        return true
+      }
+      const email = validEmail(body.email)
+      if (!email) {
+        json(res, 400, { ok: false, error: 'email_required' }, {}, req.method)
+        return true
+      }
+      const beta = body.beta === true || body.beta === 1 || body.beta === '1' || body.beta === 'on'
+      const newsletter =
+        body.newsletter === true || body.newsletter === 1 || body.newsletter === '1' || body.newsletter === 'on'
+      if (!beta && !newsletter) {
+        json(res, 400, { ok: false, error: 'choice_required' }, {}, req.method)
+        return true
+      }
+      const ctx = await requestContext(req)
+      const row = {
+        at: new Date().toISOString(),
+        email,
+        beta,
+        newsletter,
+        lang: parseLang(body.lang),
+        source: cleanFeedbackText(body.source, 40) || 'landing',
+        ...ctx,
+        ip: ctx.ip || ip,
+      }
+      await persistSignup(row)
+      try {
+        await mailSignup(row)
+      } catch (err) {
+        console.error('signup mail failed:', err?.message || err)
+        json(res, 502, { ok: false, error: 'mail_failed' }, { 'Cache-Control': 'no-store' }, req.method)
+        return true
+      }
+      json(res, 200, { ok: true, beta, newsletter }, { 'Cache-Control': 'no-store' }, req.method)
     } catch {
       json(res, 400, { ok: false, error: 'invalid' }, {}, req.method)
     }
@@ -1352,7 +1572,10 @@ export function resetGameStatsForTests(file, saltFile = null, leaderboardFile = 
   rate.clear()
   feedbackRate.clear()
   skipFeedbackMail = true
-  if (file) FEEDBACK_FILE = String(file).replace(/\.json$/i, '.jsonl')
+  if (file) {
+    FEEDBACK_FILE = String(file).replace(/\.json$/i, '.jsonl')
+    SIGNUP_FILE = String(file).replace(/\.json$/i, '-signup.jsonl')
+  }
   trailCache.clear()
   leaderboards = {}
   authDb = { version: 1, users: {}, sessions: {} }

@@ -96,6 +96,7 @@ const STR = {
     board_title: 'Classement de la semaine',
     board_general: 'Général',
     board_plays: (n) => (n === 1 ? '1 partie' : `${n} parties`),
+    chart_avg: 'moy.',
     board_empty: 'Aucun score pour l’instant. Joue pour être 1er.',
     board_unavailable: 'Classement indisponible.',
     mode_defi: 'Défi',
@@ -148,7 +149,10 @@ const STR = {
     share_game_title: 'Verimots — Défi',
     share_game_body: 'Trouve le mot le plus cher avec :',
     share_game_score: (n) => `J'ai fait ${n} %.\n`,
-    chart_last: (p) => `Vos scores, dernier ${p} sur 100`,
+    chart_last: (p, avg) =>
+      avg
+        ? `Vos scores, moyenne ${avg} %, dernier ${p} sur 100`
+        : `Vos scores, dernier ${p} sur 100`,
     chart_empty: 'Vos scores sur 100 — aucune partie encore',
     hist_account: 'Historique · compte',
     hist_local: 'Historique',
@@ -321,6 +325,7 @@ const STR = {
     board_title: "This week's board",
     board_general: 'General',
     board_plays: (n) => (n === 1 ? '1 game' : `${n} games`),
+    chart_avg: 'avg',
     board_empty: 'No scores yet. Play to take 1st.',
     board_unavailable: 'Board unavailable.',
     mode_defi: 'Challenge',
@@ -373,7 +378,10 @@ const STR = {
     share_game_title: 'Verimots — Challenge',
     share_game_body: 'Find the dearest word with:',
     share_game_score: (n) => `I scored ${n}%.\n`,
-    chart_last: (p) => `Your scores, last ${p} of 100`,
+    chart_last: (p, avg) =>
+      avg
+        ? `Your scores, average ${avg}%, last ${p} of 100`
+        : `Your scores, last ${p} of 100`,
     chart_empty: 'Your scores out of 100 — no games yet',
     hist_account: 'History · account',
     hist_local: 'History',
@@ -546,6 +554,7 @@ const STR = {
     board_title: 'Clasificación de la semana',
     board_general: 'General',
     board_plays: (n) => (n === 1 ? '1 partida' : `${n} partidas`),
+    chart_avg: 'med.',
     board_empty: 'Aún no hay puntuaciones. Juega para ser el primero.',
     board_unavailable: 'Clasificación no disponible.',
     mode_defi: 'Reto',
@@ -598,7 +607,10 @@ const STR = {
     share_game_title: 'Verimots — Reto',
     share_game_body: 'Encuentra la palabra de mayor valor con:',
     share_game_score: (n) => `He conseguido ${n} %.\n`,
-    chart_last: (p) => `Tus puntuaciones, última ${p} de 100`,
+    chart_last: (p, avg) =>
+      avg
+        ? `Tus puntuaciones, media ${avg} %, última ${p} de 100`
+        : `Tus puntuaciones, última ${p} de 100`,
     chart_empty: 'Tus puntuaciones sobre 100 — aún no hay partidas',
     hist_account: 'Historial · cuenta',
     hist_local: 'Historial',

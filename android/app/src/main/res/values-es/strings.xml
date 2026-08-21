@@ -79,6 +79,8 @@
     <string name="training_new">Nuevo reparto</string>
     <string name="avg_empty">Media —</string>
     <string name="avg_score">Media %1$s %%</string>
+    <string name="chart_avg">med.</string>
+    <string name="board_score">%1$s · %2$s</string>
     <string name="mode_exact">Exacta</string>
     <string name="mode_prefix">Inicio</string>
     <string name="mode_suffix">Final</string>

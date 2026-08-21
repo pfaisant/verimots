@@ -163,8 +163,12 @@ public class MainActivity extends Activity {
     private TextView gameLemma;
     private ImageButton gameWa;
     private ScoreChartView gameChart;
+    private TextView gameChartAvg;
+    private TextView gameChartAvgUnit;
     private TextView gameLast;
     private TextView gameLastUnit;
+    private TextView boardChartAvg;
+    private TextView boardChartAvgUnit;
     private ScoreChartView boardChart;
     private TextView boardChartLast;
     private View gameSpacer;
@@ -316,6 +320,7 @@ public class MainActivity extends Activity {
             code = pi.versionCode;
         } catch (Exception ignored) {
         }
+        RemoteApi.setAppLabel(name, code);
         stamp.setText(getString(R.string.build_stamp, name, code, BuildConfig.BUILD_TIME));
     }
 
@@ -1645,8 +1650,12 @@ public class MainActivity extends Activity {
         gameLemma = findViewById(R.id.game_lemma);
         gameWa = findViewById(R.id.game_wa);
         gameChart = findViewById(R.id.game_chart);
+        gameChartAvg = findViewById(R.id.game_chart_avg);
+        gameChartAvgUnit = findViewById(R.id.game_chart_avg_unit);
         gameLast = findViewById(R.id.game_last);
         gameLastUnit = findViewById(R.id.game_last_unit);
+        boardChartAvg = findViewById(R.id.board_chart_avg);
+        boardChartAvgUnit = findViewById(R.id.board_chart_avg_unit);
         boardChart = findViewById(R.id.board_chart);
         boardChartLast = findViewById(R.id.board_chart_last);
         gameSpacer = findViewById(R.id.game_spacer);
@@ -1908,7 +1917,8 @@ public class MainActivity extends Activity {
         rankedSubmitInFlight = true;
         final int generation = rankedSubmitGeneration;
         final boolean kids = isKidsMode;
-        competitiveMode.submitScore(percent, word, kids, null, accepted -> {
+        String rack = deal != null ? deal.rack : null;
+        competitiveMode.submitScore(percent, word, kids, rack, accepted -> {
             if (generation != rankedSubmitGeneration) return;
             rankedSubmitInFlight = false;
             if (accepted) {
@@ -2001,10 +2011,21 @@ public class MainActivity extends Activity {
     private void paintChart(List<Integer> scores) {
         boolean has = scores != null && !scores.isEmpty();
         String last = has ? String.valueOf(scores.get(scores.size() - 1)) : "";
+        String avg = "";
+        if (has) {
+            int sum = 0;
+            for (int score : scores) sum += score;
+            avg = String.format(new java.util.Locale(Lang.get(this)), "%.1f",
+                    Math.round(10.0 * sum / scores.size()) / 10.0);
+        }
         if (gameChart != null) gameChart.setScores(scores);
+        if (gameChartAvg != null) gameChartAvg.setText(avg);
+        if (gameChartAvgUnit != null) gameChartAvgUnit.setVisibility(has ? View.VISIBLE : View.GONE);
         if (gameLast != null) gameLast.setText(last);
         if (gameLastUnit != null) gameLastUnit.setVisibility(has ? View.VISIBLE : View.GONE);
         if (boardChart != null) boardChart.setScores(scores);
+        if (boardChartAvg != null) boardChartAvg.setText(avg);
+        if (boardChartAvgUnit != null) boardChartAvgUnit.setVisibility(has ? View.VISIBLE : View.GONE);
         if (boardChartLast != null) boardChartLast.setText(last);
     }
 

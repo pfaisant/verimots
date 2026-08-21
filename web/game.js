@@ -1,4 +1,4 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=77'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=78'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -64,11 +64,21 @@ export function formatBoardPercent(n) {
   return `${Number(n).toLocaleString(loc, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`
 }
 
+export function formatChartAverage(n) {
+  if (n == null || !Number.isFinite(Number(n))) return ''
+  const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  return Number(n).toLocaleString(loc, { maximumFractionDigits: 1, minimumFractionDigits: 1 })
+}
+
 function boardPercentHtml(entry) {
   const avg = formatBoardPercent(entry?.percent)
   const n = Math.max(1, Number(entry?.plays) || 1)
   if (n <= 1) return avg
   return `${avg}<small>${t('board_plays', n)}</small>`
+}
+
+export function boardScoreHtml(entry) {
+  return boardPercentHtml(entry)
 }
 
 const SCORE_KEY = 'ods9-defi-scores-v1'
@@ -124,6 +134,12 @@ export function scoreValues(scores) {
   return (scores || [])
     .map((row) => clampPercent(typeof row === 'number' ? row : row?.p))
     .filter((n) => n != null)
+}
+
+export function averageScore(scores) {
+  const pts = scoreValues(scores)
+  if (!pts.length) return null
+  return Math.round((10 * pts.reduce((sum, n) => sum + n, 0)) / pts.length) / 10
 }
 
 export function loadTrainingStats(storage, lang = getLang()) {
@@ -601,12 +617,16 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (dock) dock.hidden = false
     const scores = rows || loadScores(null, kids == null ? kidsOn() : !!kids)
     const last = scores.at(-1)
-    chartEl.innerHTML = `${scoreChartSvg(scores)}${
+    const avg = averageScore(scores)
+    const avgHtml = avg != null
+      ? `<span class="game-chart-avg">${formatChartAverage(avg)}<small>${t('chart_avg')}</small></span>`
+      : ''
+    chartEl.innerHTML = `${avgHtml}${scoreChartSvg(scores)}${
       last ? `<span class="game-chart-last">${last.p}<small>/100</small></span>` : ''
     }`
     chartEl.setAttribute(
       'aria-label',
-      last ? t('chart_last', last.p) : t('chart_empty')
+      last ? t('chart_last', last.p, formatChartAverage(avg)) : t('chart_empty')
     )
   }
 
@@ -945,13 +965,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=68')
+        await import('./competitive.js?v=78')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
           officialPlay = false
         } else {
-          const result = await submitCompete(percent, word, context.lang, { kids: context.kids })
+          const result = await submitCompete(percent, word, context.lang, { kids: context.kids, rack: context.rack })
           if (!isPlayContextCurrent(context)) return false
           if (competeAccepted(result)) officialPlay = false
         }
@@ -1031,6 +1051,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       // them local (chart + anonymous stats only).
       ranked: !synthetic && (playKids || !!(isCompetitive && isCompetitive())),
       official: officialPlay && !synthetic,
+      rack,
     }
     setClosed(true)
     input.disabled = true
@@ -1243,7 +1264,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=68')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=78')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1483,7 +1504,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=68')
+      const { fetchLeaderboard } = await import('./competitive.js?v=78')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()
