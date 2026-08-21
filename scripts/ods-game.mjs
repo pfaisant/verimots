@@ -15,24 +15,28 @@
 // survive a serve restart.
 
 import { readFile, writeFile, mkdir, appendFile, rename } from 'node:fs/promises'
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createHash, randomBytes, createHmac } from 'node:crypto'
 import { gunzipSync } from 'node:zlib'
 import { OAuth2Client } from 'google-auth-library'
-import { kidsAnagrams, kidsLong } from '../web/kids.js'
 
-function flagEmoji() {
-  return ''
-}
-function ipInfo() {
-  return {}
-}
-async function enrichIpInfo(geo) {
-  return geo || {}
-}
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
+const kidsPath = ['../web/kids.js', '../dashboard/s/kids.js']
+  .map((rel) => join(SCRIPT_DIR, rel))
+  .find((p) => existsSync(p))
+if (!kidsPath) throw new Error('kids.js not found next to ods-game.mjs')
+const { kidsAnagrams, kidsLong } = await import(pathToFileURL(kidsPath).href)
+const ipPath = join(SCRIPT_DIR, 'ip-lookup.mjs')
+const { flagEmoji, ipInfo, enrichIpInfo } = existsSync(ipPath)
+  ? await import(pathToFileURL(ipPath).href)
+  : {
+      flagEmoji: () => '',
+      ipInfo: () => ({}),
+      enrichIpInfo: async (geo) => geo || {},
+    }
 
 let FILE =
   process.env.ODS9_GAME_FILE ||
