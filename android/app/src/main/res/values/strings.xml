@@ -9,6 +9,7 @@
     <string name="tab_game">Défi</string>
     <string name="tab_board">Classement</string>
     <string name="tab_about">Infos</string>
+    <string name="tab_tools">Outils</string>
     <string name="loading">Chargement de la liste…</string>
     <string name="lex_unavailable">Liste indisponible</string>
     <string name="word_count">%1$s mots · %2$s</string>
@@ -115,6 +116,9 @@
     <string name="not_on_rack">Pas avec ces lettres</string>
     <string name="need_best">Un mot, le plus cher.</string>
     <string name="not_playable">Pas jouable sur ce tirage.</string>
+    <string name="not_in_dict">Pas dans %1$s.</string>
+    <string name="tools_on">Bulles affichées.</string>
+    <string name="tools_off">Bulles masquées.</string>
     <string name="daily_board">Classement de la semaine</string>
     <string name="board_empty">Aucun score pour l’instant. Joue pour être 1er.</string>
     <string name="google_cancel">Connexion Google annulée</string>

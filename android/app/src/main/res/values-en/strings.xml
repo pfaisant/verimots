@@ -9,6 +9,7 @@
     <string name="tab_game">Challenge</string>
     <string name="tab_board">Board</string>
     <string name="tab_about">About</string>
+    <string name="tab_tools">Tools</string>
     <string name="loading">Loading the list…</string>
     <string name="lex_unavailable">List unavailable</string>
     <string name="word_count">%1$s words · %2$s</string>
@@ -115,6 +116,9 @@
     <string name="not_on_rack">Not with these letters</string>
     <string name="need_best">One word, the dearest.</string>
     <string name="not_playable">Not playable on this rack.</string>
+    <string name="not_in_dict">Not in %1$s.</string>
+    <string name="tools_on">Bubbles shown.</string>
+    <string name="tools_off">Bubbles hidden.</string>
     <string name="daily_board">This week\'s board</string>
     <string name="board_empty">No scores yet. Play to take 1st.</string>
     <string name="google_cancel">Google sign-in cancelled</string>

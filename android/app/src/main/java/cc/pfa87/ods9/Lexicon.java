@@ -295,6 +295,35 @@ public final class Lexicon {
         return null;
     }
 
+    /**
+     * Word formable from the rack (blanks allowed, scored 0) and valid in this
+     * lexicon — even when the dealt catalog misses it. Curated catalogs
+     * (beginner lists) deliberately list only a subset, but a word the player
+     * can spell from their tiles and that the dictionary accepts must be
+     * playable: ATOM on a TOMATO rack was wrongly refused before.
+     */
+    public Play probe(String rawWord, String rack) {
+        String word = normalize(rawWord, false);
+        String r = normalizeRack(rack);
+        if (word.length() < 2 || !has(word)) return null;
+        int[] counts = new int[ALPHABET.length()];
+        int blanks = 0;
+        for (int i = 0; i < r.length(); i++) {
+            char c = r.charAt(i);
+            if (c == '?') {
+                blanks++;
+                continue;
+            }
+            int idx = letterIndex(c);
+            if (idx >= 0) counts[idx]++;
+        }
+        int[] jokers = formable(word, counts, blanks);
+        if (jokers == null) return null;
+        Set<Integer> jk = new HashSet<>();
+        for (int j : jokers) jk.add(j);
+        return new Play(word, scoreWord(word, jk), jokers);
+    }
+
     public List<Play> anagrams(String rack, int minLen, int maxLen) {
         int[] counts = new int[ALPHABET.length()];
         int blanks = 0;

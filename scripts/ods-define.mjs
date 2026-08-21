@@ -250,8 +250,16 @@ export function extractEnglishSenses(wikitext) {
   for (const line of en.split('\n')) {
     const posHit = line.match(/^===\s*([^=]+?)\s*===/)
     if (posHit) {
-      const pos = posHit[1].trim()
-      current = SKIP_EN_POS.has(pos.toLowerCase()) ? null : { pos: pos.toLowerCase(), defs: [] }
+      // Wiktionary numbers its sections ("Etymology 1", "Noun 2"). Strip the
+      // number before the skip test or every numbered Etymology leaks in as a
+      // fake part of speech that swallows the next POS's definitions.
+      const pos = posHit[1].trim().replace(/\s+\d+$/, '')
+      const base = pos.toLowerCase()
+      current = SKIP_EN_POS.has(base)
+        ? null
+        : /^(?:etymolog|pronunciation|translations|references)/.test(base)
+          ? null
+          : { pos: base, defs: [] }
       if (current) senses.push(current)
       continue
     }

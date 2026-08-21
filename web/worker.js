@@ -357,6 +357,28 @@ async function handle(msg) {
     })
     return
   }
+  if (msg.type === 'probe') {
+    // Honest pre-check for typed words: formable from the rack (jokers allowed,
+    // scored as 0) and present in the loaded dictionary — regardless of whether
+    // the dealt catalog happens to list it.
+    const word = String(msg.word || '').toUpperCase().replace(/[^A-ZÑ]/g, '')
+    const rackRaw = String(msg.rack || '').toUpperCase()
+    const { counts, blanks } = rackCounts(rackRaw)
+    const jokers = word.length >= 2 ? formable(word, counts, blanks) : null
+    const formableOk = jokers !== null
+    const valid = formableOk && wordSet.has(word)
+    self.postMessage({
+      type: 'probe',
+      id: msg.id,
+      word,
+      formable: formableOk,
+      valid,
+      score: formableOk ? scoreWord(word, new Set(jokers)) : 0,
+      lang: currentLang,
+      dict: currentDict,
+    })
+    return
+  }
   if (msg.type === 'anagram') {
     const rack = String(msg.rack || '').toUpperCase()
     const groups = anagrams(rack, Number(msg.min) || 2, Number(msg.max) || rack.length || 15)

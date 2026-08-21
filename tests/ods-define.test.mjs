@@ -69,6 +69,31 @@ From old stuff.
   assert.doesNotMatch(senses[0].defs.join(' '), /pas ça|old stuff/)
 })
 
+test('extractEnglishSenses skips numbered "Etymology 1" headings', () => {
+  // Regression: Wiktionary numbers repeated sections, so "Etymology 1" leaked
+  // in as a fake part of speech that swallowed the noun's definitions — the
+  // app then showed a definition under an ETYMOLOGY label.
+  const wiki = `==English==
+===Etymology 1===
+From Middle English male ("a bag").
+
+===Noun===
+{{en-noun}}
+# {{lb|en|now|_|regional}} A [[bag]] or [[wallet]].
+
+===Etymology 2===
+See {{m|en|mail}} above.
+
+===Noun===
+# Armoured clothing.
+`
+  const senses = extractSenses(wiki, 'en')
+  assert.equal(senses.length, 2)
+  assert.deepEqual(senses.map((s) => s.pos), ['noun', 'noun'])
+  assert.match(senses[0].defs[0], /bag/)
+  assert.doesNotMatch(senses.map((s) => s.pos).join(' '), /etymology/)
+})
+
 test('extractSenses reads Spanish numbered definitions and preserves Ñ', () => {
   const wiki = `== {{lengua|es}} ==
 === Etimología ===

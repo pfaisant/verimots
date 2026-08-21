@@ -1,7 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, lexiconFileName, STUDY_TWOS, STUDY_THREES } from './game.js?v=76'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=76'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES } from './game.js?v=77'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=77'
 import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=68'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t } from './i18n.js?v=76'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t } from './i18n.js?v=77'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -56,7 +56,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=76', { type: 'module' })
+const worker = new Worker('worker.js?v=77', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -552,7 +552,7 @@ function setNav(name) {
   showPanel(name)
   if (name === 'lists') renderLists()
   if (name === 'info') renderStudy()
-  if (name === 'game') game?.open(challengeFromUrl())
+  if (name === 'game') enterGame()
   if (name === 'board') game?.showBoard?.()
   if (name === 'check' || name === 'rack') {
     renderRackPreview()
@@ -707,12 +707,19 @@ function renderFind(words, query) {
   renderGroups(findOut, groups, '', t('find_summary', words.length, query))
 }
 
-function paintDicts() {
+async function paintDicts() {
   const current = getDict()
   document.querySelectorAll('#settings-dicts [data-dict]').forEach((btn) => {
     const on = btn.dataset.dict === current
     btn.setAttribute('aria-pressed', on ? 'true' : 'false')
     btn.setAttribute('aria-checked', on ? 'true' : 'false')
+  })
+  const info = await loadDictsInfo()
+  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  document.querySelectorAll('[data-dict-meta]').forEach((el) => {
+    const row = info?.[el.dataset.dictMeta]
+    if (!row) return
+    el.textContent = t('dict_stats', Number(row.count || 0).toLocaleString(locale), statsDate(row.inForce, locale))
   })
 }
 
@@ -730,6 +737,7 @@ function renderStudy() {
   const threesEl = document.getElementById('study-threes')
   const studyWa = document.getElementById('study-wa')
   const studyWaTwos = document.getElementById('study-wa-twos')
+  if (!twosEl && !threesEl) return
   const twosAll = meta?.letters2 || []
   const threesAll = meta?.letters3 || []
   const twos = dailyStudySlice(twosAll, new Date(), STUDY_TWOS)
@@ -752,35 +760,96 @@ function renderStudy() {
   }
 }
 
-async function downloadLexicon() {
-  const btn = document.getElementById('dict-download')
-  if (!ready) {
-    setLive(t('loading_lex'))
+// ---- Challenge menu (game picker + level) ----
+const gameMenuEl = document.getElementById('game-menu')
+const gamePlayEl = document.getElementById('game-play')
+const gameStudyEl = document.getElementById('game-study')
+
+function getLevel() {
+  try {
+    return localStorage.getItem('verimots-level') === 'beginner' ? 'beginner' : 'confirmed'
+  } catch {
+    return 'confirmed'
+  }
+}
+
+function paintLevel() {
+  const beginner = getLevel() === 'beginner'
+  document.getElementById('level-beginner')?.setAttribute('aria-pressed', beginner ? 'true' : 'false')
+  document.getElementById('level-confirmed')?.setAttribute('aria-pressed', beginner ? 'false' : 'true')
+}
+
+function setLevel(next) {
+  try {
+    localStorage.setItem('verimots-level', next === 'beginner' ? 'beginner' : 'confirmed')
+  } catch {
+    /* private mode */
+  }
+  paintLevel()
+}
+
+function showGameView(view = 'menu') {
+  if (gameMenuEl) gameMenuEl.hidden = view !== 'menu'
+  if (gamePlayEl) gamePlayEl.hidden = view !== 'play'
+  if (gameStudyEl) gameStudyEl.hidden = view !== 'study'
+}
+
+function enterGame() {
+  const fromUrl = challengeFromUrl()
+  if (parseRack(fromUrl.rack).length >= 2) {
+    showGameView('play')
+    game.open(fromUrl)
     return
   }
-  const label = btn?.textContent
-  if (btn) {
-    btn.disabled = true
-    btn.textContent = t('dict_downloading')
+  showGameView('menu')
+}
+
+gameMenuEl?.addEventListener('click', async (e) => {
+  const picked = e.target.closest('[data-game]')
+  if (!picked) return
+  const choice = picked.dataset.game
+  if (choice === 'study') {
+    renderStudy()
+    showGameView('study')
+    return
   }
+  const level = getLevel()
+  let mode = choice
+  if (choice === 'find') mode = level === 'beginner' ? 'kids' : 'defi'
+  setGameMode(mode)
+  showGameView('play')
+  await game.switchMode(mode)
+  syncChrome()
+  showPanel(nav)
+})
+
+document.getElementById('level-beginner')?.addEventListener('click', () => setLevel('beginner'))
+document.getElementById('level-confirmed')?.addEventListener('click', () => setLevel('confirmed'))
+document.getElementById('game-menu-back')?.addEventListener('click', () => showGameView('menu'))
+document.getElementById('study-back')?.addEventListener('click', () => showGameView('menu'))
+
+let dictsInfo = null
+
+async function loadDictsInfo() {
+  if (dictsInfo) return dictsInfo
   try {
-    const result = await ask('export')
-    const blob = new Blob([result.text || ''], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = lexiconFileName(getLang())
-    a.click()
-    URL.revokeObjectURL(url)
-    setLive(liveCount(result.count || 0))
+    dictsInfo = await (await fetch('data/dicts.json', { cache: 'no-cache' })).json()
   } catch {
-    setLive(t('dict_download_err'))
-  } finally {
-    if (btn) {
-      btn.disabled = false
-      btn.textContent = label || t('dict_download')
-    }
+    dictsInfo = {}
   }
+  return dictsInfo
+}
+
+function statsDate(iso, locale) {
+  if (!iso) return ''
+  const [y, m, d] = String(iso).split('-').map(Number)
+  if (!y || !m || !d) return String(iso)
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 }
 
 function renderLists() {
@@ -960,7 +1029,7 @@ function applyUrl() {
   showPanel(nav)
   if (nav === 'lists') renderLists()
   if (nav === 'info') renderStudy()
-  if (nav === 'game') game?.open(challengeFromUrl())
+  if (nav === 'game') enterGame()
   if (nav === 'board') game?.showBoard?.()
   if (nav === 'check' || nav === 'rack') run()
 }
@@ -1050,7 +1119,6 @@ feedbackForm?.addEventListener('submit', async (e) => {
 histBtn?.addEventListener('click', () => setHistOpen(histSheet.hidden))
 histClose?.addEventListener('click', () => setHistOpen(false))
 document.getElementById('about-hist')?.addEventListener('click', () => setHistOpen(true))
-document.getElementById('dict-download')?.addEventListener('click', () => downloadLexicon())
 document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (!loadHistory().length) return
   if (!window.confirm(t('hist_clear_confirm'))) return
@@ -1310,17 +1378,18 @@ async function boot() {
     if (nav === 'check' || nav === 'rack') run()
     else if (nav === 'lists') renderLists()
     else if (nav === 'info') renderStudy()
-    else if (nav === 'game') game.open(challengeFromUrl())
+    else if (nav === 'game') enterGame()
     else if (nav === 'board') game.showBoard()
   } catch (err) {
     setLive(t('lex_fail'))
     if (hint) hint.textContent = t('lex_fail')
     console.error(err)
   }
+  paintLevel()
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=76').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=77').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
@@ -1330,36 +1399,6 @@ window.addEventListener('resize', () => {
   }
 })
 
-document.getElementById('mode-defi')?.addEventListener('click', async () => {
-  setGameMode('defi')
-  if (nav === 'board') setNav('game')
-  await game.switchMode('defi')
-  syncChrome()
-  showPanel(nav)
-})
-
-document.getElementById('mode-kids')?.addEventListener('click', async () => {
-  setGameMode('kids')
-  if (nav === 'board') setNav('game')
-  await game.switchMode('kids')
-  syncChrome()
-  showPanel(nav)
-})
-
-document.getElementById('mode-training')?.addEventListener('click', async () => {
-  setGameMode('training')
-  if (nav === 'board') setNav('game')
-  await game.switchMode('training')
-  syncChrome()
-  showPanel(nav)
-})
-
-document.getElementById('mode-comp')?.addEventListener('click', async () => {
-  setGameMode('competitive')
-  await game.switchMode('competitive')
-  syncChrome()
-  showPanel(nav)
-})
 
 document.getElementById('logout-btn')?.addEventListener('click', async () => {
   await logout()

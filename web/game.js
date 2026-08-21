@@ -1,4 +1,4 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=76'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=77'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -465,7 +465,6 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const globalEl = document.getElementById('game-global')
   const waEl = document.getElementById('game-wa')
   const chartEl = document.getElementById('game-chart')
-  const modeSwitch = document.getElementById('game-mode-switch')
   const authEl = document.getElementById('game-auth')
   const userEl = document.getElementById('game-user')
   const boardEl = document.getElementById('game-board')
@@ -500,6 +499,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let trainingBonusIndex = -1
   let dealPending = false
   let trainingRoundReady = false
+  let probeSeq = 0
   const submitPromises = new Map()
 
   try {
@@ -826,9 +826,23 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       return
     }
     const hit = catalog.find((w) => w.word === word)
-    if (hit) setLive(`${hit.pts} pts`, 'ok')
-    else if (word.length >= 2) setLive(t('not_on_rack'), 'bad')
-    else setLive('')
+    if (hit) {
+      setLive(`${hit.pts} pts`, 'ok')
+      return
+    }
+    if (word.length < 2) {
+      setLive('')
+      return
+    }
+    const seq = ++probeSeq
+    ask('probe', { word, rack })
+      .then((probe) => {
+        if (!probe || seq !== probeSeq || normalize(input.value) !== word) return
+        if (!probe.formable) setLive(t('not_on_rack'), 'bad')
+        else if (!probe.valid) setLive(t('not_in_dict', dictLabel()), 'bad')
+        else setLive(`${probe.score} pts`, 'ok')
+      })
+      .catch(() => {})
   }
 
   function giveHint() {
@@ -962,13 +976,35 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   async function validate(raw) {
     if (closed) return
     const word = normalize(raw)
-    const hit = catalog.find((w) => w.word === word)
+    let hit = catalog.find((w) => w.word === word)
+    let synthetic = false
     if (!hit) {
-      setLive(word.length < 2 ? (kidsOn() ? t('kids_need') : t('need_best')) : t('not_playable'), 'bad')
-      rackEl.classList.remove('shake')
-      void rackEl.offsetWidth
-      rackEl.classList.add('shake')
-      return
+      // Curated catalogs (kids lists) deliberately miss valid words — ATOM on
+      // AOTTOM must be playable. Probe rack + dictionary before refusing.
+      let probe = null
+      try {
+        probe = await ask('probe', { word, rack })
+      } catch {}
+      if (!probe || closed || normalize(input.value) !== word || (probe.dict && probe.dict !== getDict())) return
+      if (!probe.formable) {
+        setLive(word.length < 2 ? (kidsOn() ? t('kids_need') : t('need_best')) : t('not_on_rack'), 'bad')
+        rackEl.classList.remove('shake')
+        void rackEl.offsetWidth
+        rackEl.classList.add('shake')
+        return
+      }
+      if (!probe.valid) {
+        setLive(t('not_in_dict', dictLabel()), 'bad')
+        rackEl.classList.remove('shake')
+        void rackEl.offsetWidth
+        rackEl.classList.add('shake')
+        return
+      }
+      hit = { word, pts: playPoints(word, probe.score), jokers: [] }
+      synthetic = true
+      catalog.push(hit)
+      catalog.sort((a, b) => b.pts - a.pts)
+      best = catalog[0]
     }
     if (trainingOn()) {
       if (trainingFound.has(hit.word)) {
@@ -991,8 +1027,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       mode: activeMode,
       lang: getLang(),
       kids: playKids,
-      ranked: playKids || !!(isCompetitive && isCompetitive()),
-      official: officialPlay,
+      // Off-catalog words can't be scored by the ranked server trails — keep
+      // them local (chart + anonymous stats only).
+      ranked: !synthetic && (playKids || !!(isCompetitive && isCompetitive())),
+      official: officialPlay && !synthetic,
     }
     setClosed(true)
     input.disabled = true
@@ -1169,7 +1207,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   })
 
   async function switchMode(mode, opts = {}) {
-    if (!modeSwitch) return
+    // The old mode-switch row is gone (replaced by the game menu); mode state
+    // itself is still driven through here by app.js.
     const competitive = mode === true || mode === 'competitive'
     const kids = mode === 'kids'
     const training = mode === 'training'

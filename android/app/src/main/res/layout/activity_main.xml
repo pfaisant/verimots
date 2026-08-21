@@ -42,7 +42,7 @@
                 android:id="@+id/brand_sub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
+                android:background="?android:attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
                 android:fontFamily="sans-serif-medium"
@@ -183,5 +183,11 @@
             style="@style/Tab"
             android:drawableTop="@drawable/ic_tab_about"
             android:text="@string/tab_about" />
+
+        <TextView
+            android:id="@+id/tab_tools"
+            style="@style/Tab"
+            android:drawableTop="@drawable/ic_tab_tools"
+            android:text="@string/tab_tools" />
     </LinearLayout>
 </LinearLayout>

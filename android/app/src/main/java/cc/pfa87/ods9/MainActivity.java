@@ -62,6 +62,7 @@ public class MainActivity extends Activity {
     private TextView tabGame;
     private TextView tabBoard;
     private TextView tabAbout;
+    private TextView tabTools;
     private TextView live;
     private TextView brandSub;
     private int tab;
@@ -104,6 +105,7 @@ public class MainActivity extends Activity {
     private Dialog historyDialog;
     private TableLayout historyTable;
     private boolean officialDeal;
+    private boolean bubblesOn;
     private int dealRequestGeneration;
     private boolean rankedSubmitInFlight;
     private int rankedSubmitGeneration;
@@ -194,6 +196,7 @@ public class MainActivity extends Activity {
         tabGame = findViewById(R.id.tab_game);
         tabBoard = findViewById(R.id.tab_board);
         tabAbout = findViewById(R.id.tab_about);
+        tabTools = findViewById(R.id.tab_tools);
         live = findViewById(R.id.live);
         brandSub = findViewById(R.id.brand_sub);
         if (brandSub != null) brandSub.setOnClickListener(v -> showTab(3));
@@ -201,9 +204,11 @@ public class MainActivity extends Activity {
         tabGame.setOnClickListener(v -> showTab(1));
         tabBoard.setOnClickListener(v -> showTab(2));
         tabAbout.setOnClickListener(v -> showTab(3));
-        
+        tabTools.setOnClickListener(v -> toggleBubbles());
+
         competitiveMode = new CompetitiveMode(this);
         advanced = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("advanced", false);
+        bubblesOn = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("bubbles", false);
         paintBuildStamp();
         bindLang();
         bindDicts();
@@ -232,7 +237,9 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> live.setText(R.string.lex_unavailable));
             }
         }).start();
-        showTab(0);
+        int savedTab = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getInt("tab", 0);
+        showTab(savedTab);
+        applyBubbles();
         RemoteApi.fetchAverage((has, avg) -> {
             publicAverageHas = has;
             publicAverage = avg;
@@ -455,6 +462,8 @@ public class MainActivity extends Activity {
 
     private void showTab(int which) {
         tab = which;
+        getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                .edit().putInt("tab", which).apply();
         paneCheck.setVisibility(which == 0 ? View.VISIBLE : View.GONE);
         paneGame.setVisibility(which == 1 ? View.VISIBLE : View.GONE);
         paneBoard.setVisibility(which == 2 ? View.VISIBLE : View.GONE);
@@ -571,6 +580,24 @@ public class MainActivity extends Activity {
         for (android.graphics.drawable.Drawable icon : icons) {
             if (icon != null) icon.mutate().setTint(color);
         }
+    }
+
+    /** The Tools tab shows/hides the floating bubbles (feedback + share) that
+     *  used to sit permanently over the chart and results — the overlap the
+     *  bottom bar could not resolve. Hidden by default during play. */
+    private void toggleBubbles() {
+        bubblesOn = !bubblesOn;
+        getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                .edit().putBoolean("bubbles", bubblesOn).apply();
+        Toast.makeText(this, getString(bubblesOn ? R.string.tools_on : R.string.tools_off),
+                Toast.LENGTH_SHORT).show();
+        applyBubbles();
+    }
+
+    private void applyBubbles() {
+        View fab = findViewById(R.id.feedback_fab);
+        if (fab != null) fab.setVisibility(bubblesOn ? View.VISIBLE : View.GONE);
+        if (gameWa != null && !bubblesOn) gameWa.setVisibility(View.INVISIBLE);
     }
 
     private void bindCheck() {
@@ -693,7 +720,7 @@ public class MainActivity extends Activity {
                 checkWiki.setVisibility(View.VISIBLE);
                 checkWiki.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
                 String def = text == null || text.isEmpty() ? "" : text + "\n";
-                lastShare = getString(R.string.share_check_ok, wanted, wanted.length(), pts, def, Dict.label(this));
+                lastShare = getString(R.string.share_check_ok, wanted, wanted.length(), pts, def, Dict.label(MainActivity.this));
             }
 
             @Override
@@ -1750,6 +1777,7 @@ public class MainActivity extends Activity {
             return;
         }
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
+        if (hit == null) hit = lex.probe(word, deal.rack);
         if (hit != null) {
             gameLive.setText(getString(R.string.pts_n, hit.pts()));
             gameLive.setTextColor(getColor(R.color.ok));
@@ -1763,14 +1791,30 @@ public class MainActivity extends Activity {
         if (closed || deal == null || lex == null) return;
         String word = Lexicon.normalize(gameQ.getText().toString());
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
+        boolean synthetic = false;
+        if (hit == null) {
+            // Curated catalogs (beginner lists) miss valid words — ATOM on a
+            // TOMATO rack must be playable. Probe rack + dictionary first.
+            Lexicon.Play probed = lex.probe(word, deal.rack);
+            if (probed != null) {
+                hit = probed;
+                synthetic = true;
+            }
+        }
         if (isTrainingMode) {
             submitTrainingWord(word, hit);
             return;
         }
         if (hit == null) {
-            gameLive.setText(word.length() < 2
-                    ? (isKidsMode ? R.string.kids_need : R.string.need_best)
-                    : R.string.not_playable);
+            final CharSequence message;
+            if (word.length() < 2) {
+                message = getString(isKidsMode ? R.string.kids_need : R.string.need_best);
+            } else if (!lex.has(word)) {
+                message = getString(R.string.not_in_dict, Dict.label(this));
+            } else {
+                message = getString(R.string.not_on_rack);
+            }
+            gameLive.setText(message);
             gameLive.setTextColor(getColor(R.color.no));
             return;
         }
@@ -1813,7 +1857,8 @@ public class MainActivity extends Activity {
         HistoryStore.remember(this, hit.word, hit.pts(), "defi");
         if (competitiveMode.loggedIn()) RemoteApi.saveHistory(hit.word, hit.pts(), "defi");
         paintHistory();
-        if ((isKidsMode || isCompetitiveMode) && competitiveMode.loggedIn() && officialDeal) {
+        // Off-catalog words can't be scored by the ranked server trail — keep them local.
+        if (!synthetic && (isKidsMode || isCompetitiveMode) && competitiveMode.loggedIn() && officialDeal) {
             submitOfficialScore(percent, hit.word, false);
         } else if (isCompetitiveMode || isKidsMode) {
             refreshBoards();
@@ -1932,7 +1977,7 @@ public class MainActivity extends Activity {
             if (closed && lastPlayedWord != null && !lastPlayedWord.isEmpty()) {
                 String def = lastPlayedDef == null || lastPlayedDef.isEmpty() ? "" : lastPlayedDef;
                 waText = getString(R.string.share_study_word_body, lastPlayedWord, lastPlayedWord.length(), lastPlayedPts, def);
-                gameWa.setVisibility(View.VISIBLE);
+                gameWa.setVisibility(bubblesOn ? View.VISIBLE : View.INVISIBLE);
             } else {
                 gameWa.setVisibility(View.INVISIBLE);
             }
@@ -1945,7 +1990,7 @@ public class MainActivity extends Activity {
         }
         String score = percent != null ? getString(R.string.share_game_score, percent) : "\n";
         waText = getString(R.string.share_game, tiles.toString(), score, deal.rack, deal.category);
-        gameWa.setVisibility(View.VISIBLE);
+        gameWa.setVisibility(bubblesOn ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void paintChart() {

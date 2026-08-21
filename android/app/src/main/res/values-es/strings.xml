@@ -9,6 +9,7 @@
     <string name="tab_game">Reto</string>
     <string name="tab_board">Clasificación</string>
     <string name="tab_about">Acerca de</string>
+    <string name="tab_tools">Herram.</string>
     <string name="loading">Cargando la lista…</string>
     <string name="lex_unavailable">Lista no disponible</string>
     <string name="word_count">%1$s palabras · %2$s</string>
@@ -115,6 +116,9 @@
     <string name="not_on_rack">No se forma con estas letras</string>
     <string name="need_best">Una palabra, la de mayor valor.</string>
     <string name="not_playable">No es válida en este atril.</string>
+    <string name="not_in_dict">No está en %1$s.</string>
+    <string name="tools_on">Burbujas mostradas.</string>
+    <string name="tools_off">Burbujas ocultas.</string>
     <string name="daily_board">Clasificación de la semana</string>
     <string name="board_empty">Aún no hay puntuaciones. Juega para ser el primero.</string>
     <string name="google_cancel">Inicio de sesión cancelado</string>
