@@ -8,147 +8,162 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="24dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="14dp">
 
             <TextView
                 style="@style/Display"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:includeFontPadding="false"
                 android:text="@string/about_title"
-                android:textSize="24sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/about_version"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_count"
-                android:fontFamily="sans-serif-medium"
-                android:lineSpacingExtra="2dp"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp"
-                android:textColor="@color/gold"
-                android:textSize="12sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:lineSpacingMultiplier="1.3"
-                android:text="@string/about_body"
-                android:textColor="@color/muted"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="@string/study"
-                android:textColor="@color/ink"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/about_study"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:lineSpacingMultiplier="1.3"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/about_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:background="@drawable/bg_count"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:paddingHorizontal="10dp"
+                    android:textColor="@color/gold"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/about_lex"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="@string/loading"
+                    android:textColor="@color/muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingMultiplier="1.25"
+                android:text="@string/about_body"
                 android:textColor="@color/muted"
                 android:textSize="14sp" />
 
             <TextView
-                android:id="@+id/about_study_share"
+                android:id="@+id/hist_open"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="14dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_gold_btn"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:text="@string/study_share"
+                android:maxLines="1"
+                android:text="@string/hist_open"
                 android:textColor="@color/tile_ink" />
 
             <TextView
-                android:id="@+id/about_study_twos"
+                android:id="@+id/about_feedback"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="44dp"
                 android:layout_marginTop="8dp"
+                android:background="@drawable/bg_gold_btn"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:text="@string/study_share_twos"
-                android:textColor="@color/gold" />
+                android:maxLines="1"
+                android:text="@string/feedback"
+                android:textColor="@color/tile_ink" />
 
             <TextView
                 android:id="@+id/about_dict"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="44dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_gold_btn"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
+                android:maxLines="1"
                 android:text="@string/dict_download"
                 android:textColor="@color/tile_ink" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:text="@string/dict_download_help"
-                android:textColor="@color/muted"
-                android:textSize="13sp" />
+                android:textColor="@color/dim"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
                 android:text="@string/google_account"
                 android:textColor="@color/ink"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/auth_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:text="@string/sign_in_hint"
                 android:textColor="@color/muted"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/auth_google"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="14dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_gold_btn"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
+                android:maxLines="1"
                 android:text="@string/sign_in_google"
                 android:textColor="@color/tile_ink" />
 
             <TextView
                 android:id="@+id/auth_logout"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
+                android:layout_height="36dp"
+                android:layout_marginTop="6dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:text="@string/sign_out"
@@ -159,173 +174,183 @@
                 android:id="@+id/auth_stats"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:textColor="@color/muted"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/hist_open"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/bg_gold_btn"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="@string/hist_open"
-                android:textColor="@color/tile_ink" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
                 android:text="@string/settings"
                 android:textColor="@color/ink"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 android:letterSpacing="0.04"
                 android:text="@string/settings_dicts"
                 android:textAllCaps="true"
-                android:textColor="@color/muted"
+                android:textColor="@color/dim"
                 android:textSize="11sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:text="@string/settings_dicts_help"
                 android:textColor="@color/muted"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:id="@+id/dict_fr"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 android:background="@drawable/bg_chip"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
                     android:text="@string/dict_row_fr"
                     android:textColor="@color/ink"
-                    android:textSize="16sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/dict_blurb_fr"
                     android:textColor="@color/muted"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/dict_en"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:background="@drawable/bg_chip"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
                     android:text="@string/dict_row_en"
                     android:textColor="@color/ink"
-                    android:textSize="16sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/dict_blurb_en"
                     android:textColor="@color/muted"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/dict_wow24"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:background="@drawable/bg_chip"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
                     android:text="@string/dict_row_wow24"
                     android:textColor="@color/ink"
-                    android:textSize="16sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/dict_blurb_wow24"
                     android:textColor="@color/muted"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/dict_es"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:background="@drawable/bg_chip"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
                     android:text="@string/dict_row_es"
                     android:textColor="@color/ink"
-                    android:textSize="16sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/dict_blurb_es"
                     android:textColor="@color/muted"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -338,18 +363,22 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-medium"
+                        android:maxLines="1"
                         android:text="@string/advanced_mode"
                         android:textColor="@color/ink"
-                        android:textSize="16sp" />
+                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="@string/advanced_help"
                         android:textColor="@color/muted"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <Switch
@@ -363,27 +392,28 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
                 android:text="@string/privacy_title"
                 android:textColor="@color/ink"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:lineSpacingMultiplier="1.3"
+                android:layout_marginTop="6dp"
+                android:lineSpacingMultiplier="1.25"
                 android:text="@string/privacy_body"
                 android:textColor="@color/muted"
-                android:textSize="15sp" />
+                android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

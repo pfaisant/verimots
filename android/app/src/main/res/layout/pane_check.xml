@@ -51,15 +51,19 @@
                 android:textStyle="bold"
                 android:visibility="gone" />
 
-            <ImageButton
+            <TextView
                 android:id="@+id/check_clear"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:layout_gravity="end|center_vertical"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="4dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/clear"
-                android:src="@drawable/ic_clear"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="×"
+                android:textColor="@color/gold"
+                android:textSize="26sp"
                 android:visibility="gone" />
         </FrameLayout>
 
@@ -196,7 +200,7 @@
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:padding="14dp"
             android:visibility="gone">
 
             <TextView
@@ -218,7 +222,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:letterSpacing="0.1"
-                android:textSize="34sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <HorizontalScrollView
@@ -268,7 +272,7 @@
                 android:layout_marginTop="6dp"
                 android:lineSpacingMultiplier="1.25"
                 android:textColor="@color/ink"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/check_lemma"

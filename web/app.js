@@ -1,7 +1,7 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES } from './game.js?v=78'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyWhen, clearHistory } from './history.js?v=78'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=78'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t } from './i18n.js?v=78'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=102'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=102'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=102'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=102'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -56,12 +56,13 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=77', { type: 'module' })
+const worker = new Worker('worker.js?v=78', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
 let advanced = false
-let nav = 'check'
+let nav = 'game'
+let openedPlayThisSession = false
 let findMode = 'exact'
 let listKind = '2'
 let rackLen = 'all'
@@ -113,7 +114,11 @@ function normalize(value) {
 function tilesHtml(word, jokers = [], opts = {}) {
   const jk = new Set(jokers)
   const tap = opts.tap
-  return `<div class="tiles">${[...word].map((ch, i) => {
+  const rack = String(word || '')
+  const order = Array.isArray(opts.order) ? opts.order : [...rack].map((_, i) => i)
+  return `<div class="tiles">${order.map((i) => {
+    const ch = rack[i]
+    if (ch == null) return ''
     const blank = jk.has(i) || ch === '?' || ch === '.' || ch === '*'
     const pts = blank ? 0 : (letterValues()[ch] || 0)
     const glyph = blank ? '?' : ch
@@ -137,7 +142,7 @@ function isCompoundLemma(value) {
   return /[-'’]/.test(String(value || ''))
 }
 
-const DEF_CACHE_KEY = 'verimots-definitions-v2'
+const DEF_CACHE_KEY = 'verimots-definitions-v5'
 const DEF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000
 const DEF_CACHE_MAX = 80
 const defCache = new Map()
@@ -148,10 +153,8 @@ function readStoredDefinition(key) {
     const all = JSON.parse(localStorage.getItem(DEF_CACHE_KEY) || '{}')
     const hit = all?.[key]
     if (!hit || Date.now() - Number(hit.at || 0) > DEF_CACHE_TTL) return null
-    const value = hit.value
-    if (!value?.found || !value.senses?.some((sense) =>
-      sense?.defs?.some((definition) => /\p{L}/u.test(String(definition || '')))
-    )) return null
+    const value = lexicalDefinition(hit.value)
+    if (!value?.found || !value.senses?.length) return null
     return value
   } catch {
     return null
@@ -219,10 +222,11 @@ function shareHtml(share) {
 }
 
 function firstDef(payload) {
-  return payload?.senses?.[0]?.defs?.[0] || ''
+  return lexicalDefinition(payload)?.senses?.[0]?.defs?.[0] || ''
 }
 
 function defsHtml(payload) {
+  payload = lexicalDefinition(payload)
   if (!payload) return `<div class="defs" id="defs"><p class="pending">${t('def_pending')}</p></div>`
   if (!payload.found || !payload.senses?.length) {
     return `<div class="defs" id="defs">
@@ -265,11 +269,12 @@ async function loadDefinition(word, opts = {}) {
     const res = await fetch(`/api/define?w=${encodeURIComponent(key)}${langQ}`)
     const data = await res.json()
     if (!opts.stable && mine !== defSeq) return null
-    if (data?.ok && data.found) {
-      defCache.set(cacheKey, data)
-      storeDefinition(cacheKey, data)
+    const cleaned = lexicalDefinition(data)
+    if (cleaned?.ok && cleaned.found) {
+      defCache.set(cacheKey, cleaned)
+      storeDefinition(cacheKey, cleaned)
     }
-    return data
+    return cleaned
   } catch {
     if (!opts.stable && mine !== defSeq) return null
     return { ok: true, found: false, offline: true, word: key }
@@ -293,6 +298,21 @@ function liveCount(n) {
   return t('word_count', Number(n).toLocaleString(locale), dictLabel())
 }
 
+function paintAboutCount(n) {
+  const aboutLex = document.getElementById('about-lex')
+  if (!aboutLex) return
+  if (n == null || n === '') {
+    aboutLex.textContent = ''
+    return
+  }
+  if (typeof n === 'string') {
+    aboutLex.textContent = n
+    return
+  }
+  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  aboutLex.innerHTML = `<strong>${Number(n).toLocaleString(locale)}</strong> ${t('about_words')}`
+}
+
 function setLive(text) {
   live.textContent = text
 }
@@ -309,8 +329,13 @@ function renderHistory() {
   const rows = loadHistory()
   if (!histOut) return
   const title = document.getElementById('hist-title')
+  const sub = document.getElementById('hist-sub')
   const clearBtn = document.getElementById('hist-clear')
-  if (title) title.textContent = getCurrentUser() ? t('hist_account') : t('hist_local')
+  if (title) title.textContent = t('hist_local')
+  if (sub) {
+    sub.hidden = !getCurrentUser()
+    sub.textContent = getCurrentUser() ? t('hist_signed') : ''
+  }
   if (clearBtn) {
     clearBtn.hidden = !rows.length
     clearBtn.textContent = t('hist_clear')
@@ -321,19 +346,21 @@ function renderHistory() {
     }</p>`
     return
   }
-  histOut.innerHTML = `<table class="hist-table">
-    <thead><tr><th>${t('hist_word')}</th><th>${t('hist_pts')}</th><th>${t('hist_kind')}</th><th>${t('hist_when')}</th></tr></thead>
-    <tbody>${rows
-      .map(
-        (row) => `<tr data-word="${escapeHtml(row.word)}">
-      <td class="hist-word">${escapeHtml(row.word)}</td>
-      <td class="hist-pts">${row.pts}</td>
-      <td class="hist-src">${historyLabel(row.src)}</td>
-      <td class="hist-when">${escapeHtml(historyWhen(row.at))}</td>
-    </tr>`
-      )
-      .join('')}</tbody>
-  </table>`
+  let lastDay = ''
+  const blocks = []
+  for (const row of rows) {
+    const day = historyDayLabel(row.at)
+    if (day && day !== lastDay) {
+      lastDay = day
+      blocks.push(`<p class="hist-day">${escapeHtml(day)}</p>`)
+    }
+    blocks.push(`<button type="button" class="hist-row" data-word="${escapeHtml(row.word)}">
+      <span class="hist-row-word">${escapeHtml(row.word)}</span>
+      <span class="hist-row-meta">${escapeHtml(historyLabel(row.src))}</span>
+      <span class="hist-row-pts">${row.pts}</span>
+    </button>`)
+  }
+  histOut.innerHTML = blocks.join('')
 }
 
 function setHistOpen(on) {
@@ -350,7 +377,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=78').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=102').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -359,7 +386,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=78')
+    const { fetchHistory } = await import('./competitive.js?v=102')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -367,7 +394,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=78')
+    const { saveHistoryWord } = await import('./competitive.js?v=102')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -381,22 +408,14 @@ function isDesk() {
 }
 
 function boardSplit() {
-  return isDesk() && (isCompetitive() || isKids()) && (nav === 'game' || nav === 'board')
+  return isDesk() && (isCompetitive() || isKids()) && nav === 'game' && gamePlayEl && !gamePlayEl.hidden
 }
 
 function showPanel(name) {
-  const split = boardSplit()
   document.querySelectorAll('[data-panel]').forEach((el) => {
-    const key = el.dataset.panel
-    if (split && (key === 'game' || key === 'board')) {
-      el.hidden = false
-      return
-    }
-    el.hidden = key !== name
+    el.hidden = el.dataset.panel !== name
   })
-  document.body.classList.toggle('game-split', split)
-  const fabBoard = document.getElementById('fab-board')
-  if (fabBoard) fabBoard.hidden = isDesk() || !(isCompetitive() || isKids())
+  document.body.classList.toggle('game-split', boardSplit())
 }
 
 function writeUrl() {
@@ -411,7 +430,6 @@ function writeUrl() {
     if (gameRack) p.set('d', gameRack)
     if (gameCat) p.set('c', gameCat)
   }
-  if (nav === 'board') p.set('vue', 'classement')
   if (nav === 'rack') p.set('vue', 'tiroir')
   if (nav === 'info') p.set('vue', 'info')
   if (advanced) {
@@ -430,25 +448,31 @@ function writeUrl() {
   history.replaceState(null, '', next)
   writingUrl = false
   document.title =
-    nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : word ? `${word} · Verimots` : t('title')
+    nav === 'game' ? t('doc_game') : nav === 'rack' ? t('doc_rack') : word ? `${word} · Verimots` : t('title')
 }
 
 function readUrl() {
   const p = new URLSearchParams(location.search)
   const word = normalize(p.get('w') || p.get('mot') || '')
   advanced = p.get('adv') === '1' || p.get('mode') === 'avance'
-  const vue = p.get('vue') || 'check'
-  nav =
-    vue === 'jeu'
-      ? 'game'
-      : vue === 'classement'
-        ? 'board'
-        : vue === 'tiroir'
-          ? 'rack'
-          : ['check', 'lists', 'info', 'rack', 'game', 'board'].includes(vue)
-            ? vue
-            : 'check'
-  if (!advanced && nav !== 'game' && nav !== 'info' && nav !== 'board') nav = 'check'
+  const vue = p.get('vue')
+  if (word && !vue) {
+    nav = 'check'
+  } else if (!vue) {
+    nav = 'game'
+  } else {
+    nav =
+      vue === 'jeu'
+        ? 'game'
+        : vue === 'classement'
+          ? 'game'
+          : vue === 'tiroir'
+            ? 'rack'
+            : ['check', 'lists', 'info', 'rack', 'game'].includes(vue)
+              ? vue
+              : 'game'
+  }
+  if (!advanced && nav !== 'game' && nav !== 'info') nav = 'check'
   findMode = ['prefix', 'suffix', 'has', 'multi', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
   if (p.get('len') && /^\d+$/.test(p.get('len'))) rackLen = p.get('len')
   if (word) q.value = word
@@ -473,12 +497,18 @@ function syncChrome() {
     brandSub.textContent = dictLabel()
     brandSub.setAttribute('aria-label', `${t('dict_open')} · ${dictLabel()}`)
   }
+  paintDictPop()
+  const brandHome = document.getElementById('brand-home')
+  if (brandHome) {
+    brandHome.href = `https://verimots.pfa87.cc/?lang=${getLang()}`
+    brandHome.setAttribute('aria-label', t('home'))
+  }
   document.title =
-    nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : t('title')
+    nav === 'game' ? t('doc_game') : nav === 'rack' ? t('doc_rack') : t('title')
   const apk = document.querySelector('.apk-link')
   if (apk) apk.hidden = inApp
   document.querySelectorAll('.legal-link').forEach((el) => {
-    el.hidden = nav === 'game' || nav === 'board'
+    el.hidden = nav === 'game'
     const href = el.getAttribute('href') || ''
     if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy') || href.includes('privacidad'))) {
       el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : getLang() === 'es' ? '/privacidad.html' : '/confidentialite.html')
@@ -487,16 +517,15 @@ function syncChrome() {
       el.setAttribute('href', dictsPage())
     }
   })
-  advToggle.textContent = advanced ? t('simple') : t('advanced')
-  advNav.hidden = !advanced || nav === 'game' || nav === 'board'
-  search.hidden = nav === 'game' || nav === 'board' || nav === 'lists' || nav === 'info'
-  const fabBoard = document.getElementById('fab-board')
-  if (fabBoard) fabBoard.hidden = isDesk() || !(isCompetitive() || isKids())
-  document.querySelectorAll('.fab[data-fab]').forEach((btn) => {
+  if (advToggle) advToggle.textContent = advanced ? t('simple') : t('advanced')
+  advNav.hidden = !advanced || nav === 'game'
+  search.hidden = nav === 'game' || nav === 'lists' || nav === 'info'
+  document.querySelectorAll('#tabs [data-tab]').forEach((btn) => {
+    const key = btn.dataset.tab
     const on =
-      (nav === 'board' && btn.dataset.fab === 'board') ||
-      (nav === 'game' && btn.dataset.fab === 'game') ||
-      (nav !== 'game' && nav !== 'board' && btn.dataset.fab === 'check')
+      key === nav ||
+      (nav === 'rack' && key === 'check') ||
+      (nav === 'lists' && key === 'info')
     btn.setAttribute('aria-current', on ? 'page' : 'false')
   })
   paintDicts()
@@ -546,14 +575,15 @@ async function paintApkLink() {
 
 function setNav(name) {
   if (name === 'rack' && !advanced) name = 'check'
+  const changed = nav !== name
   nav = name
   if (name !== 'check') findMode = 'exact'
   syncChrome()
   showPanel(name)
+  if (changed) window.scrollTo(0, 0)
   if (name === 'lists') renderLists()
   if (name === 'info') renderStudy()
   if (name === 'game') enterGame()
-  if (name === 'board') game?.showBoard?.()
   if (name === 'check' || name === 'rack') {
     renderRackPreview()
     run()
@@ -564,7 +594,7 @@ function setNav(name) {
 
 function setAdvanced(on) {
   advanced = on
-  if (!advanced && nav !== 'game') {
+  if (!advanced && nav !== 'game' && nav !== 'info') {
     nav = 'check'
     findMode = 'exact'
   }
@@ -707,6 +737,33 @@ function renderFind(words, query) {
   renderGroups(findOut, groups, '', t('find_summary', words.length, query))
 }
 
+const dictPop = document.getElementById('dict-pop')
+
+function dictPopOpen() {
+  return Boolean(dictPop && !dictPop.hidden)
+}
+
+function setDictOpen(on) {
+  if (!dictPop || !brandSub) return
+  dictPop.hidden = !on
+  brandSub.classList.toggle('is-open', on)
+  brandSub.setAttribute('aria-expanded', on ? 'true' : 'false')
+  if (on) paintDictPop()
+}
+
+function paintDictPop() {
+  if (!dictPop) return
+  const current = getDict()
+  dictPop.innerHTML = DICTS.map((item) => {
+    const on = item.id === current
+    const lang = item.lang === 'fr' ? 'FR' : item.lang === 'en' ? 'EN' : 'ES'
+    return `<button type="button" role="option" class="dict-pop-item${on ? ' is-on' : ''}" data-dict="${item.id}" aria-selected="${on ? 'true' : 'false'}">
+      <span class="dict-pop-lang">${lang}</span>
+      <span>${escapeHtml(dictLabel(item.id))}</span>
+    </button>`
+  }).join('')
+}
+
 async function paintDicts() {
   const current = getDict()
   document.querySelectorAll('#settings-dicts [data-dict]').forEach((btn) => {
@@ -714,6 +771,7 @@ async function paintDicts() {
     btn.setAttribute('aria-pressed', on ? 'true' : 'false')
     btn.setAttribute('aria-checked', on ? 'true' : 'false')
   })
+  paintDictPop()
   const info = await loadDictsInfo()
   const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
   document.querySelectorAll('[data-dict-meta]').forEach((el) => {
@@ -728,13 +786,21 @@ function waStudyHref(text) {
 }
 
 function studyChips(words) {
-  return (words || []).map((w) => `<button type="button" class="chip" data-word="${escapeHtml(w)}">${escapeHtml(w)}</button>`).join('')
+  return (words || []).map((w) => {
+    const pts = letterScore(w)
+    return `<button type="button" class="study-tile${pts >= 8 ? ' study-tile-hot' : ''}" data-study-word="${escapeHtml(w)}">
+      <span class="study-tile-word">${escapeHtml(w)}</span>
+      <span class="study-tile-pts">${pts}</span>
+    </button>`
+  }).join('')
 }
 
 function renderStudy() {
   const when = document.getElementById('study-when')
   const twosEl = document.getElementById('study-twos')
   const threesEl = document.getElementById('study-threes')
+  const twosLabel = document.getElementById('study-twos-label')
+  const threesLabel = document.getElementById('study-threes-label')
   const studyWa = document.getElementById('study-wa')
   const studyWaTwos = document.getElementById('study-wa-twos')
   if (!twosEl && !threesEl) return
@@ -743,19 +809,22 @@ function renderStudy() {
   const twos = dailyStudySlice(twosAll, new Date(), STUDY_TWOS)
   const threes = dailyStudySlice(threesAll, new Date(), STUDY_THREES)
   if (when) when.textContent = t('study_today', studyDateLabel())
+  if (twosLabel) twosLabel.textContent = `${t('study_twos')} · ${twos.length}`
+  if (threesLabel) threesLabel.textContent = `${t('study_threes')} · ${threes.length}`
   if (twosEl) twosEl.innerHTML = studyChips(twos)
   if (threesEl) threesEl.innerHTML = studyChips(threes)
+  hideStudyDef()
   if (studyWa) {
     const readyStudy = twos.length || threes.length
     studyWa.hidden = !readyStudy
-    studyWa.innerHTML = `${WA_ICON}${t('study_share')}`
+    studyWa.innerHTML = `${WA_ICON}${t('study_share_short')}`
     if (readyStudy) studyWa.href = waStudyHref(`${dailyStudyText(twos, threes)}\n${location.origin}${location.pathname}`)
     else studyWa.removeAttribute('href')
   }
   if (studyWaTwos) {
-    studyWaTwos.hidden = !twosAll.length
-    studyWaTwos.innerHTML = `${WA_ICON}${t('study_share_twos')}`
-    if (twosAll.length) studyWaTwos.href = waStudyHref(`${studyListText(twosAll, 2)}\n${location.origin}${location.pathname}`)
+    studyWaTwos.hidden = !twos.length
+    studyWaTwos.innerHTML = `${WA_ICON}${t('share_study_twos')}`
+    if (twos.length) studyWaTwos.href = waStudyHref(`${studyListText(twos, 2)}\n${location.origin}${location.pathname}`)
     else studyWaTwos.removeAttribute('href')
   }
 }
@@ -792,16 +861,98 @@ function showGameView(view = 'menu') {
   if (gameMenuEl) gameMenuEl.hidden = view !== 'menu'
   if (gamePlayEl) gamePlayEl.hidden = view !== 'play'
   if (gameStudyEl) gameStudyEl.hidden = view !== 'study'
+  const dock = document.getElementById('game-dock')
+  if (view !== 'play') {
+    if (dock) dock.hidden = true
+    document.body.classList.remove('has-chart')
+  }
+  document.body.classList.toggle('game-split', boardSplit())
 }
 
-function enterGame() {
-  const fromUrl = challengeFromUrl()
-  if (parseRack(fromUrl.rack).length >= 2) {
-    showGameView('play')
-    game.open(fromUrl)
+function hideStudyDef() {
+  const box = document.getElementById('study-def')
+  if (box) box.hidden = true
+  document.querySelectorAll('.study-tile.is-on').forEach((el) => el.classList.remove('is-on'))
+}
+
+// Same definition pipeline as the game result: lexical filtering, "forme de"
+// resolution and linkified words, instead of the old raw first line.
+async function resolvedStudyDef(word) {
+  const payload = await loadDefinition(word, { stable: true })
+  const blob = (payload?.senses || []).flatMap((s) => s.defs).join(' ')
+  const formOf = extractFormOf(blob)
+  const inflection = payload?.found && (payload.senses || []).every((s) => s.defs.every(isInflectionDef))
+  let root = null
+  if (inflection && formOf) root = await loadDefinition(formOf, { stable: true })
+  return { payload, formOf, root }
+}
+
+let studySeq = 0
+let studyHome = null
+
+async function showStudyDef(word, tile) {
+  const box = document.getElementById('study-def')
+  const wordEl = document.getElementById('study-def-word')
+  const textEl = document.getElementById('study-def-text')
+  if (!box || !wordEl || !textEl) return
+  if (tile?.classList.contains('is-on')) {
+    hideStudyDef()
     return
   }
-  showGameView('menu')
+  hideStudyDef()
+  tile?.classList.add('is-on')
+  const seq = ++studySeq
+  studyHome = null
+  wordEl.textContent = word
+  textEl.innerHTML = defBody(null, escapeHtml)
+  box.hidden = false
+  const resolved = await resolvedStudyDef(word)
+  if (seq !== studySeq || !tile?.classList.contains('is-on')) return
+  studyHome = { word, ...resolved }
+  textEl.innerHTML = defBody(resolved.payload, escapeHtml, { formOf: resolved.formOf, root: resolved.root })
+}
+
+document.getElementById('study-def')?.addEventListener('click', async (e) => {
+  const textEl = document.getElementById('study-def-text')
+  if (!textEl) return
+  if (e.target.closest('[data-def-back]')) {
+    if (studyHome) {
+      textEl.innerHTML = defBody(studyHome.payload, escapeHtml, { formOf: studyHome.formOf, root: studyHome.root })
+    }
+    return
+  }
+  const btn = e.target.closest('[data-form-of]')
+  if (!btn) return
+  const root = btn.dataset.formOf
+  if (!root) return
+  const seq = ++studySeq
+  textEl.innerHTML = `<p class="pending">${t('sense_of', escapeHtml(root))}</p>`
+  const resolved = await resolvedStudyDef(root)
+  if (seq !== studySeq) return
+  textEl.innerHTML = `${backBtn(studyHome?.word || '', escapeHtml)}${defBody(resolved.payload, escapeHtml, { asRoot: true })}`
+})
+
+async function enterGame() {
+  const fromUrl = challengeFromUrl()
+  if (parseRack(fromUrl.rack).length >= 2) {
+    openedPlayThisSession = true
+    showGameView('play')
+    if (ready) game.open(fromUrl)
+    return
+  }
+  if (gameStudyEl && !gameStudyEl.hidden) return
+  if (!openedPlayThisSession) {
+    openedPlayThisSession = true
+    setGameMode('competitive')
+    showGameView('play')
+  } else if (gamePlayEl?.hidden) {
+    return
+  }
+  if (ready && isCompetitive()) {
+    await game.switchMode('competitive')
+    syncChrome()
+    showPanel(nav)
+  }
 }
 
 gameMenuEl?.addEventListener('click', async (e) => {
@@ -825,6 +976,7 @@ gameMenuEl?.addEventListener('click', async (e) => {
 
 document.getElementById('level-beginner')?.addEventListener('click', () => setLevel('beginner'))
 document.getElementById('level-confirmed')?.addEventListener('click', () => setLevel('confirmed'))
+document.getElementById('game-hub-back')?.addEventListener('click', () => setNav('check'))
 document.getElementById('game-menu-back')?.addEventListener('click', () => showGameView('menu'))
 document.getElementById('study-back')?.addEventListener('click', () => showGameView('menu'))
 
@@ -894,7 +1046,7 @@ async function run() {
   if (qJoker) qJoker.disabled = blankCount(raw) >= 2 || raw.length >= 16
   writeUrl()
 
-  if (nav === 'lists' || nav === 'info' || nav === 'game' || nav === 'board') return
+  if (nav === 'lists' || nav === 'info' || nav === 'game') return
 
   if (nav === 'check' && findMode === 'exact') {
     findOut.hidden = true
@@ -1030,7 +1182,6 @@ function applyUrl() {
   if (nav === 'lists') renderLists()
   if (nav === 'info') renderStudy()
   if (nav === 'game') enterGame()
-  if (nav === 'board') game?.showBoard?.()
   if (nav === 'check' || nav === 'rack') run()
 }
 
@@ -1057,6 +1208,7 @@ function setFeedbackOpen(on) {
 }
 
 feedbackFab?.addEventListener('click', () => setFeedbackOpen(feedbackSheet?.hidden))
+document.getElementById('info-feedback')?.addEventListener('click', () => setFeedbackOpen(true))
 document.getElementById('feedback-close')?.addEventListener('click', () => setFeedbackOpen(false))
 feedbackSheet?.addEventListener('click', (e) => {
   if (e.target === feedbackSheet) setFeedbackOpen(false)
@@ -1117,6 +1269,27 @@ feedbackForm?.addEventListener('submit', async (e) => {
 })
 
 histBtn?.addEventListener('click', () => setHistOpen(histSheet.hidden))
+
+const trainingHelp = document.getElementById('training-help')
+const TRAINING_RULE_KEYS = ['training_rules_all', 'training_rules_seven', 'training_rules_eight', 'training_rules_plus_one', 'training_rules_joker', 'training_rules_hard']
+function openTrainingHelp() {
+  const body = document.getElementById('training-help-body')
+  const title = document.getElementById('training-help-title')
+  if (!trainingHelp || !body) return
+  if (title) title.textContent = t('training_rules_title')
+  body.innerHTML = `<p>${escapeHtml(t('training_rules_goal'))}</p>
+    <ul>${TRAINING_RULE_KEYS.map((k) => `<li>${escapeHtml(t(k))}</li>`).join('')}</ul>
+    <p>${escapeHtml(t('training_rules_timer'))} ${escapeHtml(t('training_rules_reveal'))}</p>
+    <p class="fine">${escapeHtml(t('training_rules_unranked'))}</p>`
+  trainingHelp.hidden = false
+}
+document.getElementById('training-info')?.addEventListener('click', openTrainingHelp)
+document.getElementById('training-help-close')?.addEventListener('click', () => {
+  if (trainingHelp) trainingHelp.hidden = true
+})
+trainingHelp?.addEventListener('click', (e) => {
+  if (e.target === trainingHelp) trainingHelp.hidden = true
+})
 histClose?.addEventListener('click', () => setHistOpen(false))
 document.getElementById('about-hist')?.addEventListener('click', () => setHistOpen(true))
 document.getElementById('hist-clear')?.addEventListener('click', async () => {
@@ -1127,7 +1300,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=78')
+      const { clearCloudHistory } = await import('./competitive.js?v=102')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1143,25 +1316,56 @@ histOut?.addEventListener('click', (e) => {
   openWord(row.dataset.word)
 })
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && dictPopOpen()) {
+    setDictOpen(false)
+    return
+  }
   if (e.key === 'Escape' && histSheet && !histSheet.hidden) setHistOpen(false)
 })
+document.addEventListener('click', (e) => {
+  if (!dictPopOpen()) return
+  if (e.target.closest('.dict-wrap')) return
+  setDictOpen(false)
+})
 
-document.getElementById('about-link')?.addEventListener('click', () => setNav('info'))
+document.getElementById('brand-home')?.addEventListener('click', (e) => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return
+  if (!inApp) return
+  e.preventDefault()
+  if (histSheet && !histSheet.hidden) setHistOpen(false)
+  q.value = ''
+  findMode = 'exact'
+  setNav('game')
+})
 document.getElementById('settings-dicts')?.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-dict]')
   if (!btn) return
   const next = btn.dataset.dict
   if (dictSpec(next).id === next) switchDict(next)
 })
+dictPop?.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-dict]')
+  if (!btn) return
+  const next = btn.dataset.dict
+  setDictOpen(false)
+  if (dictSpec(next).id === next) switchDict(next)
+})
 
-advToggle.addEventListener('click', () => setAdvanced(!advanced))
+advToggle?.addEventListener('click', () => setAdvanced(!advanced))
 
 document.querySelectorAll('#adv-nav [data-nav]').forEach((btn) => {
   btn.addEventListener('click', () => setNav(btn.dataset.nav))
 })
 
-document.querySelectorAll('.fab[data-fab]').forEach((btn) => {
-  btn.addEventListener('click', () => setNav(btn.dataset.fab))
+document.querySelectorAll('#tabs [data-tab]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const name = btn.dataset.tab
+    if (name === 'game' && nav === 'game') {
+      showGameView('menu')
+      return
+    }
+    setNav(name)
+  })
 })
 
 document.querySelectorAll('.find-tools [data-find]').forEach((btn) => {
@@ -1235,6 +1439,11 @@ document.body.addEventListener('click', (e) => {
     setNav('rack')
     return
   }
+  const study = e.target.closest('[data-study-word]')
+  if (study) {
+    showStudyDef(study.dataset.studyWord, study)
+    return
+  }
   const chip = e.target.closest('[data-word]')
   if (!chip || chip.closest('#panel-game') || chip.hasAttribute('data-def-tab')) return
   openWord(chip.dataset.word)
@@ -1290,6 +1499,7 @@ function metaFile(id = getDict()) {
 async function loadMeta() {
   meta = await (await fetch(metaFile())).json()
   setLive(liveCount(meta.count))
+  paintAboutCount(meta.count)
   renderStudy()
 }
 
@@ -1302,10 +1512,11 @@ async function reloadLexicon() {
   if (getLang() !== wantedLang || getDict() !== wantedDict) return
   ready = true
   setLive(liveCount(result.count))
+  paintAboutCount(result.count)
   if (nav === 'check' || nav === 'rack') run()
   else if (nav === 'lists') renderLists()
   else if (nav === 'info') renderStudy()
-  else if (nav === 'game' || nav === 'board') game?.refresh?.()
+  else if (nav === 'game') game?.refresh?.()
 }
 
 async function switchDict(id) {
@@ -1321,6 +1532,7 @@ async function switchDict(id) {
     await reloadLexicon()
   } catch (err) {
     setLive(t('lex_fail'))
+    paintAboutCount(t('lex_fail'))
     console.error(err)
   }
 }
@@ -1338,6 +1550,7 @@ async function switchLang(next) {
     await reloadLexicon()
   } catch (err) {
     setLive(t('lex_fail'))
+    paintAboutCount(t('lex_fail'))
     console.error(err)
   }
 }
@@ -1347,11 +1560,9 @@ async function boot() {
   document.getElementById('lang-fr')?.addEventListener('click', () => switchLang('fr'))
   document.getElementById('lang-en')?.addEventListener('click', () => switchLang('en'))
   document.getElementById('lang-es')?.addEventListener('click', () => switchLang('es'))
-  brandSub?.addEventListener('click', () => {
-    setNav('info')
-    requestAnimationFrame(() => {
-      document.getElementById('settings-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+  brandSub?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    setDictOpen(!dictPopOpen())
   })
   readUrl()
   syncChrome()
@@ -1364,24 +1575,27 @@ async function boot() {
   }
   paintHistBtn()
   showPanel(nav)
+  if (nav === 'game') enterGame()
   try {
     await loadMeta()
     renderLists()
     renderStudy()
   } catch {
     setLive(t('lex_fail'))
+    paintAboutCount(t('lex_fail'))
   }
   try {
     const result = await ask('load', { lang: getLang() })
     ready = true
     setLive(liveCount(result.count))
+    paintAboutCount(result.count)
     if (nav === 'check' || nav === 'rack') run()
     else if (nav === 'lists') renderLists()
     else if (nav === 'info') renderStudy()
     else if (nav === 'game') enterGame()
-    else if (nav === 'board') game.showBoard()
   } catch (err) {
     setLive(t('lex_fail'))
+    paintAboutCount(t('lex_fail'))
     if (hint) hint.textContent = t('lex_fail')
     console.error(err)
   }
@@ -1389,11 +1603,11 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=78').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=102').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
-  if (nav === 'game' || nav === 'board') {
+  if (nav === 'game') {
     syncChrome()
     showPanel(nav)
   }

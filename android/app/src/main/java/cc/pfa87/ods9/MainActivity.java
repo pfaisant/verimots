@@ -14,12 +14,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.graphics.Typeface;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.StyleSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -35,8 +37,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,16 +56,20 @@ public class MainActivity extends Activity {
     private Lexicon lex;
     private View paneCheck;
     private View paneGame;
-    private View paneBoard;
     private View paneAbout;
     private TextView tabCheck;
     private TextView tabGame;
-    private TextView tabBoard;
     private TextView tabAbout;
-    private TextView tabTools;
+    private View dictPop;
+    private View gameBoardWrap;
+    private TextView gameStudyDef;
+    private String studyDefWord = "";
+    private View tabBar;
+    private boolean imeOpen;
     private TextView live;
     private TextView brandSub;
     private int tab;
+    private boolean welcomeCompetition = true;
     
     private CompetitiveMode competitiveMode;
     private boolean isCompetitiveMode = false;
@@ -103,7 +107,7 @@ public class MainActivity extends Activity {
     private TextView authStats;
     private TextView histOpen;
     private Dialog historyDialog;
-    private TableLayout historyTable;
+    private LinearLayout historyList;
     private boolean officialDeal;
     private boolean bubblesOn;
     private int dealRequestGeneration;
@@ -117,11 +121,20 @@ public class MainActivity extends Activity {
     private String lastPlayedWord = "";
     private int lastPlayedPts;
     private String lastPlayedDef = "";
-    private TextView aboutStudy;
-    private TextView aboutStudyShare;
-    private TextView aboutStudyTwos;
     private TextView aboutDict;
     private View checkClear;
+    private View gameClear;
+    private View gameClearAll;
+    private TextView gameAlpha;
+    private View gameRackTools;
+    private boolean rackAlpha;
+    private View gameMenu;
+    private View gamePlay;
+    private View gameStudy;
+    private TextView aboutLex;
+    private TextView gameStudyBody;
+    private TextView levelBeginner;
+    private TextView levelConfirmed;
     private final Handler checkHandler = new Handler(Looper.getMainLooper());
     private int checkSeq;
     private TextView authStatus;
@@ -135,6 +148,7 @@ public class MainActivity extends Activity {
     private TextView trainingReveal;
     private String trainingPreset = "all";
     private final HashSet<String> trainingFound = new HashSet<>();
+    private final HashSet<String> trainingNeeded = new HashSet<>();
     private final Handler trainingHandler = new Handler(Looper.getMainLooper());
     private int trainingTimerSeconds;
     private long trainingEndsAt;
@@ -150,6 +164,7 @@ public class MainActivity extends Activity {
     private EditText gameQ;
     private TextView gameLive;
     private TextView gameCat;
+    private View gameAgain;
     private TextView gameAvg;
     private boolean publicAverageHas;
     private double publicAverage;
@@ -194,21 +209,42 @@ public class MainActivity extends Activity {
 
         paneCheck = findViewById(R.id.pane_check);
         paneGame = findViewById(R.id.pane_game);
-        paneBoard = findViewById(R.id.pane_board);
         paneAbout = findViewById(R.id.pane_about);
         tabCheck = findViewById(R.id.tab_check);
         tabGame = findViewById(R.id.tab_game);
-        tabBoard = findViewById(R.id.tab_board);
         tabAbout = findViewById(R.id.tab_about);
-        tabTools = findViewById(R.id.tab_tools);
+        tabBar = findViewById(R.id.tabs);
         live = findViewById(R.id.live);
         brandSub = findViewById(R.id.brand_sub);
-        if (brandSub != null) brandSub.setOnClickListener(v -> showTab(3));
+        aboutLex = findViewById(R.id.about_lex);
+        dictPop = findViewById(R.id.dict_pop);
+        gameBoardWrap = findViewById(R.id.game_board_wrap);
+        gameStudyDef = findViewById(R.id.game_study_def);
+        if (brandSub != null) brandSub.setOnClickListener(v -> toggleDictPop());
+        View.OnTouchListener closeDict = (v, e) -> {
+            setDictPopOpen(false);
+            return false;
+        };
+        if (paneCheck != null) paneCheck.setOnTouchListener(closeDict);
+        if (paneGame != null) paneGame.setOnTouchListener(closeDict);
+        if (paneAbout != null) paneAbout.setOnTouchListener(closeDict);
+        View.OnClickListener goHome = v -> {
+            if (checkQ != null) checkQ.setText("");
+            showTab(1);
+            boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+            boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
+            if (!playOn && !studyOn) openWelcomeCompetition();
+        };
+        View mark = findViewById(R.id.mark);
+        View brandTitle = findViewById(R.id.brand_title);
+        if (mark != null) mark.setOnClickListener(goHome);
+        if (brandTitle != null) brandTitle.setOnClickListener(goHome);
         tabCheck.setOnClickListener(v -> showTab(0));
-        tabGame.setOnClickListener(v -> showTab(1));
-        tabBoard.setOnClickListener(v -> showTab(2));
-        tabAbout.setOnClickListener(v -> showTab(3));
-        tabTools.setOnClickListener(v -> toggleBubbles());
+        tabGame.setOnClickListener(v -> {
+            if (tab == 1) showGameView("menu");
+            else showTab(1);
+        });
+        tabAbout.setOnClickListener(v -> showTab(2));
 
         competitiveMode = new CompetitiveMode(this);
         advanced = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("advanced", false);
@@ -218,6 +254,7 @@ public class MainActivity extends Activity {
         bindDicts();
         bindCheck();
         bindGame();
+        bindGameMenu();
         bindAuth();
         bindAdvanced();
         bindStudy();
@@ -235,13 +272,21 @@ public class MainActivity extends Activity {
                     setEnabled(true);
                     paintStudy();
                     applyIntent(getIntent());
-                    if (tab == 1 && deal == null) requestDeal();
+                    maybeOpenWelcomeCompetition();
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> live.setText(R.string.lex_unavailable));
+                runOnUiThread(() -> {
+                    if (aboutLex != null) aboutLex.setText(R.string.lex_unavailable);
+                    if (live != null) live.setText(R.string.lex_unavailable);
+                });
             }
         }).start();
-        int savedTab = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getInt("tab", 0);
+        android.content.SharedPreferences prefs = getSharedPreferences("verimots-prefs", MODE_PRIVATE);
+        if (!prefs.getBoolean("nav-v3", false)) {
+            prefs.edit().putBoolean("nav-v3", true).putInt("tab", 1).apply();
+        }
+        int savedTab = prefs.getInt("tab", 1);
+        if (savedTab > 2) savedTab = 2;
         showTab(savedTab);
         applyBubbles();
         RemoteApi.fetchAverage((has, avg) -> {
@@ -278,10 +323,13 @@ public class MainActivity extends Activity {
         String w = Lexicon.normalize(u.getQueryParameter("w"));
         String d = Lexicon.normalize(u.getQueryParameter("d"));
         if ("jeu".equals(vue) || (d != null && d.length() >= 2)) {
+            welcomeCompetition = false;
             showTab(1);
+            showGameView("play");
             if (d != null && d.length() >= 2) startDeal(lex.fromRack(d));
             else startDeal(lex.challenge());
         } else if (w.length() >= 2) {
+            welcomeCompetition = false;
             showTab(0);
             checkQ.setText(w);
             doCheck(true);
@@ -301,12 +349,40 @@ public class MainActivity extends Activity {
         int extraTop = root.getPaddingTop();
         int extraBottom = root.getPaddingBottom();
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            Insets bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
-            v.setPadding(v.getPaddingLeft(), bars.top + extraTop, v.getPaddingRight(), bars.bottom + extraBottom);
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            boolean keyboard = ime.bottom > bars.bottom + 40;
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    bars.top + extraTop,
+                    v.getPaddingRight(),
+                    Math.max(bars.bottom, ime.bottom) + extraBottom);
+            setImeOpen(keyboard);
             return insets;
         });
         ViewCompat.requestApplyInsets(root);
+    }
+
+    private void setImeOpen(boolean on) {
+        if (imeOpen == on) return;
+        imeOpen = on;
+        if (tabBar != null) tabBar.setVisibility(on ? View.GONE : View.VISIBLE);
+        syncGameDock();
+    }
+
+    private void syncGameDock() {
+        if (gameDock == null) return;
+        boolean playOn = tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+        if (imeOpen || !playOn || isTrainingMode) {
+            gameDock.setVisibility(View.GONE);
+            return;
+        }
+        java.util.List<Integer> scores = ScoreStore.load(this, isKidsMode);
+        boolean has = scores != null && !scores.isEmpty();
+        boolean spark = scores != null && scores.size() >= 2;
+        boolean share = gameWa != null && gameWa.getVisibility() == View.VISIBLE;
+        gameDock.setVisibility(has || share ? View.VISIBLE : View.GONE);
+        if (gameChart != null) gameChart.setVisibility(spark ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void paintBuildStamp() {
@@ -334,7 +410,46 @@ public class MainActivity extends Activity {
         en.setOnClickListener(v -> setDictionary(Dict.CSW));
         wow.setOnClickListener(v -> setDictionary(Dict.WOW24));
         es.setOnClickListener(v -> setDictionary(Dict.RLA));
+        View popOds = findViewById(R.id.pop_dict_ods);
+        View popCsw = findViewById(R.id.pop_dict_csw);
+        View popWow = findViewById(R.id.pop_dict_wow24);
+        View popRla = findViewById(R.id.pop_dict_rla);
+        if (popOds != null) popOds.setOnClickListener(v -> pickDict(Dict.ODS));
+        if (popCsw != null) popCsw.setOnClickListener(v -> pickDict(Dict.CSW));
+        if (popWow != null) popWow.setOnClickListener(v -> pickDict(Dict.WOW24));
+        if (popRla != null) popRla.setOnClickListener(v -> pickDict(Dict.RLA));
         paintDicts();
+    }
+
+    private void pickDict(String dict) {
+        setDictPopOpen(false);
+        setDictionary(dict);
+    }
+
+    private void toggleDictPop() {
+        setDictPopOpen(dictPop == null || dictPop.getVisibility() != View.VISIBLE);
+    }
+
+    private void setDictPopOpen(boolean on) {
+        if (dictPop == null) return;
+        dictPop.setVisibility(on ? View.VISIBLE : View.GONE);
+        paintDictPop();
+    }
+
+    private void paintDictPop() {
+        if (dictPop == null) return;
+        String dict = Dict.get(this);
+        styleDictPopItem(findViewById(R.id.pop_dict_ods), Dict.ODS.equals(dict));
+        styleDictPopItem(findViewById(R.id.pop_dict_csw), Dict.CSW.equals(dict));
+        styleDictPopItem(findViewById(R.id.pop_dict_wow24), Dict.WOW24.equals(dict));
+        styleDictPopItem(findViewById(R.id.pop_dict_rla), Dict.RLA.equals(dict));
+    }
+
+    private void styleDictPopItem(View row, boolean on) {
+        if (!(row instanceof TextView)) return;
+        TextView tv = (TextView) row;
+        tv.setBackgroundResource(on ? R.drawable.bg_chip_on : 0);
+        tv.setTextColor(getColor(on ? R.color.gold : R.color.ink));
     }
 
     private void paintDicts() {
@@ -359,12 +474,15 @@ public class MainActivity extends Activity {
     }
 
     private void paintWordCount() {
-        if (lex == null || live == null) return;
+        if (lex == null) return;
         java.util.Locale locale = new java.util.Locale(Lang.get(this));
-        live.setText(getString(
-                R.string.word_count,
-                String.format(locale, "%,d", lex.size()).replace('\u00a0', ' '),
-                Dict.label(this)));
+        String n = String.format(locale, "%,d", lex.size()).replace('\u00a0', ' ');
+        String label = getString(R.string.word_count, n);
+        SpannableString bold = new SpannableString(label);
+        int end = Math.min(n.length(), label.length());
+        bold.setSpan(new StyleSpan(Typeface.BOLD), 0, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (aboutLex != null) aboutLex.setText(bold);
+        if (live != null) live.setText(label);
         paintDictBadge();
     }
 
@@ -420,7 +538,8 @@ public class MainActivity extends Activity {
 
     private void reloadLexicon() {
         setEnabled(false);
-        live.setText(R.string.loading);
+        if (aboutLex != null) aboutLex.setText(R.string.loading);
+        if (live != null) live.setText(R.string.loading);
         new Thread(() -> {
             try {
                 lex = Lexicon.get(this, Dict.get(this));
@@ -428,10 +547,16 @@ public class MainActivity extends Activity {
                     paintWordCount();
                     setEnabled(true);
                     paintStudy();
-                    if (tab == 1) requestDeal();
+                    if (tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE) {
+                        deal = null;
+                        requestDeal();
+                    }
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> live.setText(R.string.lex_unavailable));
+                runOnUiThread(() -> {
+                    if (aboutLex != null) aboutLex.setText(R.string.lex_unavailable);
+                    if (live != null) live.setText(R.string.lex_unavailable);
+                });
             }
         }).start();
     }
@@ -449,6 +574,13 @@ public class MainActivity extends Activity {
         if ("offline".equals(key)) return getString(R.string.def_need_net);
         if ("missing".equals(key)) return getString(R.string.def_missing);
         return key == null || key.isEmpty() ? getString(R.string.def_need_net) : key;
+    }
+
+    private String kickerLabel(String cat) {
+        String label = categoryLabel(cat);
+        if (!isCompetitiveMode || isTrainingMode || isKidsMode) return label;
+        String mode = getString(R.string.menu_comp);
+        return label.equalsIgnoreCase(mode) ? mode : mode + " \u00b7 " + label;
     }
 
     private String categoryLabel(String cat) {
@@ -469,21 +601,22 @@ public class MainActivity extends Activity {
         tab = which;
         getSharedPreferences("verimots-prefs", MODE_PRIVATE)
                 .edit().putInt("tab", which).apply();
+        setDictPopOpen(false);
         paneCheck.setVisibility(which == 0 ? View.VISIBLE : View.GONE);
         paneGame.setVisibility(which == 1 ? View.VISIBLE : View.GONE);
-        paneBoard.setVisibility(which == 2 ? View.VISIBLE : View.GONE);
-        paneAbout.setVisibility(which == 3 ? View.VISIBLE : View.GONE);
+        paneAbout.setVisibility(which == 2 ? View.VISIBLE : View.GONE);
         styleTab(tabCheck, which == 0);
         styleTab(tabGame, which == 1);
-        styleTab(tabBoard, which == 2);
-        styleTab(tabAbout, which == 3);
+        styleTab(tabAbout, which == 2);
         paintDictBadge();
-        if (which == 2) {
-            boardKidsTab = isKidsMode;
-            styleBoardTabs();
-            competitiveMode.fetchBoards(gameBoard, gameBoardTitle, boardKidsTab);
+        if (which == 1) {
+            boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+            boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
+            if (!playOn && !studyOn) {
+                if (welcomeCompetition && lex != null) openWelcomeCompetition();
+                else showGameView("menu");
+            }
         }
-        if (which == 1 && lex != null && deal == null) requestDeal();
     }
 
     private void requestDeal() {
@@ -510,7 +643,7 @@ public class MainActivity extends Activity {
                         @Override
                         public void ok(org.json.JSONArray top, org.json.JSONObject me) {
                             if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
-                            officialDeal = me == null;
+                            officialDeal = competitiveMode.loggedIn();
                             startDeal(me != null ? lex.kidsDeal() : lex.fromRack(rack, seed));
                         }
 
@@ -539,7 +672,7 @@ public class MainActivity extends Activity {
                         @Override
                         public void ok(org.json.JSONArray top, org.json.JSONObject me) {
                             if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
-                            officialDeal = me == null;
+                            officialDeal = competitiveMode.loggedIn();
                             startDeal(me != null ? lex.challenge() : lex.fromRack(rack));
                         }
 
@@ -579,7 +712,7 @@ public class MainActivity extends Activity {
 
     private void styleTab(TextView t, boolean on) {
         t.setBackgroundResource(on ? R.drawable.bg_nav_on : R.drawable.bg_nav);
-        int color = getColor(on ? R.color.tile_ink : R.color.dim);
+        int color = getColor(on ? R.color.gold : R.color.dim);
         t.setTextColor(color);
         android.graphics.drawable.Drawable[] icons = t.getCompoundDrawables();
         for (android.graphics.drawable.Drawable icon : icons) {
@@ -594,14 +727,12 @@ public class MainActivity extends Activity {
         bubblesOn = !bubblesOn;
         getSharedPreferences("verimots-prefs", MODE_PRIVATE)
                 .edit().putBoolean("bubbles", bubblesOn).apply();
-        Toast.makeText(this, getString(bubblesOn ? R.string.tools_on : R.string.tools_off),
-                Toast.LENGTH_SHORT).show();
         applyBubbles();
     }
 
     private void applyBubbles() {
         View fab = findViewById(R.id.feedback_fab);
-        if (fab != null) fab.setVisibility(bubblesOn ? View.VISIBLE : View.GONE);
+        if (fab != null) fab.setVisibility(View.GONE);
         if (gameWa != null && !bubblesOn) gameWa.setVisibility(View.INVISIBLE);
     }
 
@@ -667,12 +798,16 @@ public class MainActivity extends Activity {
     }
 
     private void doCheck(boolean immediateDef) {
-        if (lex == null || checkQ == null) return;
+        if (checkQ == null) return;
+        String typed = checkQ.getText().toString();
+        if (checkClear != null) {
+            checkClear.setVisibility(typed.trim().isEmpty() ? View.GONE : View.VISIBLE);
+        }
+        if (lex == null) return;
         String mode = advanced ? findMode : "exact";
         String word = "rack".equals(mode)
-                ? Lexicon.normalizeRack(checkQ.getText().toString())
-                : Lexicon.normalize(checkQ.getText().toString());
-        if (checkClear != null) checkClear.setVisibility(word.isEmpty() ? View.GONE : View.VISIBLE);
+                ? Lexicon.normalizeRack(typed)
+                : Lexicon.normalize(typed);
         if ("rack".equals(mode)) {
             checkCard.setVisibility(View.GONE);
             paintMatches(mode, word);
@@ -740,6 +875,103 @@ public class MainActivity extends Activity {
         else checkHandler.postDelayed(fetch, 180);
     }
 
+    private void bindGameMenu() {
+        gameMenu = findViewById(R.id.game_menu);
+        gamePlay = findViewById(R.id.game_play);
+        gameStudy = findViewById(R.id.game_study);
+        levelBeginner = findViewById(R.id.level_beginner);
+        levelConfirmed = findViewById(R.id.level_confirmed);
+        View menuComp = findViewById(R.id.menu_comp);
+        View menuTraining = findViewById(R.id.menu_training);
+        View menuFind = findViewById(R.id.menu_find);
+        View menuStudy = findViewById(R.id.menu_study);
+        View backPlay = findViewById(R.id.game_menu_back);
+        View backStudy = findViewById(R.id.study_back);
+        if (menuComp != null) menuComp.setOnClickListener(v -> pickGame("competitive"));
+        if (menuTraining != null) menuTraining.setOnClickListener(v -> pickGame("training"));
+        if (menuFind != null) menuFind.setOnClickListener(v -> pickGame("find"));
+        if (menuStudy != null) menuStudy.setOnClickListener(v -> pickGame("study"));
+        View hubBack = findViewById(R.id.game_hub_back);
+        if (hubBack != null) hubBack.setOnClickListener(v -> showTab(0));
+        if (backPlay != null) backPlay.setOnClickListener(v -> showGameView("menu"));
+        if (backStudy != null) backStudy.setOnClickListener(v -> showGameView("menu"));
+        if (levelBeginner != null) levelBeginner.setOnClickListener(v -> setLevel("beginner"));
+        if (levelConfirmed != null) levelConfirmed.setOnClickListener(v -> setLevel("confirmed"));
+        paintLevel();
+        showGameView("menu");
+    }
+
+    private boolean beginnerLevel() {
+        return "beginner".equals(getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                .getString("level", "confirmed"));
+    }
+
+    private void setLevel(String level) {
+        getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                .edit().putString("level", "beginner".equals(level) ? "beginner" : "confirmed")
+                .apply();
+        paintLevel();
+    }
+
+    private void paintLevel() {
+        boolean beginner = beginnerLevel();
+        styleLevelChip(levelBeginner, beginner);
+        styleLevelChip(levelConfirmed, !beginner);
+    }
+
+    private void styleLevelChip(TextView chip, boolean on) {
+        if (chip == null) return;
+        chip.setBackgroundResource(on ? R.drawable.bg_gold_btn : 0);
+        chip.setTextColor(getColor(on ? R.color.tile_ink : R.color.ink));
+    }
+
+    private void showGameView(String view) {
+        if (gameMenu != null) gameMenu.setVisibility("menu".equals(view) ? View.VISIBLE : View.GONE);
+        if (gamePlay != null) gamePlay.setVisibility("play".equals(view) ? View.VISIBLE : View.GONE);
+        if (gameStudy != null) gameStudy.setVisibility("study".equals(view) ? View.VISIBLE : View.GONE);
+        if ("play".equals(view)) syncPlayBoard();
+        else if (gameBoardWrap != null) gameBoardWrap.setVisibility(View.GONE);
+        syncGameDock();
+    }
+
+    private void pickGame(String choice) {
+        if ("study".equals(choice)) {
+            paintStudy();
+            showGameView("study");
+            return;
+        }
+        isCompetitiveMode = "competitive".equals(choice);
+        isTrainingMode = "training".equals(choice);
+        isKidsMode = "find".equals(choice) && beginnerLevel();
+        if (isCompetitiveMode) {
+            isKidsMode = false;
+            isTrainingMode = false;
+        }
+        deal = null;
+        officialDeal = false;
+        stopTrainingTimer();
+        hintLevel = 0;
+        paintAuth();
+        showGameView("play");
+        requestDeal();
+    }
+
+    private void maybeOpenWelcomeCompetition() {
+        if (tab != 1 || !welcomeCompetition) return;
+        boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+        boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
+        if (playOn || studyOn) {
+            welcomeCompetition = false;
+            return;
+        }
+        openWelcomeCompetition();
+    }
+
+    private void openWelcomeCompetition() {
+        welcomeCompetition = false;
+        pickGame("competitive");
+    }
+
     private void bindAuth() {
         authStatus = findViewById(R.id.auth_status);
         authGoogle = findViewById(R.id.auth_google);
@@ -755,18 +987,6 @@ public class MainActivity extends Activity {
         trainingReveal = findViewById(R.id.training_reveal);
         gameBoard = findViewById(R.id.game_board);
         gameBoardTitle = findViewById(R.id.game_board_title);
-        boardTabGeneral = findViewById(R.id.board_tab_general);
-        boardTabKids = findViewById(R.id.board_tab_kids);
-        if (boardTabGeneral != null) boardTabGeneral.setOnClickListener(v -> {
-            boardKidsTab = false;
-            styleBoardTabs();
-            competitiveMode.showBoardTab(false);
-        });
-        if (boardTabKids != null) boardTabKids.setOnClickListener(v -> {
-            boardKidsTab = true;
-            styleBoardTabs();
-            competitiveMode.showBoardTab(true);
-        });
         if (authGoogle != null) authGoogle.setOnClickListener(v -> competitiveMode.signIn(() -> {
             paintAuth();
             syncHistory();
@@ -933,13 +1153,13 @@ public class MainActivity extends Activity {
 
     private void paintTrainingProgress() {
         if (trainingProgress == null) return;
-        int total = deal != null && isTrainingMode ? deal.catalog.size() : 0;
+        int total = trainingNeeded.size();
         String timer = "";
         if (trainingEndsAt > 0) {
             long seconds = Math.max(0, (trainingEndsAt - SystemClock.elapsedRealtime() + 999) / 1000);
             timer = " · " + seconds + "s";
         }
-        trainingProgress.setText(getString(R.string.training_progress, trainingFound.size(), total, timer));
+        trainingProgress.setText(getString(R.string.training_progress, trainingNeededFound(), total, timer));
     }
 
     private void paintTrainingStats() {
@@ -988,8 +1208,8 @@ public class MainActivity extends Activity {
         }
         if (trainingTools != null) trainingTools.setVisibility(isTrainingMode ? View.VISIBLE : View.GONE);
         if (gameAvg != null) {
-            gameAvg.setVisibility(isKidsMode ? View.GONE : View.VISIBLE);
-            paintGameAverage();
+            gameAvg.setVisibility(isTrainingMode ? View.VISIBLE : View.GONE);
+            if (isTrainingMode) paintTrainingStats();
         }
         paintHistory();
     }
@@ -1011,6 +1231,8 @@ public class MainActivity extends Activity {
     private void bindFeedback() {
         View fab = findViewById(R.id.feedback_fab);
         if (fab != null) fab.setOnClickListener(v -> showFeedbackDialog());
+        View aboutFeedback = findViewById(R.id.about_feedback);
+        if (aboutFeedback != null) aboutFeedback.setOnClickListener(v -> showFeedbackDialog());
     }
 
     private void showFeedbackDialog() {
@@ -1077,13 +1299,13 @@ public class MainActivity extends Activity {
     }
 
     private void bindStudy() {
-        aboutStudy = findViewById(R.id.about_study);
-        aboutStudyShare = findViewById(R.id.about_study_share);
-        aboutStudyTwos = findViewById(R.id.about_study_twos);
         aboutDict = findViewById(R.id.about_dict);
-        if (aboutStudyShare != null) aboutStudyShare.setOnClickListener(v -> shareDailyStudy());
-        if (aboutStudyTwos != null) aboutStudyTwos.setOnClickListener(v -> shareTwoLetterList());
         if (aboutDict != null) aboutDict.setOnClickListener(v -> exportLexicon());
+        gameStudyBody = findViewById(R.id.game_study_body);
+        TextView gameStudyShare = findViewById(R.id.game_study_share);
+        TextView gameStudyTwos = findViewById(R.id.game_study_twos);
+        if (gameStudyShare != null) gameStudyShare.setOnClickListener(v -> shareDailyStudy());
+        if (gameStudyTwos != null) gameStudyTwos.setOnClickListener(v -> shareTodayTwos());
         paintStudy();
     }
 
@@ -1096,9 +1318,9 @@ public class MainActivity extends Activity {
     }
 
     private void paintStudy() {
-        if (aboutStudy == null) return;
+        if (gameStudyBody == null && findViewById(R.id.game_study_twos_words) == null) return;
         if (lex == null) {
-            aboutStudy.setText(R.string.loading);
+            if (gameStudyBody != null) gameStudyBody.setText(R.string.loading);
             return;
         }
         Calendar cal = Calendar.getInstance();
@@ -1114,11 +1336,61 @@ public class MainActivity extends Activity {
                 cal.get(Calendar.MONTH),
                 cal.get(Calendar.DAY_OF_MONTH),
                 12);
-        aboutStudy.setText(getString(
+        String pack = getString(
                 R.string.study_pack,
                 getString(R.string.study_today, studyDate()),
                 Lexicon.joinWords(twos),
-                Lexicon.joinWords(threes)));
+                Lexicon.joinWords(threes));
+        if (gameStudyBody != null) gameStudyBody.setText(pack);
+        TextView when = findViewById(R.id.game_study_when);
+        if (when != null) when.setText(getString(R.string.study_today, studyDate()));
+        TextView twosLabel = findViewById(R.id.game_study_twos_label);
+        TextView threesLabel = findViewById(R.id.game_study_threes_label);
+        if (twosLabel != null) twosLabel.setText(getString(R.string.study_section, getString(R.string.study_twos), twos.size()));
+        if (threesLabel != null) threesLabel.setText(getString(R.string.study_section, getString(R.string.study_threes), threes.size()));
+        fillStudyWords(findViewById(R.id.game_study_twos_words), twos);
+        fillStudyWords(findViewById(R.id.game_study_threes_words), threes);
+        if (gameStudyDef != null) {
+            gameStudyDef.setVisibility(View.GONE);
+            gameStudyDef.setText("");
+        }
+        studyDefWord = "";
+    }
+
+    private void fillStudyWords(android.view.ViewGroup row, List<String> words) {
+        if (row == null) return;
+        row.removeAllViews();
+        for (String word : words) {
+            TextView tile = Tiles.studyTile(this, word);
+            tile.setOnClickListener(v -> showStudyDefinition(word));
+            row.addView(tile);
+        }
+    }
+
+    private void showStudyDefinition(String word) {
+        if (gameStudyDef == null) return;
+        if (word.equals(studyDefWord) && gameStudyDef.getVisibility() == View.VISIBLE) {
+            gameStudyDef.setVisibility(View.GONE);
+            studyDefWord = "";
+            return;
+        }
+        studyDefWord = word;
+        gameStudyDef.setVisibility(View.VISIBLE);
+        gameStudyDef.setText(word + "\n" + getString(R.string.def_pending));
+        RemoteApi.define(word, new RemoteApi.DefCb() {
+            @Override
+            public void ok(String pos, String text, String url, String lemma) {
+                if (!word.equals(studyDefWord)) return;
+                String line = text == null || text.isEmpty() ? getString(R.string.def_missing) : text;
+                gameStudyDef.setText(word + (pos == null || pos.isEmpty() ? "" : " · " + pos) + "\n" + line);
+            }
+
+            @Override
+            public void empty(String message) {
+                if (!word.equals(studyDefWord)) return;
+                gameStudyDef.setText(word + "\n" + defMessage(message));
+            }
+        }, Lang.get(this));
     }
 
     private void shareDailyStudy() {
@@ -1143,6 +1415,18 @@ public class MainActivity extends Activity {
                 "",
                 Lexicon.joinWords(twos),
                 Lexicon.joinWords(threes)).trim() + "\n");
+    }
+
+    private void shareTodayTwos() {
+        if (lex == null) return;
+        Calendar cal = Calendar.getInstance();
+        List<String> twos = Lexicon.dailyStudySlice(
+                lex.wordsOfLength(2),
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH),
+                10);
+        share(getString(R.string.share_study_list, 2, twos.size(), Lexicon.joinWords(twos)));
     }
 
     private void shareTwoLetterList() {
@@ -1529,27 +1813,32 @@ public class MainActivity extends Activity {
     }
 
     private void paintHistory() {
-        if (historyDialog != null && historyDialog.isShowing() && historyTable != null) {
-            fillHistoryTable(historyTable, historyDialog.findViewById(R.id.hist_clear));
+        if (historyDialog != null && historyDialog.isShowing() && historyList != null) {
+            fillHistoryList(historyList, historyDialog.findViewById(R.id.hist_clear));
         }
     }
 
     private void showHistoryDialog() {
         View view = getLayoutInflater().inflate(R.layout.dialog_history, null);
         TextView title = view.findViewById(R.id.hist_dialog_title);
+        TextView sub = view.findViewById(R.id.hist_dialog_sub);
         TextView close = view.findViewById(R.id.hist_dialog_close);
         TextView clear = view.findViewById(R.id.hist_clear);
-        historyTable = view.findViewById(R.id.hist_table);
-        if (title != null) {
-            title.setText(competitiveMode.loggedIn() ? R.string.hist_account : R.string.hist_local);
+        historyList = view.findViewById(R.id.hist_list);
+        if (title != null) title.setText(R.string.hist_local);
+        if (sub != null) {
+            boolean on = competitiveMode.loggedIn();
+            sub.setVisibility(on ? View.VISIBLE : View.GONE);
+            if (on) sub.setText(R.string.hist_signed);
+            else sub.setText("");
         }
-        fillHistoryTable(historyTable, clear);
+        fillHistoryList(historyList, clear);
         historyDialog = new Dialog(this);
         historyDialog.setContentView(view);
         if (historyDialog.getWindow() != null) {
-            historyDialog.getWindow().setBackgroundDrawableResource(R.color.felt_card);
+            historyDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
             int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.92f);
-            int height = Math.round(getResources().getDisplayMetrics().heightPixels * 0.72f);
+            int height = Math.round(getResources().getDisplayMetrics().heightPixels * 0.76f);
             historyDialog.getWindow().setLayout(width, height);
         }
         if (close != null) close.setOnClickListener(v -> historyDialog.dismiss());
@@ -1557,31 +1846,44 @@ public class MainActivity extends Activity {
         historyDialog.show();
     }
 
-    private void fillHistoryTable(TableLayout table, TextView clear) {
-        if (table == null) return;
-        table.removeAllViews();
+    private void fillHistoryList(LinearLayout list, TextView clear) {
+        if (list == null) return;
+        list.removeAllViews();
         List<HistoryStore.Row> rows = HistoryStore.load(this);
         if (clear != null) clear.setVisibility(rows.isEmpty() ? View.GONE : View.VISIBLE);
-        TableRow head = new TableRow(this);
-        head.addView(histCell(getString(R.string.hist_word), true, false));
-        head.addView(histCell(getString(R.string.hist_pts), true, false));
-        head.addView(histCell(getString(R.string.hist_kind), true, false));
-        head.addView(histCell(getString(R.string.hist_when), true, false));
-        table.addView(head);
         if (rows.isEmpty()) {
-            TableRow empty = new TableRow(this);
-            TextView cell = histCell(getString(R.string.hist_empty), false, false);
-            empty.addView(cell);
-            table.addView(empty);
+            TextView empty = new TextView(this);
+            empty.setText(R.string.hist_empty);
+            empty.setTextColor(getColor(R.color.muted));
+            empty.setGravity(android.view.Gravity.CENTER);
+            empty.setPadding(16, 48, 16, 32);
+            empty.setTextSize(15);
+            list.addView(empty);
             return;
         }
-        java.text.DateFormat df = DateFormat.getMediumDateFormat(this);
+        String lastDay = "";
         for (HistoryStore.Row row : rows) {
-            TableRow line = new TableRow(this);
-            line.addView(histCell(row.word, false, true));
-            line.addView(histCell(String.valueOf(row.pts), false, false));
-            line.addView(histCell(getString("defi".equals(row.src) ? R.string.src_game : R.string.src_check), false, false));
-            line.addView(histCell(row.at > 0 ? df.format(new Date(row.at)) : "", false, false));
+            String day = historyDayLabel(row.at);
+            if (!day.isEmpty() && !day.equals(lastDay)) {
+                lastDay = day;
+                TextView head = new TextView(this);
+                head.setText(day);
+                head.setAllCaps(true);
+                head.setTextColor(getColor(R.color.dim));
+                head.setTextSize(11);
+                head.setLetterSpacing(0.08f);
+                head.setPadding(8, 12, 8, 8);
+                list.addView(head);
+            }
+            View line = getLayoutInflater().inflate(R.layout.hist_row, list, false);
+            TextView word = line.findViewById(R.id.hist_row_word);
+            TextView pts = line.findViewById(R.id.hist_row_pts);
+            TextView meta = line.findViewById(R.id.hist_row_meta);
+            if (word != null) word.setText(row.word);
+            if (pts != null) pts.setText(String.valueOf(row.pts));
+            if (meta != null) {
+                meta.setText(getString("defi".equals(row.src) ? R.string.src_game : R.string.src_check));
+            }
             line.setOnClickListener(v -> {
                 if (historyDialog != null) historyDialog.dismiss();
                 showTab(0);
@@ -1591,22 +1893,24 @@ public class MainActivity extends Activity {
                 checkQ.setSelection(row.word.length());
                 doCheck(true);
             });
-            table.addView(line);
+            list.addView(line);
         }
     }
 
-    private TextView histCell(String text, boolean header, boolean word) {
-        TextView cell = new TextView(this);
-        cell.setText(text);
-        cell.setPadding(8, 10, 8, 10);
-        cell.setTextSize(header ? 11 : 14);
-        cell.setTextColor(getColor(header ? R.color.dim : word ? R.color.ink : R.color.muted));
-        if (header) cell.setAllCaps(true);
-        if (word && !header) {
-            cell.setTypeface(cell.getTypeface(), android.graphics.Typeface.BOLD);
-            cell.setTextColor(getColor(R.color.gold));
-        }
-        return cell;
+    private String historyDayLabel(long at) {
+        if (at <= 0) return "";
+        Calendar then = Calendar.getInstance();
+        then.setTimeInMillis(at);
+        Calendar now = Calendar.getInstance();
+        if (sameDay(then, now)) return getString(R.string.hist_today);
+        now.add(Calendar.DAY_OF_YEAR, -1);
+        if (sameDay(then, now)) return getString(R.string.hist_yesterday);
+        return DateFormat.getMediumDateFormat(this).format(new Date(at));
+    }
+
+    private static boolean sameDay(Calendar a, Calendar b) {
+        return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
+                && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
     }
 
     private void confirmClearHistory() {
@@ -1641,6 +1945,7 @@ public class MainActivity extends Activity {
         gameCat = findViewById(R.id.game_cat);
         gameAvg = findViewById(R.id.game_avg);
         gameResult = findViewById(R.id.game_result);
+        gameAgain = findViewById(R.id.game_again);
         gamePct = findViewById(R.id.game_pct);
         gameBreak = findViewById(R.id.game_break);
         gameVs = findViewById(R.id.game_vs);
@@ -1660,14 +1965,43 @@ public class MainActivity extends Activity {
         boardChartLast = findViewById(R.id.board_chart_last);
         gameSpacer = findViewById(R.id.game_spacer);
         gameDock = findViewById(R.id.game_dock);
+        gameClear = findViewById(R.id.game_clear);
+        gameClearAll = findViewById(R.id.game_clear_all);
+        gameAlpha = findViewById(R.id.game_alpha);
+        gameRackTools = findViewById(R.id.game_rack_tools);
+        rackAlpha = getSharedPreferences("verimots-prefs", MODE_PRIVATE).getBoolean("rack-alpha", false);
+        View.OnClickListener clearPlay = v -> {
+            gameQ.setText("");
+            gameQ.requestFocus();
+        };
+        if (gameClear != null) gameClear.setOnClickListener(clearPlay);
+        if (gameClearAll != null) gameClearAll.setOnClickListener(clearPlay);
+        if (gameAlpha != null) {
+            paintAlphaBtn();
+            gameAlpha.setOnClickListener(v -> {
+                rackAlpha = !rackAlpha;
+                getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                        .edit().putBoolean("rack-alpha", rackAlpha).apply();
+                paintAlphaBtn();
+                paintRack();
+            });
+        }
         findViewById(R.id.game_go).setOnClickListener(v -> submitPlay());
+        View trainingInfo = findViewById(R.id.training_info);
+        if (trainingInfo != null) {
+            trainingInfo.setOnClickListener(v -> new android.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.training_rules_title)
+                    .setMessage(R.string.training_rules_body)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show());
+        }
         findViewById(R.id.game_again).setOnClickListener(v -> {
             if (lex == null) return;
             if (officialDeal && !pendingRankedWord.isEmpty() && competitiveMode.loggedIn()) {
                 submitOfficialScore(pendingRankedPercent, pendingRankedWord, true);
                 return;
             }
-            officialDeal = false;
+            officialDeal = competitiveMode.loggedIn() && (isKidsMode || isCompetitiveMode);
             startDeal(isKidsMode ? lex.kidsDeal() : isTrainingMode ? lex.training(trainingPreset) : lex.challenge());
         });
         gameQ.setOnEditorActionListener((v, a, e) -> {
@@ -1694,10 +2028,15 @@ public class MainActivity extends Activity {
         pendingRankedWord = "";
         deal = next;
         closed = false;
+        showGameView("play");
         lastPlayedWord = "";
         lastPlayedPts = 0;
         lastPlayedDef = "";
         trainingFound.clear();
+        trainingNeeded.clear();
+        if (isTrainingMode && next.catalog != null) {
+            for (Lexicon.Play play : next.catalog) trainingNeeded.add(play.word);
+        }
         trainingRecorded = false;
         stopTrainingTimer();
         gameQ.setText("");
@@ -1706,15 +2045,15 @@ public class MainActivity extends Activity {
         gameLive.setVisibility(View.VISIBLE);
         gameLive.setText("");
         gameResult.setVisibility(View.GONE);
+        if (gameAgain != null) gameAgain.setVisibility(View.GONE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
-        gameCat.setText(categoryLabel(next.category));
+        gameCat.setText(kickerLabel(next.category));
         hintLevel = 0;
         if (gameHint != null) {
             boolean kids = isKidsMode || "kids".equals(next.category);
             gameHint.setVisibility(kids ? View.VISIBLE : View.GONE);
             gameHint.setEnabled(true);
         }
-        if (gameDock != null) gameDock.setVisibility(View.VISIBLE);
         paintRack();
         paintShare(null);
         paintChart();
@@ -1759,6 +2098,7 @@ public class MainActivity extends Activity {
     private void paintRack() {
         if (deal == null) return;
         String typed = Lexicon.normalize(gameQ.getText().toString());
+        if (gameRackTools != null) gameRackTools.setVisibility(closed ? View.GONE : View.VISIBLE);
         Tiles.fill(gameRack, deal.rack, closed ? null : usedTiles(typed), closed ? null : v -> {
             int i = (Integer) v.getTag();
             char ch = deal.rack.charAt(i);
@@ -1774,10 +2114,24 @@ public class MainActivity extends Activity {
             } else word = word + ch;
             gameQ.setText(word);
             gameQ.setSelection(word.length());
-        }, deal.bonusIndex);
+        }, deal.bonusIndex, rackAlpha);
+    }
+
+    private void paintAlphaBtn() {
+        if (gameAlpha == null) return;
+        gameAlpha.setBackgroundResource(rackAlpha ? R.drawable.bg_pill : R.drawable.bg_count);
+        gameAlpha.setTextColor(getColor(rackAlpha ? R.color.gold : R.color.muted));
+    }
+
+    private void paintClearAll() {
+        boolean hide = closed || gameQ == null || gameQ.getText().toString().isEmpty();
+        int vis = hide ? View.GONE : View.VISIBLE;
+        if (gameClear != null) gameClear.setVisibility(vis);
+        if (gameClearAll != null) gameClearAll.setVisibility(vis);
     }
 
     private void previewPlay() {
+        paintClearAll();
         if (closed || deal == null) return;
         paintRack();
         String word = Lexicon.normalize(gameQ.getText().toString());
@@ -1790,10 +2144,18 @@ public class MainActivity extends Activity {
         if (hit != null) {
             gameLive.setText(getString(R.string.pts_n, hit.pts()));
             gameLive.setTextColor(getColor(R.color.ok));
-        } else if (word.length() >= 2) {
+        } else if (word.length() < 2) {
+            gameLive.setText("");
+        } else if (!lex.canSpell(word, deal.rack)) {
             gameLive.setText(R.string.not_on_rack);
             gameLive.setTextColor(getColor(R.color.no));
-        } else gameLive.setText("");
+        } else if (!lex.has(word)) {
+            gameLive.setText(getString(R.string.not_in_dict, Dict.label(this)));
+            gameLive.setTextColor(getColor(R.color.no));
+        } else {
+            gameLive.setText(R.string.not_on_rack);
+            gameLive.setTextColor(getColor(R.color.no));
+        }
     }
 
     private void submitPlay() {
@@ -1842,6 +2204,7 @@ public class MainActivity extends Activity {
         gameBreak.setText(hit.word + " " + hit.pts());
         gameVs.setText(vs);
         gameResult.setVisibility(View.VISIBLE);
+        if (gameAgain != null) gameAgain.setVisibility(View.VISIBLE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.GONE);
         List<Lexicon.Play> tops = Lexicon.topWords(deal.catalog, hit, 5);
         int start = 0;
@@ -1881,12 +2244,28 @@ public class MainActivity extends Activity {
             return;
         }
         boolean fresh = trainingFound.add(hit.word);
-        gameLive.setText(fresh ? getString(R.string.training_found, hit.word, hit.pts())
-                : getString(R.string.already_found));
+        int left = Math.max(0, trainingNeeded.size() - trainingNeededFound());
+        if (fresh && left > 0) {
+            gameLive.setText(getString(R.string.training_found_left, hit.word, hit.pts(), left));
+        } else {
+            gameLive.setText(fresh ? getString(R.string.training_found, hit.word, hit.pts())
+                    : getString(R.string.already_found));
+        }
         gameLive.setTextColor(getColor(R.color.ok));
         gameQ.setText("");
         paintTrainingProgress();
-        if (trainingFound.size() >= deal.catalog.size()) finishTraining(true);
+        if (trainingRoundSolved()) finishTraining(true);
+    }
+
+    private int trainingNeededFound() {
+        int n = 0;
+        for (String word : trainingNeeded) if (trainingFound.contains(word)) n++;
+        return n;
+    }
+
+    private boolean trainingRoundSolved() {
+        if (trainingNeeded.isEmpty()) return false;
+        return trainingFound.containsAll(trainingNeeded);
     }
 
     private void finishTraining(boolean solved) {
@@ -1897,12 +2276,14 @@ public class MainActivity extends Activity {
         gameForm.setVisibility(View.GONE);
         gameLive.setVisibility(View.GONE);
         paintRack();
-        int total = deal.catalog.size();
-        int percent = Math.round(100f * trainingFound.size() / Math.max(1, total));
+        int total = trainingNeeded.isEmpty() ? deal.catalog.size() : trainingNeeded.size();
+        int found = trainingNeededFound();
+        int percent = Math.round(100f * found / Math.max(1, total));
         gamePct.setText(percent + "%");
-        gameBreak.setText(getString(R.string.training_score, trainingFound.size(), total));
+        gameBreak.setText(getString(R.string.training_score, found, total));
         gameVs.setText(solved ? R.string.training_complete : R.string.training_revealed);
         gameResult.setVisibility(View.VISIBLE);
+        if (gameAgain != null) gameAgain.setVisibility(View.VISIBLE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.GONE);
         paintTops(deal.catalog, -1, "");
         if (!deal.catalog.isEmpty()) showDef(deal.catalog.get(0).word);
@@ -1928,6 +2309,7 @@ public class MainActivity extends Activity {
             }
             refreshBoards();
             if (accepted && dealAfterSuccess && lex != null) {
+                officialDeal = competitiveMode.loggedIn() && (kids || isCompetitiveMode);
                 startDeal(kids ? lex.kidsDeal() : lex.challenge());
             }
         });
@@ -1935,8 +2317,13 @@ public class MainActivity extends Activity {
 
     private void refreshBoards() {
         boardKidsTab = isKidsMode;
-        styleBoardTabs();
-        competitiveMode.fetchBoards(gameBoard, gameBoardTitle, boardKidsTab);
+        syncPlayBoard();
+    }
+
+    private void syncPlayBoard() {
+        boolean show = !isTrainingMode && (isCompetitiveMode || isKidsMode);
+        if (gameBoardWrap != null) gameBoardWrap.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (show) competitiveMode.fetchBoards(gameBoard, gameBoardTitle, isKidsMode);
     }
 
     private void paintTops(List<Lexicon.Play> tops, int selected, String mine) {
@@ -1954,13 +2341,19 @@ public class MainActivity extends Activity {
         }
     }
 
+    private int defSeq = 0;
+
     private void showDef(String word) {
+        // A later chip tap supersedes any in-flight lookup: without this guard
+        // the slower response repainted the panel with the wrong word's entry.
+        final int seq = ++defSeq;
         gamePos.setText("");
         gameDef.setText(R.string.def_pending);
         if (gameLemma != null) gameLemma.setVisibility(View.GONE);
         RemoteApi.define(word, new RemoteApi.DefCb() {
             @Override
             public void ok(String pos, String text, String url, String lemma) {
+                if (seq != defSeq) return;
                 gamePos.setText(pos);
                 paintDef(gameDef, gameLemma, text, lemma, word);
                 if (isKidsMode && word.equals(lastPlayedWord)) {
@@ -1971,6 +2364,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void empty(String message) {
+                if (seq != defSeq) return;
                 gamePos.setText("");
                 gameDef.setText(defMessage(message));
                 if (gameLemma != null) gameLemma.setVisibility(View.GONE);
@@ -2004,29 +2398,34 @@ public class MainActivity extends Activity {
     }
 
     private void paintChart() {
-        boolean kids = tab == 2 ? boardKidsTab : isKidsMode;
+        boolean kids = isKidsMode;
         paintChart(ScoreStore.load(this, kids));
     }
 
     private void paintChart(List<Integer> scores) {
         boolean has = scores != null && !scores.isEmpty();
+        boolean spark = scores != null && scores.size() >= 2;
         String last = has ? String.valueOf(scores.get(scores.size() - 1)) : "";
         String avg = "";
-        if (has) {
+        if (spark) {
             int sum = 0;
             for (int score : scores) sum += score;
             avg = String.format(new java.util.Locale(Lang.get(this)), "%.1f",
                     Math.round(10.0 * sum / scores.size()) / 10.0);
         }
-        if (gameChart != null) gameChart.setScores(scores);
+        if (gameChart != null) {
+            gameChart.setScores(spark ? scores : java.util.Collections.emptyList());
+            gameChart.setVisibility(spark ? View.VISIBLE : View.INVISIBLE);
+        }
         if (gameChartAvg != null) gameChartAvg.setText(avg);
-        if (gameChartAvgUnit != null) gameChartAvgUnit.setVisibility(has ? View.VISIBLE : View.GONE);
+        if (gameChartAvgUnit != null) gameChartAvgUnit.setVisibility(spark ? View.VISIBLE : View.GONE);
         if (gameLast != null) gameLast.setText(last);
         if (gameLastUnit != null) gameLastUnit.setVisibility(has ? View.VISIBLE : View.GONE);
-        if (boardChart != null) boardChart.setScores(scores);
+        if (boardChart != null) boardChart.setScores(spark ? scores : java.util.Collections.emptyList());
         if (boardChartAvg != null) boardChartAvg.setText(avg);
-        if (boardChartAvgUnit != null) boardChartAvgUnit.setVisibility(has ? View.VISIBLE : View.GONE);
+        if (boardChartAvgUnit != null) boardChartAvgUnit.setVisibility(spark ? View.VISIBLE : View.GONE);
         if (boardChartLast != null) boardChartLast.setText(last);
+        syncGameDock();
     }
 
     private void share(String text) {

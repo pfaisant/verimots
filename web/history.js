@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=78'
+import { t, getLang } from './i18n.js?v=102'
 
 const KEY = 'ods9-session-v1'
 const MAX = 80
@@ -98,6 +98,21 @@ export function historyWhen(at) {
   if (!Number.isFinite(d.getTime()) || d.getTime() <= 0) return ''
   const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
   return d.toLocaleDateString(loc, { day: 'numeric', month: 'short' })
+}
+
+function dayStamp(at) {
+  const d = new Date(Number(at) || 0)
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+export function historyDayLabel(at, now = Date.now()) {
+  const d = new Date(Number(at) || 0)
+  if (!Number.isFinite(d.getTime()) || d.getTime() <= 0) return ''
+  const stamp = dayStamp(d)
+  if (stamp === dayStamp(now)) return t('hist_today')
+  if (stamp === dayStamp(now - 86400000)) return t('hist_yesterday')
+  const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  return d.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export function clearHistory(storage) {

@@ -99,11 +99,11 @@ final class RemoteApi {
                     return;
                 }
                 JSONArray senses = o.optJSONArray("senses");
-                if (senses == null || senses.length() == 0) {
+                JSONObject s0 = firstLexicalSense(senses);
+                if (s0 == null) {
                     post(() -> cb.empty("missing"));
                     return;
                 }
-                JSONObject s0 = senses.getJSONObject(0);
                 JSONArray defs = s0.optJSONArray("defs");
                 String pos = s0.optString("pos", "");
                 String def = defs != null && defs.length() > 0 ? defs.getString(0) : "";
@@ -427,6 +427,22 @@ final class RemoteApi {
                 post(() -> cb.error("Connexion requise"));
             }
         });
+    }
+
+    private static boolean properNounPos(String pos) {
+        String p = pos == null ? "" : pos.toLowerCase(Locale.ROOT);
+        return p.contains("nom propre") || p.contains("proper noun") || p.contains("nombre propio");
+    }
+
+    private static JSONObject firstLexicalSense(JSONArray senses) {
+        if (senses == null) return null;
+        for (int i = 0; i < senses.length(); i++) {
+            JSONObject sense = senses.optJSONObject(i);
+            if (sense == null || properNounPos(sense.optString("pos", ""))) continue;
+            JSONArray defs = sense.optJSONArray("defs");
+            if (defs != null && defs.length() > 0) return sense;
+        }
+        return null;
     }
 
     private static void post(Runnable r) {

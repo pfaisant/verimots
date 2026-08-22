@@ -279,10 +279,33 @@ final class CompetitiveMode {
         int plays = Math.max(1, entry.optInt("plays", 1));
         String words = activity.getString(R.string.word_count_n, plays, plays > 1 ? "s" : "");
         String score = activity.getString(R.string.board_score, pctLabel, words);
-        row.setText(entry.optInt("rank") + ".  " + entry.optString("pseudo", "?")
-                + (word.isEmpty() ? "" : "  " + word) + "  " + score);
+        int rank = entry.optInt("rank");
+        String rankTxt = rank + " ";
+        String name = entry.optString("pseudo", "?");
+        String wordTxt = word.isEmpty() ? "" : "  " + word;
+        String text = rankTxt + " " + name + wordTxt + "  " + score;
+        android.text.SpannableString sp = new android.text.SpannableString(text);
+        // Medal-tinted rank for the podium, dim otherwise.
+        int rankColor = rank == 1 ? 0xFFE8C56B : rank == 2 ? 0xFFB9C6BA : rank == 3 ? 0xFFCE9668 : 0xFF7D9183;
+        int at = 0;
+        sp.setSpan(new android.text.style.ForegroundColorSpan(rankColor), at, rankTxt.length(),
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        sp.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), at, rankTxt.length(),
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (!word.isEmpty()) {
+            int ws = rankTxt.length() + 1 + name.length() + 2;
+            sp.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), ws, ws + word.length(),
+                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        int ss = text.length() - score.length();
+        sp.setSpan(new android.text.style.ForegroundColorSpan(0xFFE8C56B), ss, text.length(),
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        row.setText(sp);
         row.setTextColor(mine ? 0xFFE8C56B : 0xFFF7F2E8);
-        row.setPadding(12, 10, 12, 10);
+        row.setTextSize(12);
+        row.setSingleLine(true);
+        row.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        row.setPadding(8, 6, 8, 6);
         return row;
     }
 

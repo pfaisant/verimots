@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "verimots-web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve.mjs"],
+      "port": 4174
+    },
+    {
+      "name": "verimots-attach",
+      "url": "http://127.0.0.1:4174",
+      "port": 4174
+    }
+  ]
+}

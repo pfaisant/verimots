@@ -302,6 +302,24 @@ public final class Lexicon {
      * can spell from their tiles and that the dictionary accepts must be
      * playable: ATOM on a TOMATO rack was wrongly refused before.
      */
+    public boolean canSpell(String rawWord, String rack) {
+        String word = normalize(rawWord, false);
+        String r = normalizeRack(rack);
+        if (word.length() < 2) return false;
+        int[] counts = new int[ALPHABET.length()];
+        int blanks = 0;
+        for (int i = 0; i < r.length(); i++) {
+            char c = r.charAt(i);
+            if (c == '?') {
+                blanks++;
+                continue;
+            }
+            int idx = letterIndex(c);
+            if (idx >= 0) counts[idx]++;
+        }
+        return formable(word, counts, blanks) != null;
+    }
+
     public Play probe(String rawWord, String rack) {
         String word = normalize(rawWord, false);
         String r = normalizeRack(rack);
@@ -480,7 +498,7 @@ public final class Lexicon {
             } else if (!"plusOne".equals(preset)) {
                 rack = shuffle(rack);
             }
-            int min = "all".equals(preset) || "hard".equals(preset) ? 2 : target;
+            int min = "all".equals(preset) ? 2 : target;
             List<Play> catalog = anagrams(rack, min, target);
             if (!catalog.isEmpty()) {
                 return new Deal("training-" + preset, rack, catalog, seed, bonusIndex);

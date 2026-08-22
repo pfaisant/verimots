@@ -5,6 +5,7 @@
     <color name="felt_card">#1a2c22</color>
     <color name="tile">#f6ead0</color>
     <color name="tile_ink">#1a1408</color>
+    <color name="tile_used_ink">#3d3a32</color>
     <color name="tile_edge">#c9b27a</color>
     <color name="gold">#e8c56b</color>
     <color name="feedback">#4aa3b8</color>

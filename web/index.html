@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Verimots — Vérificateur de mots</title>
+  <title>Verimots — Défi de la semaine</title>
   <meta name="description" content="Verimots : la liste des mots (plus de 400 000 formes) pour vérifier, chercher dans le tiroir et jouer au défi. Définitions automatiques avec une connexion." />
   <meta name="theme-color" content="#142018" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -18,20 +18,23 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=78" />
+  <link rel="stylesheet" href="app.css?v=102" />
 </head>
-<body class="simple">
+<body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
   <p class="sr" id="live" aria-live="polite" data-i18n="loading">Chargement…</p>
   <header class="top">
     <div class="brand">
-      <span class="mark" aria-hidden="true">V</span>
-      <div>
+      <a class="brand-home" id="brand-home" href="https://verimots.pfa87.cc/?lang=fr" data-i18n-aria="home" aria-label="Accueil">
+        <span class="mark" aria-hidden="true">V</span>
         <h1>Verimots</h1>
-        <button type="button" id="brand-sub" class="dict-badge" data-i18n-aria="dict_open" aria-label="Changer de dictionnaire">ODS9</button>
-      </div>
+      </a>
     </div>
     <div class="top-tools">
+      <div class="dict-wrap">
+        <button type="button" id="brand-sub" class="dict-chip" data-i18n-aria="dict_open" aria-label="Changer de dictionnaire" aria-expanded="false" aria-haspopup="listbox" aria-controls="dict-pop">ODS9</button>
+        <div id="dict-pop" class="dict-pop" hidden role="listbox"></div>
+      </div>
       <div class="lang-toggle" role="group" data-i18n-aria="lang" aria-label="Langue">
         <button type="button" id="lang-fr" class="lang-btn" aria-pressed="true">FR</button>
         <button type="button" id="lang-en" class="lang-btn" aria-pressed="false">EN</button>
@@ -45,7 +48,7 @@
   </header>
 
   <main>
-    <section class="search" id="search" aria-label="Saisie">
+    <section class="search" id="search" aria-label="Saisie" hidden>
       <label class="sr" for="q" id="q-label" data-i18n="q_label">Mot à vérifier</label>
       <div class="field">
         <input
@@ -67,7 +70,7 @@
       <div id="rack-preview" class="rack-preview" hidden></div>
     </section>
 
-    <section class="panel" id="panel-check" data-panel="check">
+    <section class="panel" id="panel-check" data-panel="check" hidden>
       <div class="find-tools adv-only" role="group" data-i18n-aria="find_type" aria-label="Type de recherche" hidden>
         <button type="button" data-find="exact" aria-pressed="true" data-i18n="find_exact">Ce mot</button>
         <button type="button" data-find="prefix" aria-pressed="false" data-i18n="find_prefix">Commence</button>
@@ -132,22 +135,17 @@
 
     <section class="panel" id="panel-info" data-panel="info" hidden>
       <article class="info">
-        <h2 data-i18n="about_title">À propos de Verimots</h2>
-        <p data-i18n="about_p1">
-          La liste choisie contient les mots (407 128 formes de 2 à 15 lettres,
-          sans accents). Vérifier un mot, le tiroir et le défi.
-        </p>
-        <p data-i18n="about_p2">
-          Les définitions viennent du Wiktionnaire et demandent une connexion,
-          comme le partage.
-        </p>
-        <p data-i18n="about_p3">
-          La liste est maintenue par la communauté. Verimots n’est pas
-          l’ouvrage Larousse, ni un produit affilié à Scrabble, Mattel, Hasbro ou à une fédération.
-        </p>
-        <p data-i18n="about_p4">
-          Mode simple : vérifier et partager. Mode avancé : tiroir, motifs et listes.
-        </p>
+        <div class="info-head">
+          <h2 data-i18n="about_title">À propos de Verimots</h2>
+          <p class="info-lex" id="about-lex">Chargement…</p>
+        </div>
+        <p class="info-lead" data-i18n="about_p1">La liste choisie (2 à 15 lettres) vérifie un mot, le tiroir et le défi. Les définitions demandent une connexion.</p>
+        <p class="fine info-note" data-i18n="about_p2">Les définitions sont extraites du Wiktionnaire (source libre, parfois fautive) et demandent une connexion, comme le partage.</p>
+        <p class="fine info-note" data-i18n="about_p3">Liste communautaire. Pas Larousse, ni affilié à Scrabble, Mattel, Hasbro ou une fédération.</p>
+        <div class="info-actions">
+          <button type="button" class="info-action" id="about-hist" data-i18n="hist_open">Historique</button>
+          <button type="button" class="info-action" id="info-feedback" data-i18n="feedback">Avis</button>
+        </div>
         <div class="settings-card" id="settings-card">
           <h3 data-i18n="settings">Réglages</h3>
           <p class="settings-label" data-i18n="settings_dicts">Dictionnaire</p>
@@ -187,40 +185,48 @@
               <span class="dict-meta" data-dict-meta="rla"></span>
             </button>
           </div>
+          <button type="button" class="info-action info-action-ghost" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
         </div>
-        <p>
-          <button type="button" class="about-hist" id="about-hist" data-i18n="hist_open">Historique</button>
-        </p>
-        <p class="fine">
+        <p class="fine info-legal">
+          <a class="apk-link" href="verimots-3.29.apk" download="verimots-3.29.apk" title="Télécharger verimots-3.29.apk">verimots-3.29.apk</a>
+          ·
           <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
           ·
-          <a href="/confidentialite.html">Politique de confidentialité</a>
+          <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
+          ·
+          <button type="button" class="legal-link" data-cookies data-i18n="cookies">Cookies</button>
         </p>
       </article>
     </section>
 
-    <section class="panel" id="panel-game" data-panel="game" hidden>
-      <div id="game-menu" class="game-menu">
+    <section class="panel" id="panel-game" data-panel="game">
+      <div id="game-menu" class="game-menu" hidden>
+        <div class="game-menu-bar">
+          <button type="button" class="menu-back" id="game-hub-back">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.4 6.4 10.8 11l4.6 4.6L14 17l-6-6 6-6z"/></svg>
+            <span data-i18n="menu_back">Retour</span>
+          </button>
+        </div>
         <div class="game-menu-grid">
           <button type="button" class="game-menu-item" data-game="competitive">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 3h12v2h3v3a4 4 0 0 1-4 4h-.35A5.5 5.5 0 0 1 13 15.4V18h3v3H8v-3h3v-2.6A5.5 5.5 0 0 1 7.35 12H7a4 4 0 0 1-4-4V5h3V3zm0 4v2a2 2 0 0 0 1.27 1.86A9 9 0 0 1 6 7H6zm12 0h-.01a9 9 0 0 1-1.26 3.86A2 2 0 0 0 18 9V7z"/></svg>
-            <strong data-i18n="menu_comp">Compétition</strong>
-            <span class="game-menu-sub" data-i18n="board_title">Classement de la semaine</span>
-          </button>
-          <button type="button" class="game-menu-item" data-game="training">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a1 1 0 0 1 .7.3l3 3-1.4 1.4L13 7.4V14h-2V7.4L9.7 8.7 8.3 7.3l3-3A1 1 0 0 1 12 4zM5 16h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>
-            <strong data-i18n="menu_training">Entraînement</strong>
-            <span class="game-menu-sub" data-i18n="training_complete">Tous trouvés !</span>
+            <strong data-i18n="menu_comp">Bingo</strong>
+            <span class="game-menu-sub" data-i18n="menu_comp_blurb">Le mot le plus payant, classement de la semaine</span>
           </button>
           <button type="button" class="game-menu-item" data-game="find">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.5 3a7.5 7.5 0 0 1 5.96 12.05l4.24 4.24-1.41 1.42-4.25-4.25A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/></svg>
             <strong data-i18n="menu_find">Trouver un mot</strong>
-            <span class="game-menu-sub" data-i18n="kids_cat">Trouve un mot</span>
+            <span class="game-menu-sub" data-i18n="menu_find_blurb">Un mot caché dans le tirage</span>
+          </button>
+          <button type="button" class="game-menu-item" data-game="training">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a1 1 0 0 1 .7.3l3 3-1.4 1.4L13 7.4V14h-2V7.4L9.7 8.7 8.3 7.3l3-3A1 1 0 0 1 12 4zM5 16h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>
+            <strong data-i18n="menu_training">Entraînement</strong>
+            <span class="game-menu-sub" data-i18n="training_blurb">Trouve tous les mots du tirage.</span>
           </button>
           <button type="button" class="game-menu-item" data-game="study">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5a2 2 0 0 1 2-2h6v18H6a2 2 0 0 1-2-2V5zm14-2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6V3h6zM7 7h3v2H7V7zm0 4h3v2H7v-2z"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5.4c2-1.1 4-1.5 6-.9.8.2 1.4.6 2 1.1v13.2c-.6-.5-1.2-.9-2-1.1-2-.6-4-.2-6 .9V5.4zm16 0v13.2c-2-1.1-4-1.5-6-.9-.8.2-1.4.6-2 1.1V5.6c.6-.5 1.2-.9 2-1.1 2-.6 4-.2 6 .9z"/></svg>
             <strong data-i18n="menu_study">Étude du jour</strong>
-            <span class="game-menu-sub" data-i18n="study_blurb">Les mots de 2 et 3 lettres du jour.</span>
+            <span class="game-menu-sub" data-i18n="menu_study_blurb">Les 2 et 3 lettres du jour</span>
           </button>
         </div>
         <div class="level-row">
@@ -232,19 +238,16 @@
         </div>
       </div>
 
-      <div id="game-play" hidden>
-        <div class="play-top">
+      <div id="game-play">
+        <div class="game-head">
           <button type="button" class="menu-back" id="game-menu-back">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.4 6.4 10.8 11l4.6 4.6L14 17l-6-6 6-6z"/></svg>
             <span data-i18n="menu_back">Retour</span>
           </button>
-        </div>
-        <div class="game-head">
           <p class="game-kicker" id="game-cat" data-i18n="cat_defi">Défi</p>
-          <div class="game-tools">
-            <p class="game-meta" id="game-global">Score moyen —</p>
-          </div>
+          <p class="game-meta" id="game-global" hidden></p>
         </div>
+      <div class="play-main">
        <div class="training-tools" id="training-tools" hidden>
         <div class="training-presets" role="group" aria-label="Entraînement">
           <button type="button" data-training-preset="all" data-training-label="training_all" aria-pressed="true">Tous</button>
@@ -255,6 +258,7 @@
           <button type="button" data-training-preset="hard" data-training-label="training_hard" aria-pressed="false">Difficiles</button>
         </div>
         <div class="training-status">
+          <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Règles de l’entraînement">i</button>
           <span id="training-progress">0 sur 0</span>
           <select id="training-timer" data-i18n-aria="training_timer" aria-label="Temps">
             <option value="0" data-i18n="training_no_timer">Sans limite</option>
@@ -265,82 +269,116 @@
           <button type="button" id="training-reveal" data-i18n="training_reveal">Voir les réponses</button>
         </div>
       </div>
-      <div id="game-auth" class="game-auth" hidden>
-        <div id="google-signin-btn" class="google-signin-area"></div>
-        <p class="auth-help" data-i18n="auth_help">Connecte-toi pour être classé</p>
+      <div class="play-table" id="play-table">
+        <div id="game-rack" class="game-rack" aria-label="Lettres du tirage"></div>
+        <div class="game-rack-tools" id="game-rack-tools">
+          <button type="button" id="game-alpha" class="rack-tool" aria-pressed="false" data-i18n="rack_alpha" data-i18n-aria="rack_alpha_aria">A–Z</button>
+          <button type="button" id="game-clear-all" class="rack-tool" hidden data-i18n="play_clear">Tout effacer</button>
+        </div>
+        <form id="game-form" class="game-form">
+          <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
+          <input id="game-q" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Votre mot" data-i18n-placeholder="play_hint" />
+          <button type="submit" aria-label="Valider">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.2 16.6 4.8 12.2l1.4-1.4 3 3 8.6-8.6 1.4 1.4z"/></svg>
+          </button>
+        </form>
+        <div class="game-live-row">
+          <button type="button" class="game-hint" id="game-hint" hidden data-i18n="kids_hint">Indice</button>
+          <p class="game-live" id="game-live" aria-live="polite"></p>
+        </div>
+        <button type="button" id="game-next" class="game-next" hidden data-i18n-aria="again" aria-label="Suivant">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 11h10.2l-3.6-3.6L13 6l6 6-6 6-1.4-1.4 3.6-3.6H5z"/></svg>
+        </button>
       </div>
-      <div id="game-user" class="game-user" hidden>
-        <div class="user-card">
-          <img id="user-pic" class="user-pic" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden />
-          <span class="user-who">
-            <span id="user-name" class="user-name"></span>
-            <span id="user-stats" class="user-stats"></span>
-          </span>
-          <button type="button" id="logout-btn" class="logout-btn" data-i18n="sign_out">Se déconnecter</button>
+      <div id="game-result" class="game-result" hidden></div>
+      </div>
+      <div class="play-rail" id="play-rail">
+        <div id="game-auth" class="game-auth" hidden>
+          <div id="google-signin-btn" class="google-signin-area"></div>
+          <p class="auth-help" data-i18n="auth_help">Connecte-toi pour être classé</p>
+        </div>
+        <div id="game-user" class="game-user" hidden>
+          <div class="user-card">
+            <img id="user-pic" class="user-pic" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden />
+            <span class="user-who">
+              <span id="user-name" class="user-name"></span>
+              <span id="user-stats" class="user-stats"></span>
+            </span>
+            <button type="button" id="logout-btn" class="logout-btn" data-i18n="sign_out">Se déconnecter</button>
+          </div>
+        </div>
+        <aside id="game-board" class="game-board" hidden></aside>
+        <div class="game-dock" id="game-dock">
+          <div class="game-chart" id="game-chart" role="img" aria-label="Vos scores sur 100"></div>
+          <a
+            id="game-wa"
+            class="game-wa-icon is-off"
+            data-i18n-aria="share_wa"
+            aria-label="Partager sur WhatsApp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.73.46 3.41 1.33 4.9L2 22l5.43-1.42a10.1 10.1 0 0 0 4.61 1.11h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.75 13.99c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.12.11-1.81-.11-.41-.14-.94-.3-1.62-.59-2.85-1.23-4.7-4.1-4.84-4.29-.14-.19-1.15-1.53-1.15-2.92 0-1.39.73-2.07.99-2.36.26-.28.57-.35.76-.35h.55c.17 0 .41-.07.64.49.24.58.82 2 .89 2.15.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.3.37-.42.49-.14.14-.28.29-.12.56.16.28.72 1.19 1.55 1.93 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.61-.07.16-.19.7-.81.89-1.09.19-.28.37-.23.64-.14.26.09 1.66.78 1.95.93.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>
+          </a>
         </div>
       </div>
-      <div id="game-rack" class="game-rack" aria-label="Lettres du tirage"></div>
-      <form id="game-form" class="game-form">
-        <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
-        <input id="game-q" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Votre mot" data-i18n-placeholder="play_hint" />
-        <button type="submit" aria-label="Valider">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.2 16.6 4.8 12.2l1.4-1.4 3 3 8.6-8.6 1.4 1.4z"/></svg>
-        </button>
-      </form>
-      <button type="button" class="game-hint" id="game-hint" hidden data-i18n="kids_hint">Indice</button>
-      <p class="game-live" id="game-live" aria-live="polite"></p>
-      <div id="game-result" class="game-result" hidden></div>
       </div>
 
       <div id="game-study" class="game-study" hidden>
-        <button type="button" class="menu-back" id="study-back">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.4 6.4 10.8 11l4.6 4.6L14 17l-6-6 6-6z"/></svg>
-          <span data-i18n="menu_back">Retour</span>
-        </button>
-        <div class="study-card">
-          <h3 data-i18n="study">Étude du jour</h3>
-          <p class="fine" data-i18n="study_blurb">Les mots de 2 et 3 lettres du jour — repérez-les dans vos tirages.</p>
-          <p class="study-when" id="study-when"></p>
-          <p class="study-label" data-i18n="study_twos">Mots de 2 lettres</p>
-          <div class="study-words" id="study-twos"></div>
-          <p class="study-label" data-i18n="study_threes">Mots de 3 lettres</p>
-          <div class="study-words" id="study-threes"></div>
+        <div class="study-top">
+          <button type="button" class="menu-back" id="study-back">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.4 6.4 10.8 11l4.6 4.6L14 17l-6-6 6-6z"/></svg>
+            <span data-i18n="menu_back">Retour</span>
+          </button>
           <div class="study-actions">
-            <a class="wa-share" id="study-wa" target="_blank" rel="noopener noreferrer" hidden></a>
-            <a class="wa-share" id="study-wa-twos" target="_blank" rel="noopener noreferrer" hidden></a>
+            <a class="study-share" id="study-wa" target="_blank" rel="noopener noreferrer" hidden></a>
+            <a class="study-share" id="study-wa-twos" target="_blank" rel="noopener noreferrer" hidden></a>
+          </div>
+        </div>
+        <div class="study-card">
+          <div class="study-head">
+            <h3 data-i18n="study">Étude du jour</h3>
+            <p class="study-when" id="study-when"></p>
+          </div>
+          <p class="fine" data-i18n="study_blurb">Les mots de 2 et 3 lettres du jour — touchez un mot pour sa définition. La liste change chaque jour.</p>
+          <p class="study-label" id="study-twos-label">Mots de 2 lettres</p>
+          <div class="study-words" id="study-twos"></div>
+          <p class="study-label" id="study-threes-label">Mots de 3 lettres</p>
+          <div class="study-words" id="study-threes"></div>
+          <div class="study-def" id="study-def" hidden>
+            <p class="study-def-word" id="study-def-word"></p>
+            <div class="study-def-text game-def-body" id="study-def-text"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <aside class="panel panel-board" id="panel-board" data-panel="board" hidden>
-      <div id="game-board" class="game-board"></div>
-    </aside>
   </main>
 
   <div id="hist-sheet" class="hist-sheet" hidden>
     <div class="hist-card" role="dialog" aria-labelledby="hist-title">
       <div class="hist-bar">
-        <h2 id="hist-title">Historique</h2>
-        <button type="button" class="hist-clear" id="hist-clear" hidden data-i18n="hist_clear">Effacer l’historique</button>
+        <div class="hist-heading">
+          <h2 id="hist-title">Historique</h2>
+          <p class="hist-sub" id="hist-sub" hidden></p>
+        </div>
         <button type="button" class="hist-close" id="hist-close" aria-label="Fermer">×</button>
       </div>
       <div id="hist-out" class="hist-out"></div>
+      <button type="button" class="hist-clear" id="hist-clear" hidden data-i18n="hist_clear">Effacer l’historique</button>
     </div>
   </div>
 
-  <div class="game-dock" id="game-dock">
-    <a
-      id="game-wa"
-      class="game-wa-icon is-off"
-      data-i18n-aria="share_wa"
-      aria-label="Partager sur WhatsApp"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.73.46 3.41 1.33 4.9L2 22l5.43-1.42a10.1 10.1 0 0 0 4.61 1.11h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.75 13.99c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.12.11-1.81-.11-.41-.14-.94-.3-1.62-.59-2.85-1.23-4.7-4.1-4.84-4.29-.14-.19-1.15-1.53-1.15-2.92 0-1.39.73-2.07.99-2.36.26-.28.57-.35.76-.35h.55c.17 0 .41-.07.64.49.24.58.82 2 .89 2.15.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.3.37-.42.49-.14.14-.28.29-.12.56.16.28.72 1.19 1.55 1.93 1.07.95 1.97 1.24 2.25 1.38.28.14.44.12.61-.07.16-.19.7-.81.89-1.09.19-.28.37-.23.64-.14.26.09 1.66.78 1.95.93.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>
-    </a>
-    <div class="game-chart" id="game-chart" role="img" aria-label="Vos scores sur 100"></div>
+  <div id="training-help" class="hist-sheet" hidden>
+    <div class="hist-card" role="dialog" aria-labelledby="training-help-title">
+      <div class="hist-bar">
+        <div class="hist-heading">
+          <h2 id="training-help-title" data-i18n="training_rules_title">Entraînement — les règles</h2>
+        </div>
+        <button type="button" class="hist-close" id="training-help-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="training-help-body" id="training-help-body"></div>
+    </div>
   </div>
 
   <div id="feedback-sheet" class="hist-sheet" hidden>
@@ -362,37 +400,28 @@
     </form>
   </div>
 
-  <div class="fabs" role="navigation" data-i18n-aria="pages" aria-label="Pages">
-    <button type="button" class="fab fab-feedback" id="fab-feedback" data-i18n-aria="feedback" aria-label="Avis" aria-expanded="false" aria-controls="feedback-sheet">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm3 4v2h10V8H7zm0 4v2h7v-2H7z"/></svg>
-    </button>
-    <button type="button" class="fab" id="fab-dict" data-fab="check" data-i18n-aria="dict" aria-label="Dictionnaire" aria-current="page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 3h9a3 3 0 0 1 3 3v14.2a.8.8 0 0 1-1.2.7L13 19l-3.8 1.9A.8.8 0 0 1 8 20.2V6a1 1 0 0 0-1-1H6zm2.5 5.2h7v1.4h-7zm0 3h7v1.4h-7z"/></svg>
-    </button>
-    <button type="button" class="fab" id="fab-game" data-fab="game" data-i18n-aria="game" aria-label="Défi">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h6v6H5zm8 0h6v6h-6zM5 14h6v6H5zm9.2 1.2 1.3-1.3 1.3 1.3 1.3-1.3 1.3 1.3-1.3 1.3 1.3 1.3-1.3 1.3-1.3-1.3-1.3 1.3-1.3-1.3 1.3-1.3z"/></svg>
-    </button>
-    <button type="button" class="fab fab-board" id="fab-board" data-fab="board" data-i18n-aria="board" aria-label="Classement" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4h10v3h3v4c0 2.2-1.8 4-4 4h-1.1c-.5 1.2-1.6 2.1-2.9 2.4V20h3v2H9v-2h3v-2.6c-1.3-.3-2.4-1.2-2.9-2.4H8c-2.2 0-4-1.8-4-4V7h3V4zm2 2v1h6V6H9zM6 9v2c0 1.1.9 2 2 2h.3C8.1 12.4 8 11.7 8 11V9H6zm10 2c0 .7-.1 1.4-.3 2H16c1.1 0 2-.9 2-2V9h-2v2z"/></svg>
-    </button>
-  </div>
-
-  <footer class="foot">
-    <div class="foot-links">
-      <a class="apk-link" href="verimots-3.24.apk" download="verimots-3.24.apk" title="Télécharger verimots-3.24.apk">verimots-3.24.apk</a>
-      <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
-      <a class="legal-link" href="/confidentialite.html" data-i18n="privacy">Confidentialité</a>
-      <button type="button" class="legal-link" id="about-link" data-i18n="about">À propos</button>
-      <button type="button" class="legal-link" data-cookies>Cookies</button>
-    </div>
+  <div class="chrome-bar" id="chrome-bar">
     <nav class="adv-nav" id="adv-nav" hidden data-i18n-aria="advanced" aria-label="Mode avancé">
-      <button type="button" data-nav="check" aria-current="page" data-i18n="nav_check">Vérifier</button>
+      <button type="button" data-nav="check" data-i18n="nav_check">Vérifier</button>
       <button type="button" data-nav="rack" data-i18n="nav_rack">Tiroir</button>
       <button type="button" data-nav="lists" data-i18n="nav_lists">Listes</button>
       <button type="button" data-nav="info" data-i18n="nav_info">Infos</button>
     </nav>
-    <button type="button" class="adv-toggle" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
-  </footer>
+    <nav class="tabs" id="tabs" role="navigation" data-i18n-aria="pages" aria-label="Pages">
+      <button type="button" class="tab" data-tab="check">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10.5 3a7.5 7.5 0 0 1 5.96 12.05l4.24 4.24-1.41 1.42-4.25-4.25A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/></svg>
+        <span data-i18n="tab_check">Vérifier</span>
+      </button>
+      <button type="button" class="tab" data-tab="game" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 8.2h4.4v7.6H3zm6.8-2.4h4.4v12.4H9.8zm6.8 2.4H21v7.6h-4.4z"/></svg>
+        <span data-i18n="tab_play">Jouer</span>
+      </button>
+      <button type="button" class="tab" data-tab="info">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zm0 4a1.2 1.2 0 1 0 0 2.4A1.2 1.2 0 0 0 12 7zm-1.2 4.2h2.4V17h-2.4z"/></svg>
+        <span data-i18n="tab_info">Infos</span>
+      </button>
+    </nav>
+  </div>
 
   <aside id="consent" role="dialog" aria-labelledby="consent-title" hidden aria-hidden="true">
     <p class="consent-text" id="consent-title">
@@ -406,7 +435,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=78" type="module"></script>
+  <script src="app.js?v=102" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

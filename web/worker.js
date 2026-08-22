@@ -209,7 +209,7 @@ function dealTraining(preset = 'all', excludeSeed = '', excludeRack = '') {
       rack = shuffleWord(seed.slice(0, at) + '?' + seed.slice(at + 1))
     }
     if ((blockedSeed && seed === blockedSeed) || (blockedRack && rackKey(rack) === blockedRack)) continue
-    const min = mode === 'all' || mode === 'hard' ? 2 : targetLength
+    const min = mode === 'all' ? 2 : targetLength
     const groups = anagrams(rack, min, targetLength)
     const total = groups.reduce((sum, group) => sum + group.words.length, 0)
     if (!total) continue

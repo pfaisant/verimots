@@ -27,15 +27,20 @@ import {
   linkifyDef,
   topWords,
   wikiUrl,
+  lexicalDefinition,
   clampPercent,
   loadScores,
   rememberScore,
   loadTrainingStats,
   rememberTrainingRound,
+  trainingNeededWords,
+  trainingNeededFound,
+  trainingRoundSolved,
   scoreChartSvg,
   usedTiles,
+  rackDisplayOrder,
 } from '../web/game.js'
-import { loadHistory, rememberWord, historyLabel, clearHistory } from '../web/history.js'
+import { loadHistory, rememberWord, historyLabel, historyDayLabel, clearHistory } from '../web/history.js'
 import { kidsWords, kidsLong } from '../web/kids.js'
 import { competeAccepted } from '../web/competitive.js'
 import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js'
@@ -43,6 +48,13 @@ import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from
 test('rack tile usage assigns unmatched letters to blanks', () => {
   assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
   assert.deepEqual([...usedTiles('AA?', 'ABA')].sort((a, b) => a - b), [0, 1, 2])
+})
+
+test('rackDisplayOrder sorts A–Z for display and keeps blanks last', () => {
+  assert.deepEqual(rackDisplayOrder('Z?AB', false), [0, 1, 2, 3])
+  assert.deepEqual(rackDisplayOrder('Z?AB', true), [2, 3, 0, 1])
+  assert.deepEqual(rackDisplayOrder('AA', true), [0, 1])
+  assert.deepEqual(usedTiles('Z?AB', 'BA'), new Set([2, 3]))
 })
 
 const dir = await mkdtemp(join(tmpdir(), 'ods9-game-'))
@@ -122,10 +134,10 @@ test('each language dictionary is a community list following a named source', ()
 test('English defaults to WGPO WOW24 and names the list everywhere', () => {
   assert.equal(defaultDictFor('en'), 'wow24')
   setDict('wow24')
-  assert.equal(dictLabel(), 'WGPO WOW24')
-  assert.equal(t('playable', dictLabel()), 'Playable · WGPO WOW24')
-  assert.equal(t('not_in_list', dictLabel()), 'Not in WGPO WOW24')
-  assert.equal(t('word_count', '195,383', dictLabel()), '195,383 words · WGPO WOW24')
+  assert.equal(dictLabel(), 'WOW24')
+  assert.equal(t('playable', dictLabel()), 'Playable · WOW24')
+  assert.equal(t('not_in_list', dictLabel()), 'Not in WOW24')
+  assert.equal(t('word_count', '195,383', dictLabel()), '195,383 words · WOW24')
   setLang('fr')
   assert.equal(dictLabel(), 'ODS9')
   assert.match(t('playable', dictLabel()), /ODS9/)
@@ -142,7 +154,7 @@ test('English can switch between CSW and WOW24', () => {
   assert.equal(getDict(), 'wow24')
   setDict('csw')
   assert.equal(getDict(), 'csw')
-  assert.equal(dictLabel(), 'CSW · YAWL')
+  assert.equal(dictLabel(), 'CSW')
   assert.equal(lexiconFileName('csw'), 'verimots-en-csw.txt')
   setDict('yawl')
   assert.equal(getDict(), 'csw')
@@ -212,6 +224,20 @@ test('definitions keep a Wiktionnaire URL and link content words', () => {
   assert.doesNotMatch(inflection, /data-form-of="personne"/)
 })
 
+test('lexicalDefinition drops French proper-noun senses', () => {
+  const cleaned = lexicalDefinition({
+    ok: true,
+    found: true,
+    word: 'NAY',
+    senses: [
+      { pos: 'nom propre', defs: ['Commune française, située dans le département de la Manche.'] },
+      { pos: 'nom propre', defs: ['Commune française, située dans le département des Pyrénées-Atlantiques.'] },
+    ],
+  })
+  assert.equal(cleaned.found, false)
+  assert.deepEqual(cleaned.senses, [])
+})
+
 test('hyphenated lemmas stay hyphenated', () => {
   assert.equal(extractFormOf('Pluriel de savoir-faire.'), 'savoir-faire')
   assert.equal(isInflectionDef('Pluriel de savoir-faire.'), true)
@@ -222,6 +248,11 @@ test('inflection glosses expose the source lemma', () => {
     extractFormOf("Deuxième personne du pluriel de l’indicatif présent du verbe taler."),
     'taler'
   )
+  assert.equal(
+    extractFormOf("Deuxième personne du singulier du présent de l’indicatif de adirer."),
+    'adirer'
+  )
+  assert.equal(extractFormOf('Participe passé masculin pluriel de adirer.'), 'adirer')
   assert.equal(extractFormOf('Pluriel de chat.'), 'chat')
   assert.equal(extractFormOf("Sorte de table sur laquelle les bouchers débitent la viande."), '')
   assert.equal(isInflectionDef("Deuxième personne du pluriel de l’impératif du verbe taler."), true)
@@ -245,7 +276,9 @@ test('session history keeps unique words, newest first', () => {
   assert.equal(rows.length, 2)
   assert.equal(rows[0].word, 'ETAL')
   assert.equal(rows[1].word, 'TALEZ')
-  assert.equal(historyLabel('defi'), 'Défi')
+  assert.equal(historyLabel('defi'), 'Jeu')
+  assert.equal(historyDayLabel(Date.parse('2026-08-22T10:00:00'), Date.parse('2026-08-22T18:00:00')), 'Aujourd’hui')
+  assert.equal(historyDayLabel(Date.parse('2026-08-21T10:00:00'), Date.parse('2026-08-22T18:00:00')), 'Hier')
   clearHistory(mem)
   assert.equal(loadHistory(mem).length, 0)
 })
@@ -276,6 +309,20 @@ test('local défi scores stay in order and clamp to 0–100', () => {
   rememberScore(101, mem)
   const rows = loadScores(mem)
   assert.deepEqual(rows.map((r) => r.p), [9, 68, 100])
+})
+
+test('training completes only when the catalog words are found', () => {
+  const needed = trainingNeededWords([{ word: 'EXPIREZ' }, { word: 'PRIX' }])
+  const found = new Set(['RE', 'XI'])
+  assert.equal(trainingNeededFound(found, needed), 0)
+  assert.equal(trainingRoundSolved(found, needed), false)
+  found.add('EXPIREZ')
+  assert.equal(trainingNeededFound(found, needed), 1)
+  assert.equal(trainingRoundSolved(found, needed), false)
+  found.add('PRIX')
+  assert.equal(trainingNeededFound(found, needed), 2)
+  assert.equal(trainingRoundSolved(found, needed), true)
+  assert.equal(trainingRoundSolved(new Set(['RE']), new Set()), false)
 })
 
 test('training statistics stay separate by language and preset', () => {
@@ -318,17 +365,17 @@ test('kids scores stay on their own chart', () => {
   assert.deepEqual(loadScores(mem, true).map((r) => r.p), [90, 70])
 })
 
-test('score chart plots each percent on a 0–100 line', () => {
+test('score chart draws one bar per game on a 0–100 scale', () => {
   const empty = scoreChartSvg([])
-  assert.match(empty, /class="axis mid"/)
-  assert.doesNotMatch(empty, /class="line"/)
+  assert.match(empty, /class="axis"/)
+  assert.doesNotMatch(empty, /class="bar"/)
   const svg = scoreChartSvg([{ p: 0 }, { p: 50 }, { p: 100 }])
-  assert.match(svg, /class="line"/)
-  assert.match(svg, /class="area"/)
-  assert.match(svg, /class="dot last"/)
-  assert.match(svg, />100</)
-  assert.match(svg, /M[\d.]+ 31\.0/)
-  assert.match(svg, /L[\d.]+ 5\.0/)
+  assert.equal((svg.match(/class="bar/g) || []).length, 3)
+  assert.match(svg, /class="bar last"/)
+  assert.match(svg, /class="avg"/)
+  // 100% fills the plot (y=4, height=37); 0% keeps a visible sliver.
+  assert.match(svg, /y="4\.0" width="[\d.]+" height="37\.0"/)
+  assert.match(svg, /height="1\.6"/)
 })
 
 test('a 7-letter play gets the bingo bonus', () => {

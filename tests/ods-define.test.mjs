@@ -1,6 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { cleanWikitext, extractSenses, rankTitles, lookupQuery } from '../scripts/ods-define.mjs'
+import { adjectiveFromParticiple, cleanWikitext, extractSenses, isJunkDef, lemmaFromInflection, rankTitles, lookupQuery, senseKind, voirTitles } from '../scripts/ods-define.mjs'
+
+test('cleanWikitext drops Wiktionary label separators', () => {
+  const text = cleanWikitext('{{lb|en|now|_|regional}} A [[bag]] or [[wallet]].')
+  assert.match(text, /A bag or wallet/)
+  assert.match(text, /\(now\)/)
+  assert.match(text, /\(regional\)/)
+  assert.doesNotMatch(text, /\(_\)/)
+})
 
 test('cleanWikitext strips links and keeps useful labels', () => {
   const text = cleanWikitext("{{en particulier}} [[établissement|Établissement]] où l’on [[enseigner|enseigne]].")
@@ -91,6 +99,8 @@ See {{m|en|mail}} above.
   assert.equal(senses.length, 2)
   assert.deepEqual(senses.map((s) => s.pos), ['noun', 'noun'])
   assert.match(senses[0].defs[0], /bag/)
+  assert.doesNotMatch(senses[0].defs[0], /\(_\)/)
+  assert.match(senses[0].defs[0], /\(now\).*\(regional\)/)
   assert.doesNotMatch(senses.map((s) => s.pos).join(' '), /etymology/)
 })
 
@@ -181,4 +191,170 @@ test('rankTitles keeps French rut ahead of Vietnamese lookalikes', () => {
   const ranked = rankTitles('RUT', ['RUT', 'Rut', 'rut', 'Rút', 'rứt', 'rút', 'rụt', 'ruts'])
   assert.ok(ranked.indexOf('rut') >= 0 && ranked.indexOf('rut') < 3)
   assert.ok(ranked.indexOf('rut') < ranked.indexOf('rứt'))
+})
+
+test('cleanWikitext keeps French spelling-variant and domain templates', () => {
+  const text = cleanWikitext('# {{instruments à vent|fr}} {{variante ortho de|ney}}')
+  assert.match(text, /instruments à vent/i)
+  assert.match(text, /Variante orthographique de ney/)
+})
+
+test('extractSenses reads nay as the flute, not an empty proper-noun miss', () => {
+  const wiki = `== {{langue|fr}} ==
+=== {{S|étymologie}} ===
+: De l’arabe.
+
+=== {{S|nom|fr}} ===
+{{fr-rég|ne}}
+'''nay''' {{pron|ne|fr}} {{m}}
+# {{instruments à vent|fr}} {{variante ortho de|ney}}
+#* {{exemple | lang=fr | Sa chaise l’attendait entre Sami et Fouad. | source=Kattan}}
+`
+  const senses = extractSenses(wiki)
+  assert.equal(senses.length, 1)
+  assert.equal(senses[0].pos, 'nom')
+  assert.match(senses[0].defs[0], /Variante orthographique de ney/)
+  assert.match(senses[0].defs[0], /instruments à vent/i)
+})
+
+test('extractSenses skips French proper nouns like NAY', () => {
+  const wiki = `== {{langue|fr}} ==
+=== {{S|nom propre|fr}} ===
+'''Nay'''
+# [[commune|Commune]] des [[Pyrénées-Atlantiques]].
+
+=== {{S|nom|fr}} ===
+# Variante de [[nai]].
+`
+  const senses = extractSenses(wiki)
+  assert.equal(senses.length, 1)
+  assert.equal(senses[0].pos, 'nom')
+  assert.match(senses[0].defs[0], /nai/)
+  assert.doesNotMatch(senses.map((s) => s.pos).join(' '), /propre/)
+})
+
+test('extractSenses drops a word that is only a proper noun', () => {
+  const wiki = `== {{langue|fr}} ==
+=== {{S|nom propre|fr}} ===
+# Ville du Béarn.
+`
+  assert.deepEqual(extractSenses(wiki), [])
+})
+
+test('extractEnglishSenses reads ====Noun==== under English and skips Translingual', () => {
+  const wiki = `==Translingual==
+===Etymology 1===
+====Symbol====
+# {{SI-unit-abb2|deca|meter|metre|length}}
+===Etymology 2===
+====Symbol====
+# {{ISO 639|3}}
+==English==
+===Pronunciation===
+===Etymology 1===
+====Noun====
+{{en-noun}}
+# A [[structure]] placed across a flowing body of water.
+# The water [[reservoir]] resulting from placing such a structure.
+====Verb====
+# To block the flow of water.
+=====Derived terms=====
+* beaver dam
+===Anagrams===
+==Afrikaans==
+===Noun===
+# other language
+`
+  const senses = extractSenses(wiki, 'en')
+  assert.deepEqual(senses.map((s) => s.pos), ['noun', 'verb'])
+  assert.match(senses[0].defs[0], /structure/)
+  assert.match(senses[0].defs[1], /reservoir/)
+  assert.match(senses[1].defs[0], /block/)
+  assert.doesNotMatch(senses.flatMap((s) => s.defs).join(' '), /meter|ISO|other language|deca/i)
+})
+
+test('rankTitles prefers English dam over DAM the acronym', () => {
+  assert.equal(rankTitles('dam', ['Dam', 'DAM', 'dam'], 'en')[0], 'dam')
+})
+
+test('voirTitles reads {{voir|…}} and ignores {{voir/…}}', () => {
+  assert.deepEqual(voirTitles('{{voir|adirés}}\n{{voir/aimes}}\n{{voir|foo|bar}}'), ['adirés', 'foo'])
+})
+
+test('senseKind tells finite verb flexions from past participles', () => {
+  assert.equal(
+    senseKind([{ pos: 'verbe', defs: ['Deuxième personne du singulier du présent de l’indicatif de adirer.'] }]),
+    'finite',
+  )
+  assert.equal(
+    senseKind([{ pos: 'verbe', defs: ['Participe passé masculin pluriel de adirer.'] }]),
+    'participle',
+  )
+  assert.equal(
+    senseKind([{ pos: 'nom', defs: ['Lieu dédié à l’apprentissage.'] }]),
+    'lexical',
+  )
+})
+
+test('ADIRES follows the accented participle and becomes an adjective', () => {
+  const finite = extractSenses(`{{voir|adirés}}
+== {{langue|fr}} ==
+=== {{S|verbe|fr|flexion}} ===
+# ''Deuxième personne du singulier du présent de l’indicatif de'' [[adirer]].
+# ''Deuxième personne du singulier du présent du subjonctif de'' [[adirer]].
+`)
+  assert.equal(senseKind(finite), 'finite')
+  assert.equal(lemmaFromInflection(finite[0].defs), 'adirer')
+
+  const participle = extractSenses(`{{voir|adires}}
+== {{langue|fr}} ==
+=== {{S|verbe|fr|flexion}} ===
+# ''Participe passé masculin pluriel de'' [[adirer]].
+`)
+  assert.equal(senseKind(participle), 'participle')
+  assert.equal(lemmaFromInflection(participle[0].defs), 'adirer')
+
+  const lemma = extractSenses(`== {{langue|fr}} ==
+=== {{S|verbe|fr}} ===
+# {{lexique|droit|fr}} {{vieilli|fr}} Perdre, [[égarer]] (spécialement en parlant d’un document juridique).
+`)
+  const promoted = adjectiveFromParticiple(participle, lemma)
+  assert.equal(promoted[0].pos, 'adjectif')
+  assert.match(promoted[0].defs[0], /égarer/)
+  assert.doesNotMatch(promoted[0].defs.join(' '), /personne du|indicatif/i)
+})
+
+test('cleanWikitext strips comments, {{e}} and info-lex leftover junk', () => {
+  assert.equal(cleanWikitext('1{{e}} personne <!-- hidden -->du verbe'), '1e personne du verbe')
+  assert.match(cleanWikitext('{{info lex|musique}} Instrument à vent.'), /\(musique\)/)
+  assert.match(cleanWikitext('{{info lex|musique}} Instrument à vent.'), /Instrument à vent/)
+  assert.equal(isJunkDef(''), true)
+  assert.equal(isJunkDef('()'), true)
+  assert.equal(isJunkDef('.'), true)
+  assert.equal(isJunkDef('(rare)'), true)
+  assert.equal(isJunkDef('(rare) Établissement scolaire.'), false)
+})
+
+test('extractSenses drops punctuation-only leftover definitions', () => {
+  const senses = extractSenses(`== {{langue|fr}} ==
+=== {{S|nom|fr}} ===
+# {{siècle|xxie}}
+# Lieu dédié à l’apprentissage.
+`)
+  assert.equal(senses[0].defs.length, 1)
+  assert.match(senses[0].defs[0], /Lieu/)
+})
+
+test('variante and English form-of glosses are inflections with a lemma', () => {
+  assert.equal(
+    senseKind([{ pos: 'nom', defs: ['(instruments à vent) Variante orthographique de ney'] }]),
+    'inflection',
+  )
+  assert.equal(lemmaFromInflection(['(instruments à vent) Variante orthographique de ney']), 'ney')
+  assert.equal(
+    senseKind([{ pos: 'noun', defs: ['Inflection of eat'] }]),
+    'inflection',
+  )
+  assert.equal(lemmaFromInflection(['Inflection of eat']), 'eat')
+  assert.equal(lemmaFromInflection(['Plural of cat']), 'cat')
 })

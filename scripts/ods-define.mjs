@@ -34,6 +34,8 @@ const SKIP_POS = new Set([
   'apparentés étymologiques',
   'composés',
   'phrases',
+  'nom propre',
+  'nom-propre',
 ])
 
 const LABEL_TEMPLATES = new Set([
@@ -71,19 +73,35 @@ export function foldKey(value, lang = 'fr') {
     .replaceAll(sentinel, 'ñ')
 }
 
+export function isJunkDef(text) {
+  const s = String(text || '').trim()
+  if (!s) return true
+  if (!/\p{L}/u.test(s)) return true
+  const stripped = s.replace(/\([^)]*\)/g, '').replace(/[\s.,;:·«»""''•…\-–—]+/g, '')
+  return !stripped
+}
+
 export function cleanWikitext(input) {
   let s = String(input || '')
+  s = s.replace(/<!--[\s\S]*?-->/g, '')
   s = s.replace(/\{\{exemple[\s\S]*?\}\}/gi, '')
   for (let i = 0; i < 8; i++) {
     const next = s.replace(/\{\{([^{}]*)\}\}/g, (_, inner) => {
       const parts = inner.split('|').map((p) => p.trim())
       const name = (parts[0] || '').split(':')[0].toLowerCase()
+      if (name === 'e' || name === 'er' || name === 're' || name === 'ère' || name === 'ere') {
+        return name === 'ère' || name === 'ere' ? 'ère' : name
+      }
+      if (name === 'siècle' || name === 'date' || name === 'circa' || name === 'recons') return ''
       if (LABEL_TEMPLATES.has(name)) return `(${parts[0]}) `
       if (name === 'lien' || name === 'l') return parts[1] || ''
       if (name === 'w' || name === 'wp') return parts[parts.length - 1] || ''
-      if (name === 'lexique' || name === 'term') return parts[1] ? `(${parts[1]}) ` : ''
+      if (name === 'lexique' || name === 'term' || name === 'info lex' || name === 'infolex') {
+        return parts[1] ? `(${parts[1]}) ` : ''
+      }
       if (name === 'lb' || name === 'lbl' || name === 'label') {
-        return parts.slice(2).filter((p) => p && !p.includes('=')).map((p) => `(${p}) `).join('')
+        const skip = new Set(['_', ',', ';', '/', '&'])
+        return parts.slice(2).filter((p) => p && !skip.has(p) && !p.includes('=')).map((p) => `(${p}) `).join('')
       }
       const ofLabels = {
         'plural of': 'Plural of',
@@ -109,6 +127,12 @@ export function cleanWikitext(input) {
         'abbreviation of': 'Abbreviation of',
         'initialism of': 'Initialism of',
         'init of': 'Initialism of',
+        'variante ortho de': 'Variante orthographique de',
+        'variante orthographique de': 'Variante orthographique de',
+        'variante de': 'Variante de',
+        'synonyme de': 'Synonyme de',
+        'abréviation de': 'Abréviation de',
+        'abreviation de': 'Abréviation de',
       }
       if (ofLabels[name]) {
         const lemma = parts.find((p, index) =>
@@ -116,6 +140,9 @@ export function cleanWikitext(input) {
         )
         return lemma ? `${ofLabels[name]} ${lemma}` : ''
       }
+      // {{instruments à vent|fr}} / {{cuisine|fr}} — domain labels with no lemma
+      const onlyLang = parts.slice(1).filter((p) => p && !p.includes('=')).every((p) => /^(fr|en|es)$/i.test(p))
+      if (onlyLang && parts[0] && parts.length >= 2) return `(${parts[0]}) `
       return ''
     })
     if (next === s) break
@@ -127,6 +154,8 @@ export function cleanWikitext(input) {
   s = s.replace(/<ref\b[^>]*>[\s\S]*?<\/ref>/gi, '')
   s = s.replace(/<[^>]+>/g, '')
   s = s.replace(/&nbsp;/gi, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'")
+  s = s.replace(/\(\s*\)/g, '')
+  s = s.replace(/\s+([.,;:])/g, '$1')
   return s.replace(/\s+/g, ' ').trim()
 }
 
@@ -179,7 +208,45 @@ const SKIP_EN_POS = new Set([
   'hypernyms',
   'usage notes',
   'alternative forms',
+  'proper noun',
+  'symbol',
+  'homophones',
+  'hyphenation',
+  'rhymes',
+  'coordinate terms',
+  'descendants',
+  'quotations',
 ])
+
+const EN_LEXICAL_POS = new Set([
+  'noun',
+  'verb',
+  'adjective',
+  'adverb',
+  'interjection',
+  'pronoun',
+  'preposition',
+  'conjunction',
+  'determiner',
+  'article',
+  'numeral',
+  'participle',
+  'prefix',
+  'suffix',
+  'contraction',
+  'phrase',
+  'idiom',
+  'proverb',
+  'prepositional phrase',
+])
+
+function isProperNounPos(pos) {
+  return /nom propre|proper noun|nombre propio/.test(String(pos || '').toLowerCase())
+}
+
+function keepLexicalSenses(senses) {
+  return (senses || []).filter((s) => s?.defs?.length && !isProperNounPos(s.pos))
+}
 
 export function extractSenses(wikitext, lang = 'fr') {
   if (lang === 'en') return extractEnglishSenses(wikitext)
@@ -189,29 +256,95 @@ export function extractSenses(wikitext, lang = 'fr') {
   const senses = []
   let current = null
   for (const line of fr.split('\n')) {
-    const posHit = line.match(/^===\s*\{\{S\|([^}|]+)/)
+    const posHit = line.match(/^===\s*\{\{S\|([^}\n]+)/)
     if (posHit) {
-      const pos = posHit[1].trim()
-      current = SKIP_POS.has(pos.toLowerCase()) ? null : { pos, defs: [] }
+      const bits = posHit[1].split('|').map((p) => p.trim()).filter(Boolean)
+      const pos = bits[0] || ''
+      current = !pos || SKIP_POS.has(pos.toLowerCase()) ? null : { pos, defs: [] }
       if (current) senses.push(current)
       continue
     }
     if (!current) continue
     if (!/^#(?![*:])/.test(line)) continue
     const text = cleanWikitext(line.replace(/^#+\s*/, ''))
-    if (!text) continue
+    if (!text || isJunkDef(text)) continue
     current.defs.push(text)
     if (current.defs.length >= 5) current = null
   }
-  const kept = senses.filter((s) => s.defs.length)
-  const lexical = kept.filter((s) => !s.defs.every((d) => /personne du|impératif de|participe /.test(d.toLowerCase())))
+  const kept = keepLexicalSenses(senses)
+  const lexical = kept.filter((s) => senseKind([s]) === 'lexical')
   return lexical.length ? lexical : kept
+}
+
+const FINITE_VERB_RE = /personne du|imp[eé]ratif de/i
+const PARTICIPLE_RE = /participe (?:pass[eé]|pr[eé]sent)/i
+const FORM_OF_START_RE = /^(?:plural of|inflection of|simple past of|present participle of|past participle of|third-person singular of|alternative form of|abbreviation of|initialism of|misspelling of|pluriel de|féminin(?: singulier)? de|masculin de|singulier de|forme(?:s| conjuguée)? de|variante(?: orthographique)? de|forma de|plural de|synonyme de|abréviation de)\b/i
+
+function stripLeadingLabels(text) {
+  return String(text || '').replace(/^\s*(?:\([^)]*\)\s*)+/, '').trim()
+}
+
+function isFormOfGloss(text) {
+  const raw = String(text || '')
+  const s = stripLeadingLabels(raw)
+  return FORM_OF_START_RE.test(s) || FINITE_VERB_RE.test(raw) || PARTICIPLE_RE.test(raw)
+}
+
+export function voirTitles(wikitext) {
+  const titles = []
+  const re = /\{\{\s*voir\|([^}|]+)/gi
+  let m
+  while ((m = re.exec(String(wikitext || '')))) {
+    const title = m[1].trim()
+    if (title) titles.push(title)
+  }
+  return titles
+}
+
+export function senseKind(senses) {
+  const defs = (senses || []).flatMap((s) => s.defs || [])
+  if (!defs.length) return 'empty'
+  const finite = defs.every((d) => FINITE_VERB_RE.test(d))
+  const participle = defs.every((d) => PARTICIPLE_RE.test(d))
+  if (participle && !finite) return 'participle'
+  if (finite) return 'finite'
+  if (defs.every(isFormOfGloss)) return 'inflection'
+  return 'lexical'
+}
+
+export function lemmaFromInflection(defs) {
+  for (const raw of defs || []) {
+    const d = String(raw || '')
+    const patterns = [
+      /du verbe\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,24})/i,
+      /participe (?:pass[eé]|pr[eé]sent)(?:[^.]{0,40}?)(?:du verbe|de)\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,24})/i,
+      /(?:indicatif|subjonctif|conditionnel)(?: présent| passé| imparfait)? de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,24})/i,
+      /imp[eé]ratif de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,24})/i,
+      /(?:Inflection|Plural|Singular|Alternative form|Abbreviation|Initialism|Misspelling|Forma|Pluriel|Féminin(?: singulier)?|Masculin|Singulier|Variante(?: orthographique)?|Synonyme|Abréviation) (?:of|de)\s+([A-Za-zÀ-ÿÑñŒœ][A-Za-zÀ-ÿÑñŒœ'-]{1,24})/i,
+      /forme(?:s| conjuguée)? de\s+([A-Za-zÀ-ÿÑñŒœ][A-Za-zÀ-ÿÑñŒœ'-]{1,24})/i,
+    ]
+    for (const re of patterns) {
+      const m = d.match(re)
+      if (m?.[1]) return m[1].replace(/[.,;:]+$/, '')
+    }
+  }
+  return ''
+}
+
+export function adjectiveFromParticiple(senses, lemmaSenses) {
+  const glosses = (lemmaSenses || [])
+    .filter((s) => senseKind([s]) === 'lexical')
+    .flatMap((s) => s.defs || [])
+    .filter(Boolean)
+    .slice(0, 2)
+  const fallback = (senses || []).flatMap((s) => s.defs || []).filter(Boolean)
+  return [{ pos: 'adjectif', defs: glosses.length ? glosses : fallback }]
 }
 
 export function extractSpanishSenses(wikitext) {
   const es = spanishSection(wikitext)
   if (!es) return []
-  const skipped = /^(?:etimología|pronunciación|locuciones|refranes|véase también|referencias|traducciones|sinónimos|antónimos|anagramas|conjugación)$/i
+  const skipped = /^(?:etimología|pronunciación|locuciones|refranes|véase también|referencias|traducciones|sinónimos|antónimos|anagramas|conjugación|nombre propio)$/i
   const senses = []
   let current = null
   for (const line of es.split('\n')) {
@@ -235,11 +368,11 @@ export function extractSpanishSenses(wikitext) {
     const raw = numbered?.[1] ?? hashed?.[1]
     if (raw == null) continue
     const text = cleanWikitext(raw).replace(/^\s*([.·,:;])\s*$/, '')
-    if (!text || !/\p{L}/u.test(text)) continue
+    if (!text || isJunkDef(text)) continue
     current.defs.push(text)
     if (current.defs.length >= 5) current = null
   }
-  return senses.filter((sense) => sense.defs.length)
+  return keepLexicalSenses(senses)
 }
 
 export function extractEnglishSenses(wikitext) {
@@ -248,16 +381,15 @@ export function extractEnglishSenses(wikitext) {
   const senses = []
   let current = null
   for (const line of en.split('\n')) {
-    const posHit = line.match(/^===\s*([^=]+?)\s*===/)
+    // English entries nest POS under Etymology as ====Noun====. Require the
+    // same number of equals on both sides so =====Derived terms===== is ignored.
+    const posHit = line.match(/^(={3,4})\s*([^=\n]+?)\s*\1\s*$/)
     if (posHit) {
-      // Wiktionary numbers its sections ("Etymology 1", "Noun 2"). Strip the
-      // number before the skip test or every numbered Etymology leaks in as a
-      // fake part of speech that swallows the next POS's definitions.
-      const pos = posHit[1].trim().replace(/\s+\d+$/, '')
+      const pos = posHit[2].trim().replace(/\s+\d+$/, '')
       const base = pos.toLowerCase()
       current = SKIP_EN_POS.has(base)
-        ? null
-        : /^(?:etymolog|pronunciation|translations|references)/.test(base)
+        || /^(?:etymolog|pronunciation|translations|references|derived|related|see also|further|anagrams|usage)/.test(base)
+        || !EN_LEXICAL_POS.has(base)
           ? null
           : { pos: base, defs: [] }
       if (current) senses.push(current)
@@ -266,11 +398,11 @@ export function extractEnglishSenses(wikitext) {
     if (!current) continue
     if (!/^#(?![*:])/.test(line)) continue
     const text = cleanWikitext(line.replace(/^#+\s*/, ''))
-    if (!text) continue
+    if (!text || isJunkDef(text)) continue
     current.defs.push(text)
     if (current.defs.length >= 5) current = null
   }
-  return senses.filter((s) => s.defs.length)
+  return keepLexicalSenses(senses)
 }
 
 function isWeak(senses) {
@@ -305,12 +437,13 @@ export function rankTitles(query, titles, lang = 'fr') {
       else if (folded.startsWith(q) && folded.length <= q.length + 2) score += 20
       if (foldKey(last, lang) === q) score += 55
       if (folded.endsWith('-' + q) || folded.endsWith(' ' + q)) score += 35
-      if (title === query || title.toUpperCase() === q) score += 16
+      if (title === query) score += 40
+      else if (title === q && query === q) score += 24
       if (title === title.toLowerCase()) score += 10
       if (preferredLetters.test(title)) score += 8
       else if (/[^\u0000-\u007f]/.test(title)) score -= 20
       if (title.includes(' ')) score -= 25
-      if (title === title.toUpperCase() && title.length > 3) score -= 4
+      if (title === title.toUpperCase() && title !== query) score -= lang === 'en' ? 40 : 8
       score -= index
       return { title, score }
     })
@@ -415,26 +548,90 @@ export async function lookupDefinition(word, lang = 'fr') {
     return { ok: true, found: false, word: key, source }
   }
 
-  for (const title of titles.slice(0, 8)) {
+  const qLetters = lettersOnly(query, lang)
+  const queue = titles.slice(0, 8)
+  const seen = new Set()
+  let sameLexical = null
+  let sameParticiple = null
+  let fallback = null
+
+  while (queue.length) {
+    const title = queue.shift()
+    const mark = foldKey(title, lang) + '|' + title
+    if (seen.has(mark)) continue
+    seen.add(mark)
     try {
       const page = await parsePage(title, wiki)
       if (!page) continue
+      if (lang === 'fr') {
+        for (const extra of voirTitles(page.wikitext)) {
+          if (lettersOnly(extra, lang) === qLetters && !seen.has(foldKey(extra, lang) + '|' + extra)) {
+            queue.push(extra)
+          }
+        }
+      }
       const senses = extractSenses(page.wikitext, lang)
       if (!senses.length || isWeak(senses)) continue
-      const value = {
-        ok: true,
-        found: true,
-        word: key,
-        lemma: page.title,
-        senses,
-        source,
-        url: host + encodeURIComponent(page.title),
+      const kind = senseKind(senses)
+      const hit = { page, senses, kind }
+      const same = lettersOnly(page.title, lang) === qLetters
+      if (kind === 'lexical' && same) {
+        sameLexical = hit
+        break
       }
-      cacheSet(cacheKey, value)
-      return value
+      if (kind === 'lexical') fallback = fallback || hit
+      else if (kind === 'participle' && same) sameParticiple = sameParticiple || hit
+      else fallback = fallback || hit
     } catch {
       // try the next ranked title
     }
+  }
+
+  let chosen = sameLexical || sameParticiple || fallback
+  if (chosen && chosen.kind !== 'lexical') {
+    const lemma = lemmaFromInflection(chosen.senses.flatMap((s) => s.defs))
+    if (chosen.kind === 'participle' && lang === 'fr') {
+      let lemmaSenses = []
+      if (lemma) {
+        try {
+          const lemmaPage = await parsePage(lemma, wiki)
+          lemmaSenses = extractSenses(lemmaPage?.wikitext || '', lang)
+        } catch {
+          lemmaSenses = []
+        }
+      }
+      chosen = {
+        ...chosen,
+        page: chosen.page,
+        senses: adjectiveFromParticiple(chosen.senses, lemmaSenses),
+        kind: 'lexical',
+      }
+    } else if (lemma && lettersOnly(lemma, lang) !== lettersOnly(chosen.page.title, lang)) {
+      try {
+        const lemmaPage = await parsePage(lemma, wiki)
+        const lemmaSenses = extractSenses(lemmaPage?.wikitext || '', lang)
+        const lexical = (lemmaSenses || []).filter((s) => senseKind([s]) === 'lexical')
+        if (lexical.length && lemmaPage) {
+          chosen = { page: lemmaPage, senses: lexical, kind: 'lexical' }
+        }
+      } catch {
+        // keep the inflection gloss
+      }
+    }
+  }
+
+  if (chosen) {
+    const value = {
+      ok: true,
+      found: true,
+      word: key,
+      lemma: chosen.page.title,
+      senses: chosen.senses,
+      source,
+      url: host + encodeURIComponent(chosen.page.title),
+    }
+    cacheSet(cacheKey, value)
+    return value
   }
 
   return { ok: true, found: false, word: key, source }

@@ -1,4 +1,4 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=78'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=102'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -74,7 +74,7 @@ function boardPercentHtml(entry) {
   const avg = formatBoardPercent(entry?.percent)
   const n = Math.max(1, Number(entry?.plays) || 1)
   if (n <= 1) return avg
-  return `${avg}<small>${t('board_plays', n)}</small>`
+  return `${avg}<small> · ${t('board_plays', n)}</small>`
 }
 
 export function boardScoreHtml(entry) {
@@ -142,6 +142,22 @@ export function averageScore(scores) {
   return Math.round((10 * pts.reduce((sum, n) => sum + n, 0)) / pts.length) / 10
 }
 
+export function trainingNeededWords(catalog) {
+  return new Set((catalog || []).map((entry) => entry.word).filter(Boolean))
+}
+
+export function trainingNeededFound(found, needed) {
+  let n = 0
+  for (const word of needed || []) if (found?.has(word)) n++
+  return n
+}
+
+export function trainingRoundSolved(found, needed) {
+  if (!needed?.size) return false
+  for (const word of needed) if (!found?.has(word)) return false
+  return true
+}
+
 export function loadTrainingStats(storage, lang = getLang()) {
   const empty = { plays: 0, solved: 0, found: 0, total: 0, byPreset: {}, byLength: {}, hard: 0 }
   try {
@@ -186,42 +202,38 @@ export function rememberTrainingRound(round, storage, lang = getLang()) {
 }
 
 export function scoreChartSvg(scores, opts = {}) {
-  const w = opts.w || 168
-  const h = opts.h || 36
-  const padL = 14
-  const padR = 4
-  const padT = 5
-  const padB = 5
-  const pts = scoreValues(scores)
-  const innerW = Math.max(1, w - padL - padR)
+  // One rounded bar per game — bars survive the horizontal stretch of
+  // preserveAspectRatio="none" where a line chart's dots deformed.
+  const w = opts.w || 360
+  const h = opts.h || 44
+  const padT = 4
+  const padB = 3
+  const pts = scoreValues(scores).slice(-24)
   const innerH = Math.max(1, h - padT - padB)
   const yAt = (p) => padT + (1 - p / 100) * innerH
-  const axis = [0, 50, 100]
-    .map((p) => {
-      const y = yAt(p).toFixed(1)
-      return `<line class="axis${p === 50 ? ' mid' : ''}" x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}"/>`
-    })
-    .join('')
-  const ticks = `<text class="tick" x="0" y="${(yAt(100) + 3).toFixed(1)}">100</text>
-    <text class="tick" x="0" y="${(yAt(0) + 3).toFixed(1)}">0</text>`
+  const base = yAt(0)
+  const frame = `<line class="axis" x1="0" y1="${yAt(100).toFixed(1)}" x2="${w}" y2="${yAt(100).toFixed(1)}"/>
+    <line class="axis" x1="0" y1="${base.toFixed(1)}" x2="${w}" y2="${base.toFixed(1)}"/>`
   if (!pts.length) {
-    return `<svg class="score-chart" viewBox="0 0 ${w} ${h}" aria-hidden="true">${axis}${ticks}</svg>`
+    return `<svg class="score-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${frame}</svg>`
   }
   const n = pts.length
-  const xy = pts.map((p, i) => {
-    const x = padL + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW)
-    return [x, yAt(p)]
-  })
-  const d = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')
-  const base = yAt(0).toFixed(1)
-  const area = `M${xy[0][0].toFixed(1)} ${base} ${xy.map(([x, y]) => `L${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')} L${xy.at(-1)[0].toFixed(1)} ${base} Z`
-  const dots = xy
-    .map(
-      ([x, y], i) =>
-        `<circle class="dot${i === n - 1 ? ' last' : ''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${i === n - 1 ? 3.1 : 1.8}"/>`
-    )
+  const gap = n > 16 ? 2 : 3
+  const step = w / n
+  const bw = Math.max(1.5, step - gap)
+  const bars = pts
+    .map((p, i) => {
+      const x = i * step + gap / 2
+      const y = yAt(p)
+      const bh = Math.max(1.6, base - y)
+      return `<rect class="bar${i === n - 1 ? ' last' : ''}" x="${x.toFixed(1)}" y="${(base - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.4"/>`
+    })
     .join('')
-  return `<svg class="score-chart" viewBox="0 0 ${w} ${h}" aria-hidden="true">${axis}${ticks}<path class="area" d="${area}"/><path class="line" d="${d}"/>${dots}</svg>`
+  const avg = pts.reduce((a, b) => a + b, 0) / n
+  const avgLine = n > 1
+    ? `<line class="avg" x1="0" y1="${yAt(avg).toFixed(1)}" x2="${w}" y2="${yAt(avg).toFixed(1)}"/>`
+    : ''
+  return `<svg class="score-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${frame}${bars}${avgLine}</svg>`
 }
 
 export function parseRack(raw) {
@@ -301,12 +313,17 @@ export function extractFormOf(text) {
   const s = String(text || '')
   const patterns = [
     /du verbe\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
+    /(?:indicatif|subjonctif|conditionnel)(?: présent| passé| imparfait)? de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /impératif de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /pluriel de(?: l['’](?:adjectif|nom|article))?\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /féminin de(?: l['’]adjectif)?\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /masculin de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /singulier de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
-    /participe (?:passé|présent)\b(?:[^.]{0,40}?)(?:du verbe|de)\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
+    /participe (?:passé|présent)(?:[^.]{0,40}?)(?:du verbe|de)\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
+    /variante(?: orthographique)? de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
+    /forme(?:s| conjuguée)? de\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
+    /inflection of\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
+    /alternative form of\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /plural of\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /(?:simple )?past(?: tense)? of\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
     /present participle of\s+([A-Za-zÀ-ÿŒœ][A-Za-zÀ-ÿŒœ'-]{1,20})/i,
@@ -329,6 +346,23 @@ function foldWord(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/['’]/g, '')
+}
+
+export function isProperNounPos(pos) {
+  return /nom propre|proper noun|nombre propio/i.test(String(pos || ''))
+}
+
+export function lexicalDefinition(payload) {
+  if (!payload || payload.found === false) return payload
+  const senses = (payload.senses || []).filter((sense) =>
+    Array.isArray(sense?.defs)
+    && sense.defs.some((definition) => /\p{L}/u.test(String(definition || '')))
+    && !isProperNounPos(sense.pos)
+  )
+  if (!senses.length) {
+    return { ...payload, found: false, senses: [] }
+  }
+  return senses.length === (payload.senses || []).length ? payload : { ...payload, senses }
 }
 
 export function wikiUrl(word, lemma) {
@@ -398,6 +432,21 @@ export function usedTiles(tiles, word) {
   return new Set(tileAssignments(tiles, word).keys())
 }
 
+/** Display order for the rack. Official `tiles` string stays in deal order. */
+export function rackDisplayOrder(tiles, alpha) {
+  const rack = String(tiles || '')
+  const idxs = [...rack].map((_, i) => i)
+  if (!alpha) return idxs
+  const lang = getLang()
+  return idxs.sort((a, b) => {
+    const blank = (ch) => ch === '?' || ch === '.' || ch === '*'
+    const ca = rack[a]
+    const cb = rack[b]
+    if (blank(ca) !== blank(cb)) return blank(ca) ? 1 : -1
+    return ca.localeCompare(cb, lang) || a - b
+  })
+}
+
 function guessCategory(list, tiles) {
   const top = list[0]
   if (!top) return 'bingo'
@@ -424,7 +473,8 @@ function srcLine(payload, escapeHtml) {
   return `<p class="defs-src"><a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a></p>`
 }
 
-function defBody(payload, escapeHtml, extra = {}) {
+export function defBody(payload, escapeHtml, extra = {}) {
+  payload = lexicalDefinition(payload)
   if (!payload) return `<p class="pending">${t('def_pending')}</p>`
   if (!payload.found || !payload.senses?.length) {
     return `<p class="empty">${
@@ -472,6 +522,17 @@ export function rememberKidsFound(storage) {
 }
 
 export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, isKids, isTraining, onDeal, onPlayed }) {
+  // One source of truth for the header title: Bingo mode always says Bingo,
+  // suffixed with this week's draw type when it differs.
+  function kickerText(cat) {
+    if (cat === 'kids') return t('kids_cat')
+    if (cat === 'training') return t('cat_training')
+    const label = catLabel(cat)
+    const comp = typeof isCompetitive === 'function' && isCompetitive()
+    if (!comp) return label
+    const mode = t('menu_comp')
+    return label.toLowerCase() === mode.toLowerCase() ? mode : `${mode} · ${label}`
+  }
   const rackEl = document.getElementById('game-rack')
   const catEl = document.getElementById('game-cat')
   const form = document.getElementById('game-form')
@@ -481,6 +542,9 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const globalEl = document.getElementById('game-global')
   const waEl = document.getElementById('game-wa')
   const chartEl = document.getElementById('game-chart')
+  const nextBtn = document.getElementById('game-next')
+  let nextAction = null
+  nextBtn?.addEventListener('click', () => nextAction?.())
   const authEl = document.getElementById('game-auth')
   const userEl = document.getElementById('game-user')
   const boardEl = document.getElementById('game-board')
@@ -493,8 +557,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const trainingProgressEl = document.getElementById('training-progress')
   const trainingTimerEl = document.getElementById('training-timer')
   const trainingRevealBtn = document.getElementById('training-reveal')
+  const alphaBtn = document.getElementById('game-alpha')
+  const clearAllBtn = document.getElementById('game-clear-all')
 
   let rack = ''
+  let rackAlpha = false
   let catalog = []
   let best = null
   let category = 'bingo'
@@ -507,6 +574,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let dealSeq = 0
   let trainingPreset = 'all'
   let trainingFound = new Set()
+  let trainingNeeded = new Set()
   let trainingTotal = 0
   let trainingTargetLength = 0
   let trainingRoundRecorded = false
@@ -521,6 +589,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   try {
     const saved = localStorage.getItem('verimots-training-preset')
     if (['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(saved)) trainingPreset = saved
+  } catch {
+    /* private mode */
+  }
+  try {
+    rackAlpha = localStorage.getItem('verimots-rack-alpha') === '1'
   } catch {
     /* private mode */
   }
@@ -542,7 +615,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   function paintTrainingProgress(extra = '') {
     if (!trainingProgressEl) return
-    const base = t('training_progress', trainingFound.size, trainingTotal)
+    const base = t('training_progress', trainingNeededFound(trainingFound, trainingNeeded), trainingTotal)
     const seconds = trainingEndsAt ? Math.max(0, Math.ceil((trainingEndsAt - Date.now()) / 1000)) : null
     trainingProgressEl.textContent = [base, seconds == null ? '' : `${seconds}s`, extra].filter(Boolean).join(' · ')
   }
@@ -563,13 +636,16 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   function paintTrainingStats(stats = loadTrainingStats()) {
-    if (globalEl) globalEl.textContent = t('training_stats', stats.solved, stats.plays)
+    if (!globalEl || !trainingOn()) return
+    globalEl.hidden = false
+    globalEl.textContent = t('training_stats', stats.solved, stats.plays)
   }
 
   function setClosed(on) {
     closed = on
     document.body.classList.toggle('game-closed', on)
     paintTrainingControls()
+    paintRackTools()
   }
 
   function challengeUrl() {
@@ -612,16 +688,24 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   function paintChart(rows, kids) {
     if (!chartEl) return
-    chartEl.hidden = false
     const dock = document.getElementById('game-dock')
-    if (dock) dock.hidden = false
     const scores = rows || loadScores(null, kids == null ? kidsOn() : !!kids)
     const last = scores.at(-1)
     const avg = averageScore(scores)
-    const avgHtml = avg != null
+    const spark = scores.length >= 2
+    const show = spark || !!last
+    chartEl.hidden = !show
+    if (dock) dock.hidden = !show
+    document.body.classList.toggle('has-chart', show)
+    if (!show) {
+      chartEl.innerHTML = ''
+      chartEl.setAttribute('aria-label', t('chart_empty'))
+      return
+    }
+    const avgHtml = spark && avg != null
       ? `<span class="game-chart-avg">${formatChartAverage(avg)}<small>${t('chart_avg')}</small></span>`
       : ''
-    chartEl.innerHTML = `${avgHtml}${scoreChartSvg(scores)}${
+    chartEl.innerHTML = `${avgHtml}${spark ? scoreChartSvg(scores) : ''}${
       last ? `<span class="game-chart-last">${last.p}<small>/100</small></span>` : ''
     }`
     chartEl.setAttribute(
@@ -641,7 +725,14 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       paintTrainingStats()
       if (waEl) waEl.classList.add('is-off')
       if (chartEl) chartEl.hidden = true
+      const dock = document.getElementById('game-dock')
+      if (dock) dock.hidden = true
+      document.body.classList.remove('has-chart')
       return
+    }
+    if (globalEl) {
+      globalEl.hidden = true
+      globalEl.textContent = ''
     }
     if (kidsOn()) {
       paintKidsMeta()
@@ -649,14 +740,6 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     if (waEl) waEl.classList.remove('is-off')
     paintChart()
-    try {
-      const res = await fetch('/api/game/stats')
-      const data = await res.json()
-      if (data?.ok && data.plays) globalEl.textContent = formatAverage(data.average)
-      else globalEl.textContent = t('avg_empty')
-    } catch {
-      globalEl.textContent = t('avg_empty')
-    }
   }
 
   function catalogFrom(groups) {
@@ -672,17 +755,45 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return list
   }
 
+  function paintRackTools() {
+    if (alphaBtn) {
+      alphaBtn.setAttribute('aria-pressed', rackAlpha ? 'true' : 'false')
+      alphaBtn.setAttribute('aria-label', t('rack_alpha_aria'))
+      alphaBtn.textContent = t('rack_alpha')
+    }
+    if (clearAllBtn) {
+      clearAllBtn.textContent = t('play_clear')
+      clearAllBtn.hidden = closed || dealPending || !String(input?.value || '').trim()
+    }
+  }
+
+  let rackSig = ''
+  let rackDealSig = ''
+
   function paintRack() {
     const used = usedTiles(rack, normalize(input.value))
+    const order = rackDisplayOrder(rack, rackAlpha)
+    const tap = !closed && !dealPending
+    const sig = JSON.stringify([rack, order, tap])
     rackEl.dataset.n = String(rack.length)
-    rackEl.innerHTML = tilesHtml(rack, [], { tap: !closed && !dealPending })
-    rackEl.querySelectorAll('.tile').forEach((el, i) => {
-      if (used.has(i)) el.classList.add('used')
-      if (i === trainingBonusIndex) {
-        el.classList.add('training-extra')
-        el.title = '+1'
-      }
+    // Only rebuild the tiles when the rack itself changes: typing just retags
+    // them, so the used/unused states can animate instead of being replaced.
+    if (sig !== rackSig || !rackEl.firstElementChild) {
+      const dealSig = JSON.stringify(rack)
+      rackEl.innerHTML = tilesHtml(rack, [], { tap, order })
+      rackEl.classList.toggle('dealt', dealSig !== rackDealSig)
+      rackDealSig = dealSig
+      rackSig = sig
+    }
+    rackEl.querySelectorAll('.tile').forEach((el) => {
+      const i = Number(el.dataset.rackI)
+      el.classList.toggle('used', used.has(i))
+      const bonus = i === trainingBonusIndex
+      el.classList.toggle('training-extra', bonus)
+      if (bonus) el.title = '+1'
+      else el.removeAttribute('title')
     })
+    paintRackTools()
   }
 
   function setLive(text, kind) {
@@ -708,11 +819,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     trainingBonusIndex = category === 'training' && Number.isInteger(trainingMeta?.bonusIndex)
       ? trainingMeta.bonusIndex
       : -1
-    catEl.textContent = category === 'kids'
-      ? t('kids_cat')
-      : category === 'training'
-        ? t('cat_training')
-        : catLabel(category)
+    catEl.textContent = kickerText(category)
     input.maxLength = rack.length || 7
     form.hidden = false
     if (hintBtn) {
@@ -724,7 +831,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (category === 'training') {
       trainingRoundReady = true
       trainingFound = new Set()
-      trainingTotal = catalog.length
+      trainingNeeded = trainingNeededWords(catalog)
+      trainingTotal = trainingNeeded.size
       trainingTargetLength = Number(trainingMeta?.targetLength) || rack.length
       trainingRoundRecorded = false
       paintTrainingProgress()
@@ -750,7 +858,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     dealPending = true
     trainingRoundReady = false
     setClosed(false)
-    officialPlay = !!opts.official
+    nextAction = null
+    if (nextBtn) nextBtn.hidden = true
+    officialPlay = !!opts.official || (
+      !trainingOn() && (kidsOn() || (typeof isCompetitive === 'function' && isCompetitive()))
+    )
     if (opts.seed) dealSeed = String(opts.seed).toUpperCase()
     form.hidden = false
     resultEl.hidden = true
@@ -885,7 +997,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       preset: trainingPreset,
       length: trainingTargetLength,
       solved,
-      found: trainingFound.size,
+      found: trainingNeededFound(trainingFound, trainingNeeded),
       total: trainingTotal,
       hard,
     })
@@ -907,14 +1019,14 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       .join('')
     resultEl.innerHTML = `
       <div class="training-summary">
-        <strong>${escapeHtml(solved ? t('training_complete') : t('training_progress', trainingFound.size, trainingTotal))}</strong>
+        <strong>${escapeHtml(solved ? t('training_complete') : t('training_progress', trainingNeededFound(trainingFound, trainingNeeded), trainingTotal))}</strong>
       </div>
-      <div class="training-answers">${answers}</div>
-      <button type="button" class="game-again" id="game-again">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.6 5.4 14.2 12 8.6 18.6 10.1 20l7.1-8-7.1-8z"/></svg>
-        ${t('training_new')}
-      </button>`
-    resultEl.querySelector('#game-again')?.addEventListener('click', () => deal())
+      <div class="training-answers">${answers}</div>`
+    nextAction = () => deal()
+    if (nextBtn) {
+      nextBtn.hidden = false
+      nextBtn.setAttribute('aria-label', t('training_new'))
+    }
     paintTrainingProgress(solved ? t('training_complete') : '')
   }
 
@@ -965,7 +1077,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=78')
+        await import('./competitive.js?v=102')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1028,17 +1140,21 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     if (trainingOn()) {
       if (trainingFound.has(hit.word)) {
-        setLive(t('training_progress', trainingFound.size, trainingTotal), 'bad')
+        setLive(t('training_progress', trainingNeededFound(trainingFound, trainingNeeded), trainingTotal), 'bad')
         input.value = ''
         return
       }
       trainingFound.add(hit.word)
       input.value = ''
-      setLive(`${hit.word} · ${hit.pts} pts`, 'ok')
+      const needed = trainingNeededFound(trainingFound, trainingNeeded)
+      const left = Math.max(0, trainingTotal - needed)
+      setLive(left
+        ? `${hit.word} · ${hit.pts} pts · ${t('training_same_rack', left)}`
+        : `${hit.word} · ${hit.pts} pts`, 'ok')
       paintTrainingProgress()
       paintRack()
       onPlayed?.({ word: hit.word, pts: hit.pts, best: '', bestPts: 0 })
-      if (trainingFound.size >= trainingTotal) finishTraining(true)
+      if (trainingRoundSolved(trainingFound, trainingNeeded)) finishTraining(true)
       return
     }
     const playKids = kidsOn()
@@ -1089,10 +1205,6 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           )
           .join('')}
       </div>
-      <button type="button" class="game-again" id="game-again">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.6 5.4 14.2 12 8.6 18.6 10.1 20l7.1-8-7.1-8z"/></svg>
-        ${t('again')}
-      </button>
       <div class="game-def-panel">
         <div class="game-def-body" id="def-body">${defBody(null, escapeHtml)}</div>
       </div>`
@@ -1107,15 +1219,21 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       paintChart(rememberScore(percent))
     }
     onPlayed?.({ word: hit.word, pts: hit.pts, best: best?.word || dealSeed, bestPts: best?.pts })
-    resultEl.querySelector('#game-again')?.addEventListener('click', async () => {
+    nextAction = async () => {
       if (!isPlayContextCurrent(playContext)) return
       if (playContext.official && officialPlay && !(await syncRankedScore(percent, hit.word, playContext))) return
       if (!isPlayContextCurrent(playContext)) return
       await deal()
-    })
+    }
+    if (nextBtn) {
+      nextBtn.hidden = false
+      nextBtn.setAttribute('aria-label', t('again'))
+    }
 
+    let wantTop = ''
     async function showTop(word) {
       if (!define || !word) return
+      wantTop = word
       if (shown.has(word)) {
         paintDef('#def-body', shown.get(word))
         return
@@ -1124,6 +1242,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (box) box.innerHTML = defBody(null, escapeHtml)
       const resolved = await resolvedDef(word)
       shown.set(word, resolved)
+      // A later tab click supersedes this fetch — never paint a stale word.
+      if (wantTop !== word) return
       if (closed && isPlayContextCurrent(playContext)) paintDef('#def-body', resolved)
     }
 
@@ -1154,7 +1274,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           body: JSON.stringify({ percent }),
         })
         const data = await res.json()
-        if (data?.ok && isPlayContextCurrent(playContext)) {
+        if (data?.ok && isPlayContextCurrent(playContext) && trainingOn() && globalEl) {
+          globalEl.hidden = false
           globalEl.textContent = formatAverage(data.average)
         }
       } catch {
@@ -1185,6 +1306,21 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     })
   })
   input.addEventListener('input', preview)
+  alphaBtn?.addEventListener('click', () => {
+    rackAlpha = !rackAlpha
+    try {
+      localStorage.setItem('verimots-rack-alpha', rackAlpha ? '1' : '0')
+    } catch {
+      /* private mode */
+    }
+    paintRack()
+  })
+  clearAllBtn?.addEventListener('click', () => {
+    if (closed || dealPending) return
+    input.value = ''
+    preview()
+    input.focus()
+  })
   rackEl.addEventListener('click', (e) => {
     if (closed || dealPending) return
     const tile = e.target.closest('[data-rack-i]')
@@ -1237,7 +1373,6 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const changed = activeMode !== next
     activeMode = next
     if (next !== 'training') stopTrainingTimer()
-    boardTab = next === 'kids' ? 'kids' : 'adult'
     document.body.classList.toggle('kids', next === 'kids')
     document.body.classList.toggle('training', next === 'training')
     modeDefi?.setAttribute('aria-pressed', next === 'defi' ? 'true' : 'false')
@@ -1250,12 +1385,18 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const requestId = ++modeSeq
     ++dealSeq
     if (next === 'competitive' || next === 'kids') {
+      // Leaving training: its "n/n rounds" meta must not linger in the header.
+      if (globalEl && next === 'competitive') {
+        globalEl.hidden = true
+        globalEl.textContent = ''
+      }
       await initRanked(next === 'kids', requestId)
       return
     }
     if (authEl) authEl.hidden = true
     if (userEl) userEl.hidden = true
     paintGlobal()
+    paintLeaderboard()
     await deal()
   }
 
@@ -1264,7 +1405,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=78')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=102')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1349,12 +1490,6 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   let lastBoard = null
   let lastKidsBoard = null
-  let boardTab = null
-
-  function kidsBoardTab() {
-    if (boardTab === 'kids' || boardTab === 'adult') return boardTab === 'kids'
-    return kidsOn()
-  }
 
   function boardBlock(empty, data) {
     if (!data) {
@@ -1394,33 +1529,28 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (board.kids) lastKidsBoard = board
       else lastBoard = board
     }
-    const kidsTab = kidsBoardTab()
+    const ranked = !trainingOn() && (kidsOn() || (typeof isCompetitive === 'function' && isCompetitive()))
+    if (!ranked) {
+      boardEl.hidden = true
+      boardEl.innerHTML = ''
+      return
+    }
+    const kidsTab = kidsOn()
     const data = kidsTab ? lastKidsBoard : lastBoard
     const empty = kidsTab ? t('kids_board_empty') : t('board_empty')
+    boardEl.hidden = false
     boardEl.innerHTML = `
       <p class="board-title">${escapeHtml(t('board_title'))}</p>
-      <div class="board-switch" role="tablist" aria-label="${escapeHtml(t('board_title'))}">
-        <button type="button" role="tab" class="mode-btn" data-board-tab="adult" aria-selected="${kidsTab ? 'false' : 'true'}" aria-pressed="${kidsTab ? 'false' : 'true'}">${escapeHtml(t('board_general'))}</button>
-        <button type="button" role="tab" class="mode-btn" data-board-tab="kids" aria-selected="${kidsTab ? 'true' : 'false'}" aria-pressed="${kidsTab ? 'true' : 'false'}">${escapeHtml(t('kids_board'))}</button>
-      </div>
       ${boardBlock(empty, data)}`
-    boardEl.querySelectorAll('[data-board-tab]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        boardTab = btn.dataset.boardTab
-        paintLeaderboard()
-      })
-    })
     if (waEl) waEl.classList.add('is-off')
     paintChart(loadScores(null, kidsTab), kidsTab)
   }
 
   function paintChrome() {
     if (catEl) {
-      catEl.textContent = category === 'kids' || kidsOn()
-        ? t('kids_cat')
-        : category === 'training' || trainingOn()
-          ? t('cat_training')
-          : catLabel(category)
+      catEl.textContent = kickerText(
+        category === 'kids' || kidsOn() ? 'kids' : category === 'training' || trainingOn() ? 'training' : category
+      )
     }
     if (modeDefi) modeDefi.textContent = t('mode_defi')
     if (modeTraining) modeTraining.textContent = t('mode_training')
@@ -1440,14 +1570,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (lab) lab.textContent = kidsOn() ? t('kids_play') : t('play_label')
     }
     paintTrainingControls()
+    paintRackTools()
     if (lastBoard || lastKidsBoard) paintLeaderboard()
     if (closed) {
-      const again = document.getElementById('game-again')
-      if (again) {
-        const svg = again.querySelector('svg')
-        again.textContent = ''
-        if (svg) again.appendChild(svg)
-        again.append(' ' + t('again'))
+      if (nextBtn && !nextBtn.hidden) {
+        nextBtn.setAttribute('aria-label', trainingOn() ? t('training_new') : t('again'))
       }
     } else {
       preview()
@@ -1504,7 +1631,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=78')
+      const { fetchLeaderboard } = await import('./competitive.js?v=102')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

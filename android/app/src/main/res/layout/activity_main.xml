@@ -11,106 +11,105 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingBottom="8dp">
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="12dp">
 
         <ImageView
             android:id="@+id/mark"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:clickable="true"
             android:contentDescription="@string/app_name"
+            android:focusable="true"
             android:scaleType="fitCenter"
             android:src="@mipmap/ic_launcher" />
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/brand_title"
+            style="@style/Display"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.02"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="@string/app_name"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-            <TextView
-                style="@style/Display"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:letterSpacing="0.02"
-                android:text="@string/app_name"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/brand_sub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:fontFamily="sans-serif-medium"
-                android:text="@string/dict_using_ods"
-                android:textColor="@color/gold"
-                android:textSize="12sp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/brand_sub"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_count"
+            android:contentDescription="@string/dict_open"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:text="@string/dict_using_ods"
+            android:textColor="@color/gold"
+            android:textSize="11sp" />
 
         <LinearLayout
             android:id="@+id/lang_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
             android:background="@drawable/bg_count"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="3dp">
+            android:padding="2dp">
 
             <TextView
                 android:id="@+id/lang_fr"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="24dp"
                 android:fontFamily="sans-serif-medium"
-                android:minWidth="32dp"
                 android:gravity="center"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:includeFontPadding="false"
+                android:minWidth="24dp"
+                android:paddingHorizontal="6dp"
                 android:text="@string/lang_fr"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/lang_en"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="24dp"
                 android:fontFamily="sans-serif-medium"
-                android:minWidth="32dp"
                 android:gravity="center"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:includeFontPadding="false"
+                android:minWidth="24dp"
+                android:paddingHorizontal="6dp"
                 android:text="@string/lang_en"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/lang_es"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="24dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:minWidth="32dp"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:includeFontPadding="false"
+                android:minWidth="24dp"
+                android:paddingHorizontal="6dp"
                 android:text="@string/lang_es"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/live"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_count"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-medium"
-            android:maxLines="1"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp"
-            android:text="@string/loading"
-            android:textColor="@color/muted"
-            android:textSize="11sp" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <FrameLayout
@@ -129,36 +128,86 @@
             android:visibility="gone" />
 
         <include
-            android:id="@+id/pane_board"
-            layout="@layout/pane_board"
-            android:visibility="gone" />
-
-        <include
             android:id="@+id/pane_about"
             layout="@layout/pane_about"
             android:visibility="gone" />
 
+        <LinearLayout
+            android:id="@+id/dict_pop"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_card"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/pop_dict_ods"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="10dp"
+                android:text="@string/dict_using_ods"
+                android:textColor="@color/ink"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/pop_dict_csw"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="10dp"
+                android:text="@string/dict_using_csw"
+                android:textColor="@color/ink"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/pop_dict_wow24"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="10dp"
+                android:text="@string/dict_using_wow24"
+                android:textColor="@color/ink"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/pop_dict_rla"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="10dp"
+                android:text="@string/dict_using_rla"
+                android:textColor="@color/ink"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <ImageButton
             android:id="@+id/feedback_fab"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:background="@drawable/bg_feedback"
-            android:contentDescription="@string/feedback"
-            android:padding="14dp"
-            android:src="@drawable/ic_feedback" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            android:contentDescription="@string/feedback" />
     </FrameLayout>
 
     <LinearLayout
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginHorizontal="12dp"
         android:layout_marginTop="6dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/bg_dock"
-        android:padding="5dp">
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="4dp">
 
         <TextView
             android:id="@+id/tab_check"
@@ -173,21 +222,9 @@
             android:text="@string/tab_game" />
 
         <TextView
-            android:id="@+id/tab_board"
-            style="@style/Tab"
-            android:drawableTop="@drawable/ic_tab_board"
-            android:text="@string/tab_board" />
-
-        <TextView
             android:id="@+id/tab_about"
             style="@style/Tab"
             android:drawableTop="@drawable/ic_tab_about"
             android:text="@string/tab_about" />
-
-        <TextView
-            android:id="@+id/tab_tools"
-            style="@style/Tab"
-            android:drawableTop="@drawable/ic_tab_tools"
-            android:text="@string/tab_tools" />
     </LinearLayout>
 </LinearLayout>

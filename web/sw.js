@@ -1,15 +1,15 @@
-const CACHE = 'verimots-v78'
+const CACHE = 'verimots-v102'
 const SHELL = [
   './',
   './index.html',
-  './app.css?v=78',
+  './app.css?v=102',
   './analytics.js?v=28',
-  './app.js?v=78',
-  './competitive.js?v=78',
-  './game.js?v=78',
-  './history.js?v=78',
-  './i18n.js?v=78',
-  './worker.js?v=77',
+  './app.js?v=102',
+  './competitive.js?v=102',
+  './game.js?v=102',
+  './history.js?v=102',
+  './i18n.js?v=102',
+  './worker.js?v=78',
   './kids.js?v=68',
   './favicon.svg',
   './manifest.webmanifest',
