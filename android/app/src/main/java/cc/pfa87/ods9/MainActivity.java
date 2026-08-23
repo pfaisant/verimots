@@ -379,10 +379,9 @@ public class MainActivity extends Activity {
         }
         java.util.List<Integer> scores = ScoreStore.load(this, isKidsMode);
         boolean has = scores != null && !scores.isEmpty();
-        boolean spark = scores != null && scores.size() >= 2;
         boolean share = gameWa != null && gameWa.getVisibility() == View.VISIBLE;
         gameDock.setVisibility(has || share ? View.VISIBLE : View.GONE);
-        if (gameChart != null) gameChart.setVisibility(spark ? View.VISIBLE : View.INVISIBLE);
+        if (gameChart != null) gameChart.setVisibility(has ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void paintBuildStamp() {
@@ -1382,7 +1381,33 @@ public class MainActivity extends Activity {
             public void ok(String pos, String text, String url, String lemma) {
                 if (!word.equals(studyDefWord)) return;
                 String line = text == null || text.isEmpty() ? getString(R.string.def_missing) : text;
-                gameStudyDef.setText(word + (pos == null || pos.isEmpty() ? "" : " · " + pos) + "\n" + line);
+                String head = word + (pos == null || pos.isEmpty() ? "" : " · " + pos);
+                gameStudyDef.setText(head + "\n" + line);
+                // Same treatment as the game result: an inflection gloss pulls
+                // in the root word's actual sense instead of stopping at
+                // "forme de X".
+                String root = Defs.extractFormOf(line);
+                if (root.isEmpty() && lemma != null && !lemma.isEmpty()
+                        && !Lexicon.normalize(lemma).equals(Lexicon.normalize(word))) {
+                    root = lemma;
+                }
+                if (root.isEmpty()) return;
+                final String rootWord = root;
+                RemoteApi.define(rootWord, new RemoteApi.DefCb() {
+                    @Override
+                    public void ok(String rootPos, String rootText, String rootUrl, String rootLemma) {
+                        if (!word.equals(studyDefWord)) return;
+                        if (rootText == null || rootText.isEmpty()) return;
+                        String rootHead = rootWord.toUpperCase(java.util.Locale.ROOT)
+                                + (rootPos == null || rootPos.isEmpty() ? "" : " · " + rootPos);
+                        gameStudyDef.setText(head + "\n" + line + "\n\n" + rootHead + "\n" + rootText);
+                    }
+
+                    @Override
+                    public void empty(String message) {
+                        // root lookup failed — the inflection line stays
+                    }
+                }, Lang.get(MainActivity.this));
             }
 
             @Override
@@ -2434,8 +2459,8 @@ public class MainActivity extends Activity {
                     Math.round(10.0 * sum / scores.size()) / 10.0);
         }
         if (gameChart != null) {
-            gameChart.setScores(spark ? scores : java.util.Collections.emptyList());
-            gameChart.setVisibility(spark ? View.VISIBLE : View.INVISIBLE);
+            gameChart.setScores(has ? scores : java.util.Collections.emptyList());
+            gameChart.setVisibility(has ? View.VISIBLE : View.INVISIBLE);
         }
         if (gameChartAvg != null) gameChartAvg.setText(avg);
         if (gameChartAvgUnit != null) gameChartAvgUnit.setVisibility(spark ? View.VISIBLE : View.GONE);

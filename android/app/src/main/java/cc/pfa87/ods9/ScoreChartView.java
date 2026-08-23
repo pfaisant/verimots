@@ -83,10 +83,7 @@ public class ScoreChartView extends View {
         c.drawText("50", padL - 5 * d, y50 + 3.5f * d, tick);
         c.drawText("0", padL - 5 * d, y0, tick);
 
-        if (scores.isEmpty()) {
-            c.drawText("Tes scores", padL + innerW / 2f, padT + innerH / 2f + 4 * d, hint);
-            return;
-        }
+        if (scores.isEmpty()) return;
 
         int n = scores.size();
         int slots = Math.max(n, 6);

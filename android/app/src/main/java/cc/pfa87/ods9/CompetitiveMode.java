@@ -16,8 +16,6 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 
-import androidx.credentials.exceptions.NoCredentialException;
-
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
@@ -90,7 +88,10 @@ final class CompetitiveMode {
 
                         @Override
                         public void onError(GetCredentialException e) {
-                            if (buttonFlow && e instanceof NoCredentialException) {
+                            // Any button-flow failure (missing SHA-1 client, stale Play
+                            // services…) retries the account bottom sheet before falling
+                            // back to the browser.
+                            if (buttonFlow) {
                                 ui.post(() -> requestGoogle(false, onSuccess));
                                 return;
                             }
@@ -105,12 +106,22 @@ final class CompetitiveMode {
     void openWebSignIn() {
         String lang = Lang.get(activity);
         Uri uri = Uri.parse(RemoteApi.HOST + "/auth-android.html?lang=" + lang);
-        Intent i = new Intent(Intent.ACTION_VIEW, uri);
+        // The app claims https://s.pfa87.cc/* as an app link, so ACTION_VIEW
+        // routed this URL straight back into the app and sign-in silently did
+        // nothing. Target the default browser explicitly instead.
+        Intent i = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_BROWSER);
+        i.setData(uri);
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         try {
             activity.startActivity(i);
-        } catch (Exception e) {
-            Toast.makeText(activity, activity.getString(R.string.google_unavailable), Toast.LENGTH_LONG).show();
+        } catch (Exception first) {
+            try {
+                Intent view = new Intent(Intent.ACTION_VIEW, uri);
+                view.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                activity.startActivity(view);
+            } catch (Exception e) {
+                Toast.makeText(activity, activity.getString(R.string.google_unavailable), Toast.LENGTH_LONG).show();
+            }
         }
     }
 
