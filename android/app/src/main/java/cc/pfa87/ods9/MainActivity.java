@@ -51,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
     private Lexicon lex;
@@ -1757,6 +1758,58 @@ public class MainActivity extends Activity {
         openExact(word);
     }
 
+    private interface WordTap { void tap(String word); }
+
+    private static final java.util.Set<String> DEF_STOP = new java.util.HashSet<>(java.util.Arrays.asList(
+            "ainsi", "alors", "apres", "aussi", "autre", "autres", "avant", "avec", "avoir",
+            "chez", "comme", "contre", "dans", "depuis", "des", "donc", "dont", "entre",
+            "est", "etre", "fait", "faire", "les", "lors", "mais", "meme", "moins", "ont",
+            "parmi", "pas", "pendant", "plus", "pour", "quand", "que", "qui", "sans",
+            "selon", "sont", "sous", "sur", "tout", "toute", "toutes", "tous", "tres",
+            "une", "vers"));
+
+    private static final Pattern DEF_WORD =
+            Pattern.compile("[A-Za-z\u00c0-\u00ff\u0152\u0153][A-Za-z\u00c0-\u00ff\u0152\u0153'\u2019-]*");
+
+    // Web parity: with no inflection root, every plain word of the gloss
+    // (>= 4 letters, not a stopword) is tappable.
+    private void paintLinkedDef(TextView def, String text, WordTap onWord) {
+        if (def == null) return;
+        if (text == null || text.isEmpty()) {
+            def.setText("");
+            def.setMovementMethod(null);
+            return;
+        }
+        SpannableString span = new SpannableString(text);
+        java.util.regex.Matcher m = DEF_WORD.matcher(text);
+        int linked = 0;
+        while (m.find()) {
+            final String word = m.group();
+            String folded = Lexicon.normalize(word);
+            if (folded.length() < 4 || DEF_STOP.contains(folded.toLowerCase(java.util.Locale.ROOT))) continue;
+            span.setSpan(
+                    new ClickableSpan() {
+                        @Override
+                        public void onClick(View widget) {
+                            onWord.tap(word);
+                        }
+
+                        @Override
+                        public void updateDrawState(TextPaint ds) {
+                            ds.setColor(getColor(R.color.ink));
+                            ds.setUnderlineText(true);
+                        }
+                    },
+                    m.start(),
+                    m.end(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            linked++;
+        }
+        def.setText(span);
+        def.setMovementMethod(linked > 0 ? LinkMovementMethod.getInstance() : null);
+        def.setHighlightColor(getColor(R.color.gold_soft));
+    }
+
     // In-place definition navigation on the game result: tapping the root of
     // an inflection swaps the panel to that word's sense (the old behavior
     // yanked the user to the Vérifier tab), and a back chip returns to the
@@ -1771,8 +1824,7 @@ public class MainActivity extends Activity {
         final String form = extracted;
         boolean away = home != null && current != null && !Lexicon.normalize(current).equals(Lexicon.normalize(home));
         if (form.isEmpty()) {
-            gameDef.setText(text);
-            gameDef.setMovementMethod(null);
+            paintLinkedDef(gameDef, text, word -> navigateGameDef(word, home));
         } else {
             SpannableString span = new SpannableString(text);
             String hay = text.toLowerCase(java.util.Locale.FRENCH);
@@ -1849,8 +1901,10 @@ public class MainActivity extends Activity {
         }
         final String form = extracted;
         if (form.isEmpty()) {
-            def.setText(text);
-            def.setMovementMethod(null);
+            paintLinkedDef(def, text, word -> {
+                String folded = Lexicon.normalize(word);
+                if (folded.length() >= 2) openExact(folded);
+            });
             if (see != null) see.setVisibility(View.GONE);
             return;
         }
@@ -2228,7 +2282,7 @@ public class MainActivity extends Activity {
     private void paintAlphaBtn() {
         if (gameAlpha == null) return;
         gameAlpha.setBackgroundResource(rackAlpha ? R.drawable.bg_pill : R.drawable.bg_count);
-        gameAlpha.setTextColor(getColor(rackAlpha ? R.color.gold : R.color.muted));
+        gameAlpha.setTextColor(getColor(rackAlpha ? R.color.gold : R.color.dim));
     }
 
     private void paintClearAll() {
