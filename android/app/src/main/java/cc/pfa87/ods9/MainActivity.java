@@ -172,7 +172,7 @@ public class MainActivity extends Activity {
     private TextView gamePct;
     private TextView gameBreak;
     private TextView gameVs;
-    private FlowLayout gameTop;
+    private LinearLayout gameTop;
     private TextView gamePos;
     private TextView gameDef;
     private TextView gameLemma;
@@ -2328,7 +2328,26 @@ public class MainActivity extends Activity {
 
     private void paintTops(List<Lexicon.Play> tops, int selected, String mine) {
         gameTop.removeAllViews();
-        for (int i = 0; i < tops.size(); i++) {
+        int n = tops.size();
+        if (n == 0) return;
+        // Balanced rows: 5 chips render 3+2, 6 render 3+3 — never 5 then a
+        // lone straggler like the old flow wrap (chips have a 72dp min width,
+        // so 5 across can overflow narrow phones).
+        int maxPerRow = 4;
+        int rows = (n + maxPerRow - 1) / maxPerRow;
+        int cols = (n + rows - 1) / rows;
+        float d = getResources().getDisplayMetrics().density;
+        int gap = (int) (6 * d);
+        LinearLayout row = null;
+        for (int i = 0; i < n; i++) {
+            if (i % cols == 0) {
+                row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                if (i > 0) rlp.topMargin = gap;
+                gameTop.addView(row, rlp);
+            }
             Lexicon.Play p = tops.get(i);
             TextView chip = Tiles.chip(this, p.word, p.pts(), i == selected, p.word.equals(mine));
             final int idx = i;
@@ -2336,8 +2355,9 @@ public class MainActivity extends Activity {
                 paintTops(tops, idx, mine);
                 showDef(p.word);
             });
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            gameTop.addView(chip);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            if (i % cols > 0) lp.leftMargin = gap;
+            row.addView(chip, lp);
         }
     }
 

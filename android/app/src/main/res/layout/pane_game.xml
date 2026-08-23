@@ -634,11 +634,12 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <cc.pfa87.ods9.FlowLayout
+            <LinearLayout
                 android:id="@+id/game_top"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
 
             <TextView
                 android:id="@+id/game_pos"

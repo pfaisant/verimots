@@ -1371,7 +1371,8 @@ body.view-board {
 }
 body.view-game,
 body.view-board {
-  padding-bottom: calc(var(--foot) + 52px);
+  /* clear the fixed chart dock (bottom: foot+6, height 44) with real margin */
+  padding-bottom: calc(var(--foot) + 68px);
 }
 body.view-game:not(.has-chart),
 body.view-board:not(.has-chart) {
