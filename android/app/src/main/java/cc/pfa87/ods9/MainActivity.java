@@ -1731,7 +1731,7 @@ public class MainActivity extends Activity {
                 public void ok(String pos, String text, String url, String foundLemma) {
                     if (onGame) {
                         gamePos.setText(pos);
-                        paintDef(gameDef, gameLemma, text, foundLemma, lemma);
+                        paintGameDef(text, foundLemma, lemma, lemma);
                     } else {
                         checkPos.setText(pos);
                         paintDef(checkDef, checkLemma, text, foundLemma, lemma);
@@ -1755,6 +1755,89 @@ public class MainActivity extends Activity {
         if (word.length() < 2) return;
         showTab(0);
         openExact(word);
+    }
+
+    // In-place definition navigation on the game result: tapping the root of
+    // an inflection swaps the panel to that word's sense (the old behavior
+    // yanked the user to the Vérifier tab), and a back chip returns to the
+    // played word.
+    private void paintGameDef(String text, String apiLemma, String current, String home) {
+        if (gameDef == null) return;
+        String extracted = Defs.extractFormOf(text);
+        if (extracted.isEmpty() && apiLemma != null && !apiLemma.isEmpty()) {
+            String folded = Lexicon.normalize(apiLemma);
+            if (!folded.isEmpty() && current != null && !folded.equals(Lexicon.normalize(current))) extracted = apiLemma;
+        }
+        final String form = extracted;
+        boolean away = home != null && current != null && !Lexicon.normalize(current).equals(Lexicon.normalize(home));
+        if (form.isEmpty()) {
+            gameDef.setText(text);
+            gameDef.setMovementMethod(null);
+        } else {
+            SpannableString span = new SpannableString(text);
+            String hay = text.toLowerCase(java.util.Locale.FRENCH);
+            int at = hay.lastIndexOf(form.toLowerCase(java.util.Locale.FRENCH));
+            if (at >= 0) {
+                span.setSpan(
+                        new ClickableSpan() {
+                            @Override
+                            public void onClick(View widget) {
+                                navigateGameDef(form, home);
+                            }
+
+                            @Override
+                            public void updateDrawState(TextPaint ds) {
+                                ds.setColor(getColor(R.color.gold));
+                                ds.setUnderlineText(true);
+                            }
+                        },
+                        at,
+                        at + form.length(),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            gameDef.setText(span);
+            gameDef.setMovementMethod(LinkMovementMethod.getInstance());
+            gameDef.setHighlightColor(getColor(R.color.gold_soft));
+        }
+        if (gameLemma == null) return;
+        if (away) {
+            gameLemma.setVisibility(View.VISIBLE);
+            gameLemma.setText("\u2039 " + home);
+            gameLemma.setOnClickListener(v -> showDef(home));
+        } else if (!form.isEmpty()) {
+            gameLemma.setVisibility(View.VISIBLE);
+            gameLemma.setText(getString(R.string.see_lemma, form));
+            gameLemma.setOnClickListener(v -> navigateGameDef(form, home));
+        } else {
+            gameLemma.setVisibility(View.GONE);
+        }
+    }
+
+    private void navigateGameDef(String root, String home) {
+        final int seq = ++defSeq;
+        gamePos.setText("");
+        gameDef.setText(R.string.def_pending);
+        gameDef.setMovementMethod(null);
+        RemoteApi.define(root, new RemoteApi.DefCb() {
+            @Override
+            public void ok(String pos, String text, String url, String lemma) {
+                if (seq != defSeq) return;
+                gamePos.setText(pos);
+                paintGameDef(text, lemma, root, home);
+            }
+
+            @Override
+            public void empty(String message) {
+                if (seq != defSeq) return;
+                gamePos.setText("");
+                gameDef.setText(defMessage(message));
+                if (gameLemma != null && home != null) {
+                    gameLemma.setVisibility(View.VISIBLE);
+                    gameLemma.setText("\u2039 " + home);
+                    gameLemma.setOnClickListener(v -> showDef(home));
+                }
+            }
+        }, Lang.get(this));
     }
 
     private void paintDef(TextView def, TextView see, String text, String apiLemma, String current) {
@@ -2400,7 +2483,7 @@ public class MainActivity extends Activity {
             public void ok(String pos, String text, String url, String lemma) {
                 if (seq != defSeq) return;
                 gamePos.setText(pos);
-                paintDef(gameDef, gameLemma, text, lemma, word);
+                paintGameDef(text, lemma, word, word);
                 if (isKidsMode && word.equals(lastPlayedWord)) {
                     lastPlayedDef = text == null ? "" : text;
                     paintShare(null);

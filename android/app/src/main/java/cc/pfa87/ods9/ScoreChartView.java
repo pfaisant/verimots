@@ -33,14 +33,14 @@ public class ScoreChartView extends View {
 
     private void init() {
         float d = getResources().getDisplayMetrics().density;
-        axis.setColor(0x24F4EFE4);
+        axis.setColor(0x1AF4EFE4);
         axis.setStrokeWidth(d);
-        mid.setColor(0x40E8C56B);
+        mid.setColor(0x73F4EFE4);
         mid.setStrokeWidth(d);
-        mid.setPathEffect(new android.graphics.DashPathEffect(new float[] {5 * d, 5 * d}, 0));
-        bar.setColor(0x66E8C56B);
+        mid.setPathEffect(new android.graphics.DashPathEffect(new float[] {3 * d, 3 * d}, 0));
+        bar.setColor(0x85E8C56B);
         bar.setStyle(Paint.Style.FILL);
-        barLast.setColor(0xFFE8C56B);
+        barLast.setColor(0xFFF8E3A4);
         barLast.setStyle(Paint.Style.FILL);
         tick.setColor(0xFF7D9183);
         tick.setTextSize(10 * d);
@@ -62,46 +62,41 @@ public class ScoreChartView extends View {
 
     @Override
     protected void onDraw(Canvas c) {
+        // Same language as the web dock: full-width rounded bars on faint
+        // 0/100 rails with a dashed average line — the avg and last numbers
+        // live outside the chart, so no in-plot labels.
         float d = getResources().getDisplayMetrics().density;
         float w = getWidth();
         float h = getHeight();
-        float padL = 28 * d;
-        float padR = 8 * d;
-        float padT = 16 * d;
-        float padB = 10 * d;
-        float innerW = Math.max(1, w - padL - padR);
+        float padT = 3 * d;
+        float padB = 2 * d;
         float innerH = Math.max(1, h - padT - padB);
         float y0 = padT + innerH;
-        float y50 = padT + innerH * 0.5f;
-        float y100 = padT;
 
-        c.drawLine(padL, y0, w - padR, y0, axis);
-        c.drawLine(padL, y50, w - padR, y50, mid);
-        c.drawLine(padL, y100, w - padR, y100, axis);
-        tick.setTextAlign(Paint.Align.RIGHT);
-        c.drawText("100", padL - 5 * d, y100 + 3.5f * d, tick);
-        c.drawText("50", padL - 5 * d, y50 + 3.5f * d, tick);
-        c.drawText("0", padL - 5 * d, y0, tick);
+        c.drawLine(0, y0, w, y0, axis);
+        c.drawLine(0, padT, w, padT, axis);
 
         if (scores.isEmpty()) return;
 
         int n = scores.size();
-        int slots = Math.max(n, 6);
-        float slot = innerW / slots;
-        float barW = Math.min(14 * d, slot * 0.62f);
-        float radius = Math.min(4 * d, barW / 2f);
-        float start = padL + (slots - n) * slot;
+        float gap = (n > 16 ? 2 : 3) * d;
+        float slot = w / n;
+        float barW = Math.max(1.5f * d, slot - gap);
+        float radius = Math.min(3 * d, barW / 2f);
+        float sum = 0;
 
         for (int i = 0; i < n; i++) {
             int pct = Math.max(0, Math.min(100, scores.get(i)));
-            float x = start + i * slot + (slot - barW) / 2f;
+            sum += pct;
+            float x = i * slot + gap / 2f;
             float top = padT + (1 - pct / 100f) * innerH;
-            if (y0 - top < 4 * d) top = y0 - 4 * d;
+            if (y0 - top < 2 * d) top = y0 - 2 * d;
             rect.set(x, top, x + barW, y0);
             c.drawRoundRect(rect, radius, radius, i == n - 1 ? barLast : bar);
-            if (i == n - 1) {
-                c.drawText(String.valueOf(pct), x + barW / 2f, Math.max(padT - 3 * d, top - 4 * d), label);
-            }
+        }
+        if (n > 1) {
+            float yAvg = padT + (1 - sum / n / 100f) * innerH;
+            c.drawLine(0, yAvg, w, yAvg, mid);
         }
     }
 }
