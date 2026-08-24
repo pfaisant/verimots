@@ -1456,8 +1456,8 @@ body.view-game .top { margin-bottom: 16px; }
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
-  /* single-column desktop: keep the table off the ceiling */
-  body.view-game:not(.game-split) #game-play > .play-main { margin-block: auto; }
+  /* single-column desktop: the rack stays pinned to the top of the view */
+  body.view-game:not(.game-split) #game-play > .play-main { margin-block: 0; }
 }
 body.view-game .fab,
 body.view-board .fab { width: var(--fab-size); height: var(--fab-size); }
@@ -1490,13 +1490,15 @@ body.game-closed .game-rack .tile small { font-size: clamp(6px, 1.6vw, 9px); }
   margin: 2px 0 14px;
   flex: 0 0 auto;
 }
-.game-head .menu-back { flex: 0 0 auto; }
+/* Back button always top-right; the kicker + its rule line fill the left */
+.game-head .menu-back { flex: 0 0 auto; order: 3; }
 .game-head .game-kicker {
   display: flex;
   align-items: center;
   gap: 12px;
   flex: 1;
   min-width: 0;
+  order: 1;
 }
 .game-head .game-kicker::after {
   content: "";
@@ -1508,6 +1510,7 @@ body.game-closed .game-rack .tile small { font-size: clamp(6px, 1.6vw, 9px); }
 .game-head .game-meta {
   flex: 0 1 auto;
   margin-left: auto;
+  order: 2;
 }
 .game-head .game-meta[hidden] { display: none; }
 
@@ -1522,6 +1525,7 @@ body.game-closed .game-rack .tile small { font-size: clamp(6px, 1.6vw, 9px); }
 .game-menu-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   margin-bottom: 2px;
 }
 .game-menu-grid {
@@ -1530,7 +1534,7 @@ body.game-closed .game-rack .tile small { font-size: clamp(6px, 1.6vw, 9px); }
   grid-auto-rows: minmax(78px, 96px);
   gap: 10px;
   flex: 1 1 auto;
-  align-content: center;
+  align-content: start;
 }
 .game-menu-item {
   display: grid;
@@ -1646,6 +1650,7 @@ body.game-closed .game-rack .tile small { font-size: clamp(6px, 1.6vw, 9px); }
 }
 .study-top {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -2246,13 +2251,13 @@ body.game-closed .play-table { gap: 12px; }
     overflow: visible;
   }
   .game-def-panel { min-height: 0; }
-  /* keep the table near the middle of the screen — thumbs, not foreheads */
+  /* the rack always sits at the top of the screen, never vertically centered */
   body.view-game #game-play {
     display: flex;
     flex-direction: column;
     min-height: calc(100dvh - var(--safe-t) - var(--foot) - 132px);
   }
-  body.view-game #game-play > .play-main { margin-block: auto; }
+  body.view-game #game-play > .play-main { margin-block: 0; }
 }
 .game-def-body { overflow-wrap: anywhere; word-break: break-word; }
 .game-def-body .pending,
@@ -2708,10 +2713,33 @@ body.view-board .fab-board { display: grid; }
 }
 
 @media (min-width: 900px) {
-  body.game-split,
-  body.view-game.game-split {
+  /* One constant app width for every view — the frame never jumps when
+     switching between Vérifier, Jouer and Infos. Single-column views keep
+     their comfortable reading width centered inside it. */
+  body {
     --page: 1040px;
     max-width: 1040px;
+    width: 100%;
+  }
+  main > .search,
+  main > .panel:not(#panel-game) {
+    max-width: 640px;
+    margin-inline: auto;
+    width: 100%;
+  }
+  body.view-game #game-menu {
+    max-width: 640px;
+    margin-inline: auto;
+    width: 100%;
+  }
+  body.view-game:not(.game-split) #game-play {
+    max-width: 640px;
+    margin-inline: auto;
+    width: 100%;
+  }
+  body.view-game .game-study {
+    max-width: 720px;
+    margin-inline: auto;
     width: 100%;
   }
   /* play column on the left, standings + score trail on a side rail */
