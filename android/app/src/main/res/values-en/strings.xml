@@ -213,4 +213,5 @@
     <string name="opt_words_title">My words</string>
     <string name="opt_words_help">Checked and played words, plus the ones you starred.</string>
     <string name="training_min_cd">Minimum word length: %1$d letters</string>
+    <string name="find_goal">The highest-scoring word wins — you don’t need every letter.</string>
 </resources>

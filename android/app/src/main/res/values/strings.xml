@@ -8,7 +8,7 @@
     <string name="tab_check">Vérifier</string>
     <string name="tab_game">Jouer</string>
     <string name="menu_comp">Bingo</string>
-    <string name="menu_training">Combinaison</string>
+    <string name="menu_training">Combinaisons</string>
     <string name="menu_find">Trouver un mot</string>
     <string name="menu_study">Petits Mots</string>
     <string name="menu_back">Retour</string>
@@ -72,8 +72,8 @@
     <string name="competition">Compétition</string>
     <string name="competition_on">Compétition · on</string>
     <string name="challenge">Défi</string>
-    <string name="training">Combinaison</string>
-    <string name="training_on">Combinaison · on</string>
+    <string name="training">Combinaisons</string>
+    <string name="training_on">Combinaisons · on</string>
     <string name="training_all">Tous</string>
     <string name="training_seven">7 lettres</string>
     <string name="training_eight">8 lettres</string>
@@ -86,7 +86,7 @@
     <string name="training_no_timer">Sans limite</string>
     <string name="training_complete">Tous trouvés !</string>
     <string name="training_blurb">Trouve tous les mots du tirage.</string>
-    <string name="training_rules_title">Combinaison — les règles</string>
+    <string name="training_rules_title">Combinaisons — les règles</string>
     <string name="training_rules_body">Trouve tous les mots du tirage. Tape un mot puis valide ; les tuiles utilisées se grisent.\n\n• Tous — tous les mots de 2 à 7 lettres comptent.\n• 7 lettres — seuls les mots qui utilisent les 7 lettres comptent.\n• 8 lettres — pareil, avec un tirage de 8.\n• 7 + 1 — un mot de 7 lettres mélangé plus une lettre bonus (encadrée d’or) : cherche les mots de 8 lettres.\n• Joker — le ? remplace n’importe quelle lettre (0 point).\n• Difficiles — le tirage contient J, K, Q, W, X, Y ou Z.\n\nMinuteur en option : 30 s, 60 s ou 2 min. « Voir les réponses » termine la manche et révèle la liste.\n\nCe mode n’est pas classé : tes statistiques restent sur cet appareil.</string>
     <string name="training_revealed">Réponses affichées</string>
     <string name="training_found">%1$s · %2$d points</string>
@@ -213,4 +213,5 @@
     <string name="opt_words_title">Mes mots</string>
     <string name="opt_words_help">Les mots vérifiés et joués, et ceux marqués d’une étoile.</string>
     <string name="training_min_cd">Longueur minimale des mots : %1$d lettres</string>
+    <string name="find_goal">Le mot le plus payant gagne — pas besoin d’utiliser toutes les lettres.</string>
 </resources>

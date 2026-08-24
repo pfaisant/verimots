@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=108'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=108'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=109'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=109'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -397,7 +397,12 @@ export function linkifyDef(text, escapeHtml) {
   const root = extractFormOf(raw)
   if (root) {
     const safe = escapeHtml(raw)
-    const re = new RegExp(`(${root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i')
+    // Whole word only — a bare match underlined "broder" INSIDE "broderie",
+    // cutting the link off mid-word.
+    const re = new RegExp(
+      `(?<![A-Za-zÀ-ÿŒœ])(${root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(?![A-Za-zÀ-ÿŒœ])`,
+      'i'
+    )
     return safe.replace(
       re,
       `<button type="button" class="form-of" data-form-of="${escapeHtml(root)}">$1</button>`
@@ -567,6 +572,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const trainingTimerEl = document.getElementById('training-timer')
   const trainingRevealBtn = document.getElementById('training-reveal')
   const alphaBtn = document.getElementById('game-alpha')
+  const trainingFoundEl = document.getElementById('training-found')
   const skipBtn = document.getElementById('game-skip')
 
   let rack = ''
@@ -583,6 +589,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let dealSeq = 0
   let trainingPreset = 'all'
   let trainingFound = new Set()
+  let trainingFoundPlays = []
   let trainingNeeded = new Set()
   let trainingTotal = 0
   let trainingTargetLength = 0
@@ -625,6 +632,18 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (trainingTimer) clearInterval(trainingTimer)
     trainingTimer = 0
     trainingEndsAt = 0
+  }
+
+  /** Live list of this round's found words, newest first. */
+  function paintTrainingFound() {
+    if (!trainingFoundEl) return
+    const show = trainingOn() && !closed && trainingFoundPlays.length > 0
+    trainingFoundEl.hidden = !show
+    trainingFoundEl.innerHTML = show
+      ? trainingFoundPlays
+          .map((p) => `<span class="training-answer is-found">${escapeHtml(p.word)}<small>${p.pts}</small></span>`)
+          .join('')
+      : ''
   }
 
   function paintTrainingProgress(extra = '') {
@@ -860,6 +879,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (category === 'training') {
       trainingRoundReady = true
       trainingFound = new Set()
+      trainingFoundPlays = []
+      paintTrainingFound()
       trainingNeeded = trainingNeededWords(catalog)
       trainingTotal = trainingNeeded.size
       trainingTargetLength = Number(trainingMeta?.targetLength) || rack.length
@@ -973,7 +994,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     if (requestId !== dealSeq || requestMode !== activeMode || requestLang !== getLang() || requestDict !== getDict()) return
     applyDeal(tiles, cat, groups, seed, trainingMeta)
-    setLive('')
+    // Plain challenge: say the goal outright — every letter is optional.
+    const plain = category !== 'kids' && category !== 'training'
+      && !(typeof isCompetitive === 'function' && isCompetitive())
+    setLive(plain ? t('find_goal') : '')
     input.disabled = false
     input.focus()
   }
@@ -1037,6 +1061,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     stopTrainingTimer()
     if (!trainingOn() || closed || dealPending || !trainingRoundReady) return
     setClosed(true)
+    paintTrainingFound()
     input.disabled = true
     form.hidden = true
     paintRack()
@@ -1204,7 +1229,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=108')
+        await import('./competitive.js?v=109')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1278,6 +1303,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       setLive(left
         ? `${hit.word} · ${hit.pts} pts · ${t('training_same_rack', left)}`
         : `${hit.word} · ${hit.pts} pts`, 'ok')
+      trainingFoundPlays.unshift(hit)
+      paintTrainingFound()
       paintTrainingProgress()
       paintRack()
       onPlayed?.({ word: hit.word, pts: hit.pts, best: '', bestPts: 0 })
@@ -1499,7 +1526,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=108')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=109')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1725,7 +1752,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=108')
+      const { fetchLeaderboard } = await import('./competitive.js?v=109')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

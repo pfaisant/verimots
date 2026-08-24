@@ -167,6 +167,8 @@ public class MainActivity extends Activity {
     private TextView trainingMinBtn;
     private int trainingMinLen = 5;
     private TextView trainingProgress;
+    private FlowLayout trainingFoundRow;
+    private final ArrayList<Lexicon.Play> trainingFoundPlays = new ArrayList<>();
     private TextView trainingTimerView;
     private TextView trainingReveal;
     private String trainingPreset = "all";
@@ -1032,6 +1034,7 @@ public class MainActivity extends Activity {
         trainingPresetBtn = findViewById(R.id.training_preset_btn);
         trainingMinBtn = findViewById(R.id.training_min_btn);
         trainingProgress = findViewById(R.id.training_progress);
+        trainingFoundRow = findViewById(R.id.training_found_row);
         trainingTimerView = findViewById(R.id.training_timer);
         trainingReveal = findViewById(R.id.training_reveal);
         gameBoard = findViewById(R.id.game_board);
@@ -1537,7 +1540,7 @@ public class MainActivity extends Activity {
         } else {
             SpannableString span = new SpannableString(text);
             String hay = text.toLowerCase(java.util.Locale.FRENCH);
-            int at = hay.lastIndexOf(form.toLowerCase(java.util.Locale.FRENCH));
+            int at = wholeWordIndex(hay, form.toLowerCase(java.util.Locale.FRENCH));
             if (at >= 0) {
                 span.setSpan(
                         new ClickableSpan() {
@@ -1916,6 +1919,24 @@ public class MainActivity extends Activity {
 
     private interface WordTap { void tap(String word); }
 
+    /**
+     * Last stand-alone occurrence of needle in hay, or -1. A plain
+     * lastIndexOf underlined "broder" INSIDE "broderie", cutting the link off
+     * mid-word — the root must match a whole word.
+     */
+    private static int wholeWordIndex(String hay, String needle) {
+        if (needle.isEmpty()) return -1;
+        int at = hay.lastIndexOf(needle);
+        while (at >= 0) {
+            boolean startOk = at == 0 || !Character.isLetter(hay.charAt(at - 1));
+            int end = at + needle.length();
+            boolean endOk = end >= hay.length() || !Character.isLetter(hay.charAt(end));
+            if (startOk && endOk) return at;
+            at = at > 0 ? hay.lastIndexOf(needle, at - 1) : -1;
+        }
+        return -1;
+    }
+
     private static final java.util.Set<String> DEF_STOP = new java.util.HashSet<>(java.util.Arrays.asList(
             "ainsi", "alors", "apres", "aussi", "autre", "autres", "avant", "avec", "avoir",
             "chez", "comme", "contre", "dans", "depuis", "des", "donc", "dont", "entre",
@@ -1984,7 +2005,7 @@ public class MainActivity extends Activity {
         } else {
             SpannableString span = new SpannableString(text);
             String hay = text.toLowerCase(java.util.Locale.FRENCH);
-            int at = hay.lastIndexOf(form.toLowerCase(java.util.Locale.FRENCH));
+            int at = wholeWordIndex(hay, form.toLowerCase(java.util.Locale.FRENCH));
             if (at >= 0) {
                 span.setSpan(
                         new ClickableSpan() {
@@ -2068,7 +2089,7 @@ public class MainActivity extends Activity {
         SpannableString span = new SpannableString(text);
         String hay = text.toLowerCase(java.util.Locale.FRENCH);
         String needle = form.toLowerCase(java.util.Locale.FRENCH);
-        int at = hay.lastIndexOf(needle);
+        int at = wholeWordIndex(hay, needle);
         if (at >= 0) {
             final String go = form;
             span.setSpan(
@@ -2442,11 +2463,18 @@ public class MainActivity extends Activity {
         }
         trainingRecorded = false;
         stopTrainingTimer();
+        trainingFoundPlays.clear();
+        paintTrainingFound();
         gameQ.setText("");
         gameQ.setEnabled(true);
         gameForm.setVisibility(View.VISIBLE);
         gameLive.setVisibility(View.VISIBLE);
         gameLive.setText("");
+        if ("find".equals(gameKind) && !isTrainingMode) {
+            // Make the goal explicit — you do NOT have to use every letter.
+            gameLive.setText(R.string.find_goal);
+            gameLive.setTextColor(getColor(R.color.dim));
+        }
         gameResult.setVisibility(View.GONE);
         if (gameAgain != null) gameAgain.setVisibility(View.GONE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
@@ -2707,6 +2735,9 @@ public class MainActivity extends Activity {
             return;
         }
         boolean fresh = trainingFound.add(hit.word);
+        // Clear the input FIRST: its text watcher repaints the live line, so
+        // the "MUNIS · 7 points" feedback used to be wiped instantly.
+        gameQ.setText("");
         int left = Math.max(0, trainingNeeded.size() - trainingNeededFound());
         if (fresh && left > 0) {
             gameLive.setText(getString(R.string.training_found_left, hit.word, hit.pts(), left));
@@ -2715,9 +2746,24 @@ public class MainActivity extends Activity {
                     : getString(R.string.already_found));
         }
         gameLive.setTextColor(getColor(R.color.ok));
-        gameQ.setText("");
+        if (fresh) trainingFoundPlays.add(0, hit);
+        paintTrainingFound();
         paintTrainingProgress();
         if (trainingRoundSolved()) finishTraining(true);
+    }
+
+    /** Live list of this round's found words, newest first; tap = definition. */
+    private void paintTrainingFound() {
+        if (trainingFoundRow == null) return;
+        boolean show = isTrainingMode && !closed && !trainingFoundPlays.isEmpty();
+        trainingFoundRow.setVisibility(show ? View.VISIBLE : View.GONE);
+        trainingFoundRow.removeAllViews();
+        if (!show) return;
+        for (Lexicon.Play play : trainingFoundPlays) {
+            TextView chip = Tiles.resultChip(this, play.word, play.pts(), play.jokers);
+            chip.setOnClickListener(v -> openExact(play.word));
+            trainingFoundRow.addView(chip);
+        }
     }
 
     private int trainingNeededFound() {
@@ -2738,6 +2784,7 @@ public class MainActivity extends Activity {
         gameQ.setEnabled(false);
         gameForm.setVisibility(View.GONE);
         gameLive.setVisibility(View.GONE);
+        paintTrainingFound();
         paintRack();
         int total = trainingNeeded.isEmpty() ? deal.catalog.size() : trainingNeeded.size();
         int found = trainingNeededFound();

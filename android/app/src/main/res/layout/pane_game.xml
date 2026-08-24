@@ -474,7 +474,7 @@
             android:id="@+id/game_again"
             android:layout_width="48dp"
             android:layout_height="54dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="14dp"
             android:background="@drawable/bg_next"
             android:contentDescription="@string/encore"
             android:padding="13dp"
@@ -565,10 +565,18 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:maxLines="2"
             android:textColor="@color/dim"
             android:textSize="14sp" />
     </LinearLayout>
+
+    <!-- Combinaisons: words found this round, newest first, tappable -->
+    <cc.pfa87.ods9.FlowLayout
+        android:id="@+id/training_found_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/game_board_wrap"

@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=108" />
+  <link rel="stylesheet" href="app.css?v=109" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -193,7 +193,7 @@
           <button type="button" class="info-action info-action-ghost" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
         </div>
         <p class="fine info-legal">
-          <a class="apk-link" href="verimots-3.36.apk" download="verimots-3.36.apk" title="Télécharger verimots-3.36.apk">verimots-3.36.apk</a>
+          <a class="apk-link" href="verimots-3.37.apk" download="verimots-3.37.apk" title="Télécharger verimots-3.37.apk">verimots-3.37.apk</a>
           ·
           <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
           ·
@@ -225,7 +225,7 @@
           </button>
           <button type="button" class="game-menu-item" data-game="training">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a1 1 0 0 1 .7.3l3 3-1.4 1.4L13 7.4V14h-2V7.4L9.7 8.7 8.3 7.3l3-3A1 1 0 0 1 12 4zM5 16h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>
-            <strong data-i18n="menu_training">Combinaison</strong>
+            <strong data-i18n="menu_training">Combinaisons</strong>
             <span class="game-menu-sub" data-i18n="training_blurb">Trouve tous les mots du tirage.</span>
           </button>
           <button type="button" class="game-menu-item" data-game="study">
@@ -256,7 +256,7 @@
        <div class="training-tools" id="training-tools" hidden>
         <div class="training-pick">
           <span class="training-select-wrap">
-            <select id="training-preset-select" data-i18n-aria="menu_training" aria-label="Combinaison">
+            <select id="training-preset-select" data-i18n-aria="menu_training" aria-label="Combinaisons">
               <option value="all" data-training-label="training_all">Tous</option>
               <option value="seven" data-training-label="training_seven">7 lettres</option>
               <option value="eight" data-training-label="training_eight">8 lettres</option>
@@ -268,7 +268,7 @@
           <button type="button" id="training-min" class="training-min" hidden>5+</button>
         </div>
         <div class="training-status">
-          <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Combinaison — les règles">i</button>
+          <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Combinaisons — les règles">i</button>
           <span id="training-progress">0 sur 0</span>
           <select id="training-timer" data-i18n-aria="training_timer" aria-label="Temps">
             <option value="0" data-i18n="training_no_timer">Sans limite</option>
@@ -296,6 +296,7 @@
           <button type="button" class="game-hint" id="game-hint" hidden data-i18n="kids_hint">Indice</button>
           <p class="game-live" id="game-live" aria-live="polite"></p>
         </div>
+        <div id="training-found" class="training-answers training-found" hidden></div>
         <button type="button" id="game-next" class="game-next" hidden data-i18n-aria="again" aria-label="Suivant">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 11h10.2l-3.6-3.6L13 6l6 6-6 6-1.4-1.4 3.6-3.6H5z"/></svg>
         </button>
@@ -398,7 +399,7 @@
     <div class="hist-card" role="dialog" aria-labelledby="training-help-title">
       <div class="hist-bar">
         <div class="hist-heading">
-          <h2 id="training-help-title" data-i18n="training_rules_title">Combinaison — les règles</h2>
+          <h2 id="training-help-title" data-i18n="training_rules_title">Combinaisons — les règles</h2>
         </div>
         <button type="button" class="hist-close" id="training-help-close" aria-label="Fermer">×</button>
       </div>
@@ -460,7 +461,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=108" type="module"></script>
+  <script src="app.js?v=109" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
