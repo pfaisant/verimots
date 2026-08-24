@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=104'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=104'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=106'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=106'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -530,17 +530,14 @@ export function rememberKidsFound(storage) {
 }
 
 export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, isKids, isTraining, onDeal, onPlayed }) {
-  // One source of truth for the header title: the menu label stays the stable
-  // mode name — Bingo suffixes this week's draw type, the plain challenge
-  // keeps "Trouver un mot" instead of surfacing the raw category.
+  // One source of truth for the header title: the game the user picked,
+  // nothing else. Deal categories ("hard letters", "long word"…) never leak
+  // in — they read as the app hopping between games on every deal.
   function kickerText(cat) {
     if (cat === 'kids') return t('kids_cat')
     if (cat === 'training') return t('cat_training')
     const comp = typeof isCompetitive === 'function' && isCompetitive()
-    if (!comp) return t('menu_find')
-    const label = catLabel(cat)
-    const mode = t('menu_comp')
-    return label.toLowerCase() === mode.toLowerCase() ? mode : `${mode} · ${label}`
+    return comp ? t('menu_comp') : t('menu_find')
   }
   const rackEl = document.getElementById('game-rack')
   const catEl = document.getElementById('game-cat')
@@ -595,12 +592,17 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let probeSeq = 0
   const submitPromises = new Map()
 
+  let trainingMinLen = 5
   try {
     const saved = localStorage.getItem('verimots-training-preset')
     if (['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(saved)) trainingPreset = saved
+    const savedMin = Number(localStorage.getItem('verimots-training-min'))
+    if (Number.isInteger(savedMin) && savedMin >= 2 && savedMin <= 7) trainingMinLen = savedMin
   } catch {
     /* private mode */
   }
+  const trainingPresetSelect = document.getElementById('training-preset-select')
+  const trainingMinBtn = document.getElementById('training-min')
   try {
     rackAlpha = localStorage.getItem('verimots-rack-alpha') === '1'
   } catch {
@@ -824,6 +826,12 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     dealPending = false
     rack = tiles
     catalog = catalogFrom(groups)
+    // The free "all" combinations mode drowns in 2-letter words — the
+    // min-length chip narrows the round to words worth hunting.
+    if ((cat === 'training' || trainingOn()) && trainingPreset === 'all' && trainingMinLen > 2) {
+      const narrowed = catalog.filter((entry) => entry.word.length >= trainingMinLen)
+      if (narrowed.length) catalog = narrowed
+    }
     best = catalog[0] || null
     dealSeed = String(seed || '').toUpperCase()
     hintLevel = 0
@@ -1052,9 +1060,16 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   function paintTrainingControls() {
     if (!trainingEl) return
     trainingEl.hidden = !trainingOn()
-    trainingEl.querySelectorAll('[data-training-preset]').forEach((button) => {
-      button.setAttribute('aria-pressed', button.dataset.trainingPreset === trainingPreset ? 'true' : 'false')
-    })
+    if (trainingPresetSelect) {
+      trainingPresetSelect.value = trainingPreset
+      trainingPresetSelect.disabled = dealPending
+    }
+    if (trainingMinBtn) {
+      trainingMinBtn.hidden = trainingPreset !== 'all'
+      trainingMinBtn.textContent = trainingMinLen >= 7 ? '7' : `${trainingMinLen}+`
+      trainingMinBtn.setAttribute('aria-label', t('training_min_cd', trainingMinLen))
+      trainingMinBtn.title = t('training_min_cd', trainingMinLen)
+    }
     if (trainingRevealBtn) {
       trainingRevealBtn.textContent = t('training_reveal')
       trainingRevealBtn.disabled = dealPending || closed || !trainingRoundReady
@@ -1186,7 +1201,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=104')
+        await import('./competitive.js?v=106')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1364,19 +1379,27 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   hintBtn?.addEventListener('click', () => giveHint())
   trainingRevealBtn?.addEventListener('click', () => finishTraining(false))
   trainingTimerEl?.addEventListener('change', () => startTrainingTimer())
-  trainingEl?.querySelectorAll('[data-training-preset]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      const preset = button.dataset.trainingPreset
-      if (!['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(preset)) return
-      trainingPreset = preset
-      try {
-        localStorage.setItem('verimots-training-preset', preset)
-      } catch {
-        /* private mode */
-      }
-      paintTrainingControls()
-      if (trainingOn()) await deal()
-    })
+  trainingPresetSelect?.addEventListener('change', async () => {
+    const preset = trainingPresetSelect.value
+    if (!['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(preset)) return
+    trainingPreset = preset
+    try {
+      localStorage.setItem('verimots-training-preset', preset)
+    } catch {
+      /* private mode */
+    }
+    paintTrainingControls()
+    if (trainingOn()) await deal()
+  })
+  trainingMinBtn?.addEventListener('click', async () => {
+    trainingMinLen = trainingMinLen >= 7 ? 2 : trainingMinLen + 1
+    try {
+      localStorage.setItem('verimots-training-min', String(trainingMinLen))
+    } catch {
+      /* private mode */
+    }
+    paintTrainingControls()
+    if (trainingOn()) await deal()
   })
   input.addEventListener('input', preview)
   alphaBtn?.addEventListener('click', () => {
@@ -1473,7 +1496,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=104')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=106')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1699,7 +1722,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=104')
+      const { fetchLeaderboard } = await import('./competitive.js?v=106')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

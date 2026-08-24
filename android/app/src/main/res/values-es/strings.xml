@@ -212,4 +212,5 @@
     <string name="opt_alpha_help">Muestra un botón que ordena las letras del atril.</string>
     <string name="opt_words_title">Mis palabras</string>
     <string name="opt_words_help">Palabras comprobadas y jugadas, más las marcadas con estrella.</string>
+    <string name="training_min_cd">Longitud mínima de las palabras: %1$d letras</string>
 </resources>

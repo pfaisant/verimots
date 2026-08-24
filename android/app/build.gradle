@@ -13,8 +13,8 @@ android {
         applicationId "cc.pfa87.verimots"
         minSdk 26
         targetSdk 36
-        versionCode 54
-        versionName "3.34"
+        versionCode 55
+        versionName "3.35"
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
     }
 

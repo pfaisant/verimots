@@ -163,7 +163,9 @@ public class MainActivity extends Activity {
     private TextView authLogout;
     private TextView gameMode;
     private View trainingTools;
-    private LinearLayout trainingPresets;
+    private TextView trainingPresetBtn;
+    private TextView trainingMinBtn;
+    private int trainingMinLen = 5;
     private TextView trainingProgress;
     private TextView trainingTimerView;
     private TextView trainingReveal;
@@ -601,18 +603,14 @@ public class MainActivity extends Activity {
         return key == null || key.isEmpty() ? getString(R.string.def_need_net) : key;
     }
 
+    // The header names the game the user picked, full stop. The deal's
+    // category ("hard letters", "long word"\u2026) used to leak in here and read
+    // as the app hopping between games on every deal.
     private String kickerLabel(String cat) {
-        String label = categoryLabel(cat);
         if ("find".equals(gameKind)) return getString(R.string.kids_cat);
-        if ("combi".equals(gameKind)) {
-            String mode = getString(R.string.menu_training);
-            return label.equalsIgnoreCase(mode) ? mode : mode + " \u00b7 " + label;
-        }
-        if ("bingo".equals(gameKind)) {
-            String mode = getString(R.string.menu_comp);
-            return label.equalsIgnoreCase(mode) ? mode : mode + " \u00b7 " + label;
-        }
-        return label;
+        if ("combi".equals(gameKind)) return getString(R.string.menu_training);
+        if ("bingo".equals(gameKind)) return getString(R.string.menu_comp);
+        return categoryLabel(cat);
     }
 
     private String categoryLabel(String cat) {
@@ -727,7 +725,7 @@ public class MainActivity extends Activity {
             });
         } else {
             officialDeal = false;
-            startDeal(isTrainingMode ? lex.training(trainingPreset) : lex.challenge());
+            startDeal(isTrainingMode ? lex.training(trainingPreset, trainingMinLen) : lex.challenge());
         }
     }
 
@@ -1027,7 +1025,8 @@ public class MainActivity extends Activity {
         gameKids = findViewById(R.id.game_kids);
         gameHint = findViewById(R.id.game_hint);
         trainingTools = findViewById(R.id.training_tools);
-        trainingPresets = findViewById(R.id.training_presets);
+        trainingPresetBtn = findViewById(R.id.training_preset_btn);
+        trainingMinBtn = findViewById(R.id.training_min_btn);
         trainingProgress = findViewById(R.id.training_progress);
         trainingTimerView = findViewById(R.id.training_timer);
         trainingReveal = findViewById(R.id.training_reveal);
@@ -1120,7 +1119,21 @@ public class MainActivity extends Activity {
                 .getString("training-preset", "all");
         if (!java.util.Arrays.asList("all", "seven", "eight", "plusOne", "joker", "hard")
                 .contains(trainingPreset)) trainingPreset = "all";
-        paintTrainingPresets();
+        trainingMinLen = getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                .getInt("training-min", 5);
+        if (trainingMinLen < 2 || trainingMinLen > 7) trainingMinLen = 5;
+        if (trainingPresetBtn != null) trainingPresetBtn.setOnClickListener(v -> pickTrainingPreset());
+        if (trainingMinBtn != null) {
+            trainingMinBtn.setOnClickListener(v -> {
+                // Discreet cycle 2+ → … → 7 : the chip stays tiny, no dialog.
+                trainingMinLen = trainingMinLen >= 7 ? 2 : trainingMinLen + 1;
+                getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                        .edit().putInt("training-min", trainingMinLen).apply();
+                paintTrainingSelectors();
+                if (isTrainingMode && lex != null) startDeal(lex.training(trainingPreset, trainingMinLen));
+            });
+        }
+        paintTrainingSelectors();
         if (trainingTimerView != null) {
             trainingTimerView.setOnClickListener(v -> {
                 if (trainingTimerSeconds == 0) trainingTimerSeconds = 30;
@@ -1136,37 +1149,48 @@ public class MainActivity extends Activity {
         paintTrainingProgress();
     }
 
-    private void paintTrainingPresets() {
-        if (trainingPresets == null) return;
-        trainingPresets.removeAllViews();
-        String[] keys = {"all", "seven", "eight", "plusOne", "joker", "hard"};
-        int[] labels = {
-                R.string.training_all, R.string.training_seven, R.string.training_eight,
-                R.string.training_plus_one, R.string.training_joker, R.string.training_hard
-        };
-        float d = getResources().getDisplayMetrics().density;
-        for (int i = 0; i < keys.length; i++) {
-            String key = keys[i];
-            TextView chip = new TextView(this);
-            boolean on = key.equals(trainingPreset);
-            chip.setText(labels[i]);
-            chip.setTextColor(getColor(on ? R.color.tile_ink : R.color.gold));
-            chip.setBackgroundResource(on ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
-            chip.setPadding((int) (12 * d), (int) (7 * d), (int) (12 * d), (int) (7 * d));
-            chip.setTextSize(12);
-            chip.setGravity(android.view.Gravity.CENTER);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.setMarginEnd((int) (6 * d));
-            chip.setLayoutParams(lp);
-            chip.setOnClickListener(v -> {
-                trainingPreset = key;
-                getSharedPreferences("verimots-prefs", MODE_PRIVATE)
-                        .edit().putString("training-preset", key).apply();
-                paintTrainingPresets();
-                if (isTrainingMode && lex != null) startDeal(lex.training(trainingPreset));
-            });
-            trainingPresets.addView(chip);
+    private static final String[] TRAINING_KEYS = {"all", "seven", "eight", "plusOne", "joker", "hard"};
+    private static final int[] TRAINING_LABELS = {
+            R.string.training_all, R.string.training_seven, R.string.training_eight,
+            R.string.training_plus_one, R.string.training_joker, R.string.training_hard
+    };
+
+    private int trainingPresetIndex() {
+        for (int i = 0; i < TRAINING_KEYS.length; i++) {
+            if (TRAINING_KEYS[i].equals(trainingPreset)) return i;
+        }
+        return 0;
+    }
+
+    /** One dropdown for the mode instead of the old chip row. */
+    private void pickTrainingPreset() {
+        String[] items = new String[TRAINING_LABELS.length];
+        for (int i = 0; i < TRAINING_LABELS.length; i++) items[i] = getString(TRAINING_LABELS[i]);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.menu_training)
+                .setSingleChoiceItems(items, trainingPresetIndex(), (dialog, which) -> {
+                    dialog.dismiss();
+                    if (TRAINING_KEYS[which].equals(trainingPreset)) return;
+                    trainingPreset = TRAINING_KEYS[which];
+                    getSharedPreferences("verimots-prefs", MODE_PRIVATE)
+                            .edit().putString("training-preset", trainingPreset).apply();
+                    paintTrainingSelectors();
+                    if (isTrainingMode && lex != null) startDeal(lex.training(trainingPreset, trainingMinLen));
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void paintTrainingSelectors() {
+        if (trainingPresetBtn != null) {
+            trainingPresetBtn.setText(getString(TRAINING_LABELS[trainingPresetIndex()]) + "  ▾");
+        }
+        if (trainingMinBtn != null) {
+            // The min-length filter only means something on the free "all" mode.
+            boolean on = "all".equals(trainingPreset);
+            trainingMinBtn.setVisibility(on ? View.VISIBLE : View.GONE);
+            trainingMinBtn.setText(trainingMinLen >= 7 ? "7" : trainingMinLen + "+");
+            trainingMinBtn.setContentDescription(getString(R.string.training_min_cd, trainingMinLen));
         }
     }
 
@@ -1450,6 +1474,12 @@ public class MainActivity extends Activity {
         studyDefWord = word;
         studyDefPanel.setVisibility(View.VISIBLE);
         navigateStudyDef(word, word);
+        // The panel lives at the bottom of the card — bring it into view so a
+        // tap on a word visibly answers below.
+        View sv = findViewById(R.id.game_study);
+        if (sv instanceof ScrollView) {
+            sv.post(() -> ((ScrollView) sv).requestChildFocus(studyDefPanel, studyDefPanel));
+        }
     }
 
     // Same presentation and in-place navigation as the game result panel:
@@ -2370,7 +2400,7 @@ public class MainActivity extends Activity {
                 return;
             }
             officialDeal = competitiveMode.loggedIn() && (isKidsMode || isCompetitiveMode);
-            startDeal(isKidsMode ? lex.kidsDeal() : isTrainingMode ? lex.training(trainingPreset) : lex.challenge());
+            startDeal(isKidsMode ? lex.kidsDeal() : isTrainingMode ? lex.training(trainingPreset, trainingMinLen) : lex.challenge());
         });
         gameQ.setOnEditorActionListener((v, a, e) -> {
             if (a == EditorInfo.IME_ACTION_DONE) {

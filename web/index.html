@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=105" />
+  <link rel="stylesheet" href="app.css?v=107" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -193,7 +193,7 @@
           <button type="button" class="info-action info-action-ghost" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
         </div>
         <p class="fine info-legal">
-          <a class="apk-link" href="verimots-3.34.apk" download="verimots-3.34.apk" title="Télécharger verimots-3.34.apk">verimots-3.34.apk</a>
+          <a class="apk-link" href="verimots-3.35.apk" download="verimots-3.35.apk" title="Télécharger verimots-3.35.apk">verimots-3.35.apk</a>
           ·
           <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
           ·
@@ -254,13 +254,18 @@
         </div>
       <div class="play-main">
        <div class="training-tools" id="training-tools" hidden>
-        <div class="training-presets" role="group" aria-label="Combinaison">
-          <button type="button" data-training-preset="all" data-training-label="training_all" aria-pressed="true">Tous</button>
-          <button type="button" data-training-preset="seven" data-training-label="training_seven" aria-pressed="false">7 lettres</button>
-          <button type="button" data-training-preset="eight" data-training-label="training_eight" aria-pressed="false">8 lettres</button>
-          <button type="button" data-training-preset="plusOne" data-training-label="training_plus_one" aria-pressed="false">7 + 1</button>
-          <button type="button" data-training-preset="joker" data-training-label="training_joker" aria-pressed="false">Joker</button>
-          <button type="button" data-training-preset="hard" data-training-label="training_hard" aria-pressed="false">Difficiles</button>
+        <div class="training-pick">
+          <span class="training-select-wrap">
+            <select id="training-preset-select" data-i18n-aria="menu_training" aria-label="Combinaison">
+              <option value="all" data-training-label="training_all">Tous</option>
+              <option value="seven" data-training-label="training_seven">7 lettres</option>
+              <option value="eight" data-training-label="training_eight">8 lettres</option>
+              <option value="plusOne" data-training-label="training_plus_one">7 + 1</option>
+              <option value="joker" data-training-label="training_joker">Joker</option>
+              <option value="hard" data-training-label="training_hard">Difficiles</option>
+            </select>
+          </span>
+          <button type="button" id="training-min" class="training-min" hidden>5+</button>
         </div>
         <div class="training-status">
           <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Combinaison — les règles">i</button>
@@ -455,7 +460,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=104" type="module"></script>
+  <script src="app.js?v=106" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

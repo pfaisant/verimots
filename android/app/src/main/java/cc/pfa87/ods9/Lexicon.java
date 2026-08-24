@@ -471,6 +471,12 @@ public final class Lexicon {
     }
 
     public Deal training(String rawPreset) {
+        return training(rawPreset, 2);
+    }
+
+    /** minLen only narrows the free "all" preset — the targeted presets keep
+     *  their inherent word length. Keeps "all" from drowning in 47 tiny words. */
+    public Deal training(String rawPreset, int minLen) {
         String preset = rawPreset == null ? "all" : rawPreset;
         int target = "eight".equals(preset) || "plusOne".equals(preset) ? 8 : 7;
         List<String> base = byLen[target];
@@ -498,7 +504,7 @@ public final class Lexicon {
             } else if (!"plusOne".equals(preset)) {
                 rack = shuffle(rack);
             }
-            int min = "all".equals(preset) ? 2 : target;
+            int min = "all".equals(preset) ? Math.max(2, Math.min(7, minLen)) : target;
             List<Play> catalog = anagrams(rack, min, target);
             if (!catalog.isEmpty()) {
                 return new Deal("training-" + preset, rack, catalog, seed, bonusIndex);

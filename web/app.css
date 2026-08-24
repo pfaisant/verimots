@@ -1466,7 +1466,10 @@ body.view-board .fab svg { width: 20px; height: 20px; }
 body.game-closed .game-form,
 body.game-closed .game-live,
 body.game-closed .game-live-row { display: none !important; }
-body.game-closed .game-rack { min-height: 0; margin: 0; flex: 0 1 auto; min-width: 0; --tile-max: 44px; }
+/* flex-grow keeps the rack's width definite in the closed row — with
+   shrink-to-fit the %-based tile grid collapsed to ~16px tiles under 20px
+   letters, the score digits landing on top of them. */
+body.game-closed .game-rack { min-height: 0; margin: 0; flex: 1 1 auto; min-width: 0; --tile-max: 44px; }
 /* closed round: tiles and the next arrow share one line */
 body.game-closed .play-table {
   flex-direction: row;
@@ -1804,23 +1807,25 @@ body.view-game:has(#game-play[hidden]) {
 }
 .game-chart-avg {
   text-align: right;
-  min-width: 2.4em;
+  white-space: nowrap;
 }
+/* "70,3 moy." and "100/100" read as one line — no stacked unit under the number */
 .game-chart-avg small {
-  display: block;
-  margin-top: 2px;
+  display: inline;
+  margin-left: 3px;
   color: var(--dim);
   font-family: var(--sans);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
+.game-chart-last { white-space: nowrap; }
 .game-chart-last small {
-  display: block;
-  margin-top: 2px;
+  display: inline;
+  margin-left: 2px;
   color: var(--dim);
   font-family: var(--sans);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -2363,12 +2368,62 @@ button:active { transform: translateY(1px); }
   background: var(--bg2);
 }
 .training-tools[hidden] { display: none !important; }
-.training-presets {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+.training-pick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.training-presets button,
+.training-select-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 0 1 auto;
+  min-width: 130px;
+}
+.training-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -5px;
+  border-right: 1.5px solid var(--gold);
+  border-bottom: 1.5px solid var(--gold);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.training-select-wrap select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 30px 0 12px;
+  border: 1px solid rgba(232, 197, 107, 0.4);
+  border-radius: 999px;
+  background: var(--felt);
+  color: var(--gold);
+  font: 700 12px var(--sans);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+.training-select-wrap select:focus-visible {
+  outline: 2px solid var(--rim-gold);
+  outline-offset: 1px;
+}
+.training-min {
+  min-height: 26px;
+  min-width: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dim);
+  font: 700 11px var(--sans);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+.training-min:hover { color: var(--gold); border-color: var(--rim-gold); }
+.training-min[hidden] { display: none !important; }
 .training-status button,
 .training-status select {
   min-height: 34px;
@@ -2377,11 +2432,6 @@ button:active { transform: translateY(1px); }
   background: transparent;
   color: var(--muted);
   font: 650 11px var(--sans);
-}
-.training-presets button[aria-pressed="true"] {
-  border-color: rgba(232, 197, 107, 0.45);
-  background: var(--felt);
-  color: var(--gold);
 }
 .training-info {
   width: 26px;
