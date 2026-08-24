@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=110'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=110'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=111'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=111'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -1024,7 +1024,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       setLive(liveScoreText(hit.pts), 'ok')
       return
     }
-    if (word.length < 2) {
+    if (word.length < 2 || trainingOn()) {
+      // Training: only catalog words glow — no dictionary fallback.
       setLive('')
       return
     }
@@ -1238,7 +1239,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=110')
+        await import('./competitive.js?v=111')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1271,6 +1272,27 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const word = normalize(raw)
     let hit = catalog.find((w) => w.word === word)
     let synthetic = false
+    if (trainingOn() && !hit) {
+      // Combinaisons only accepts catalog words — the dictionary-probe
+      // fallback let a 5-letter word through a 6+ round. Explain why instead.
+      let probe = null
+      try {
+        probe = await ask('probe', { word, rack })
+      } catch {}
+      if (closed || normalize(input.value) !== word) return
+      const minLen = trainingPreset === 'all' ? trainingMinLen : (trainingTargetLength || rack.length)
+      const exact = trainingPreset !== 'all'
+      if (word.length < 2) setLive(t('need_best'), 'bad')
+      else if (probe && !probe.formable) setLive(t('not_on_rack'), 'bad')
+      else if (probe && !probe.valid) setLive(t('not_in_dict', dictLabel()), 'bad')
+      else if (exact && word.length !== minLen) setLive(t('training_need_len', minLen), 'bad')
+      else if (word.length < minLen) setLive(t('training_too_short', minLen), 'bad')
+      else setLive(t('not_playable'), 'bad')
+      rackEl.classList.remove('shake')
+      void rackEl.offsetWidth
+      rackEl.classList.add('shake')
+      return
+    }
     if (!hit) {
       // Curated catalogs (kids lists) deliberately miss valid words — ATOM on
       // AOTTOM must be playable. Probe rack + dictionary before refusing.
@@ -1535,7 +1557,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=110')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=111')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1761,7 +1783,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=110')
+      const { fetchLeaderboard } = await import('./competitive.js?v=111')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

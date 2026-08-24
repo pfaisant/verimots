@@ -215,4 +215,6 @@
     <string name="training_min_cd">Longitud mínima de las palabras: %1$d letras</string>
     <string name="find_goal">Gana la palabra que más puntúa — no hace falta usar todas las letras.</string>
     <string name="find_better">%1$d pts — se puede mejorar</string>
+    <string name="training_too_short">A partir de %1$d letras.</string>
+    <string name="training_need_len">Hace falta una palabra de %1$d letras.</string>
 </resources>

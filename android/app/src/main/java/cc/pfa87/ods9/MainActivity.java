@@ -62,7 +62,6 @@ public class MainActivity extends Activity {
     private TextView tabGame;
     private TextView tabAbout;
     private View dictPop;
-    private View gameBoardWrap;
     private View studyDefPanel;
     private TextView studyDefHead;
     private TextView studyDefBody;
@@ -178,8 +177,8 @@ public class MainActivity extends Activity {
     private int trainingTimerSeconds;
     private long trainingEndsAt;
     private boolean trainingRecorded;
-    private LinearLayout gameBoard;
-    private TextView gameBoardTitle;
+    private View boardOpen;
+    private Dialog boardDialog;
     private TextView boardTabGeneral;
     private TextView boardTabKids;
     private boolean boardKidsTab;
@@ -243,7 +242,6 @@ public class MainActivity extends Activity {
         brandSub = findViewById(R.id.brand_sub);
         aboutLex = findViewById(R.id.about_lex);
         dictPop = findViewById(R.id.dict_pop);
-        gameBoardWrap = findViewById(R.id.game_board_wrap);
         studyDefPanel = findViewById(R.id.study_def_panel);
         studyDefHead = findViewById(R.id.study_def_head);
         studyDefBody = findViewById(R.id.study_def_body);
@@ -414,7 +412,8 @@ public class MainActivity extends Activity {
         java.util.List<Integer> scores = ScoreStore.load(this, isKidsMode);
         boolean has = scores != null && !scores.isEmpty();
         boolean share = gameWa != null && gameWa.getVisibility() == View.VISIBLE;
-        gameDock.setVisibility(has || share ? View.VISIBLE : View.GONE);
+        boolean board = boardOpen != null && boardOpen.getVisibility() == View.VISIBLE;
+        gameDock.setVisibility(has || share || board ? View.VISIBLE : View.GONE);
         if (gameChart != null) gameChart.setVisibility(has ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -978,8 +977,7 @@ public class MainActivity extends Activity {
         if (gameMenu != null) gameMenu.setVisibility("menu".equals(view) ? View.VISIBLE : View.GONE);
         if (gamePlay != null) gamePlay.setVisibility("play".equals(view) ? View.VISIBLE : View.GONE);
         if (gameStudy != null) gameStudy.setVisibility("study".equals(view) ? View.VISIBLE : View.GONE);
-        if ("play".equals(view)) syncPlayBoard();
-        else if (gameBoardWrap != null) gameBoardWrap.setVisibility(View.GONE);
+        syncPlayBoard();
         syncGameDock();
     }
 
@@ -1037,8 +1035,8 @@ public class MainActivity extends Activity {
         trainingFoundRow = findViewById(R.id.training_found_row);
         trainingTimerView = findViewById(R.id.training_timer);
         trainingReveal = findViewById(R.id.training_reveal);
-        gameBoard = findViewById(R.id.game_board);
-        gameBoardTitle = findViewById(R.id.game_board_title);
+        boardOpen = findViewById(R.id.board_open);
+        if (boardOpen != null) boardOpen.setOnClickListener(v -> showBoardDialog());
         if (authGoogle != null) authGoogle.setOnClickListener(v -> competitiveMode.signIn(() -> {
             paintAuth();
             syncHistory();
@@ -2598,7 +2596,9 @@ public class MainActivity extends Activity {
             return;
         }
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
-        if (hit == null) hit = lex.probe(word, deal.rack);
+        // Combinaisons: only catalog words count, so no dictionary fallback —
+        // POISE must not glow green on a 6+ round.
+        if (hit == null && !isTrainingMode) hit = lex.probe(word, deal.rack);
         // Only positive feedback while typing — the red "not in the list"
         // banner was noise; errors still show on an explicit submit.
         if (hit != null) {
@@ -2618,6 +2618,12 @@ public class MainActivity extends Activity {
         if (closed || deal == null || lex == null) return;
         String word = Lexicon.normalize(gameQ.getText().toString());
         Lexicon.Play hit = lex.findPlay(deal.catalog, word);
+        if (isTrainingMode) {
+            // Combinaisons only accepts catalog words: the dictionary-probe
+            // fallback let POISE (5 letters) through a 6+ round.
+            submitTrainingWord(word, hit);
+            return;
+        }
         boolean synthetic = false;
         if (hit == null) {
             // Curated catalogs (beginner lists) miss valid words — ATOM on a
@@ -2627,10 +2633,6 @@ public class MainActivity extends Activity {
                 hit = probed;
                 synthetic = true;
             }
-        }
-        if (isTrainingMode) {
-            submitTrainingWord(word, hit);
-            return;
         }
         if (hit == null) {
             final CharSequence message;
@@ -2733,9 +2735,36 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Exact length demanded by the current Combinaisons round. */
+    private int trainingRoundMin() {
+        String cat = deal == null ? "" : deal.category;
+        if (cat.endsWith("-eight") || cat.endsWith("-plusOne")) return 8;
+        if (cat.endsWith("-all")) return Math.max(2, Math.min(7, trainingMinLen));
+        return 7;
+    }
+
+    private boolean trainingRoundExactLen() {
+        String cat = deal == null ? "" : deal.category;
+        return !cat.endsWith("-all");
+    }
+
     private void submitTrainingWord(String word, Lexicon.Play hit) {
         if (hit == null) {
-            gameLive.setText(word.length() < 2 ? R.string.need_best : R.string.not_playable);
+            CharSequence message;
+            if (word.length() < 2) {
+                message = getString(R.string.need_best);
+            } else if (!lex.canSpell(word, deal.rack)) {
+                message = getString(R.string.not_on_rack);
+            } else if (!lex.has(word)) {
+                message = getString(R.string.not_in_dict, Dict.label(this));
+            } else if (trainingRoundExactLen() && word.length() != trainingRoundMin()) {
+                message = getString(R.string.training_need_len, trainingRoundMin());
+            } else if (word.length() < trainingRoundMin()) {
+                message = getString(R.string.training_too_short, trainingRoundMin());
+            } else {
+                message = getString(R.string.not_playable);
+            }
+            gameLive.setText(message);
             gameLive.setTextColor(getColor(R.color.no));
             return;
         }
@@ -2833,12 +2862,42 @@ public class MainActivity extends Activity {
     private void refreshBoards() {
         boardKidsTab = isKidsMode;
         syncPlayBoard();
+        if (boardDialog != null && boardDialog.isShowing()) {
+            LinearLayout list = boardDialog.findViewById(R.id.hist_list);
+            if (list != null) competitiveMode.fetchBoards(list, null, isKidsMode);
+        }
     }
 
+    // The weekly board no longer squats between the rack and the result —
+    // it lives behind a small trophy button docked next to the score chart.
     private void syncPlayBoard() {
-        boolean show = !isTrainingMode && (isCompetitiveMode || isKidsMode);
-        if (gameBoardWrap != null) gameBoardWrap.setVisibility(show ? View.VISIBLE : View.GONE);
-        if (show) competitiveMode.fetchBoards(gameBoard, gameBoardTitle, isKidsMode);
+        boolean playOn = tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+        boolean show = playOn && !isTrainingMode && (isCompetitiveMode || isKidsMode);
+        if (boardOpen != null) boardOpen.setVisibility(show ? View.VISIBLE : View.GONE);
+        syncGameDock();
+    }
+
+    private void showBoardDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_history, null);
+        TextView title = view.findViewById(R.id.hist_dialog_title);
+        TextView sub = view.findViewById(R.id.hist_dialog_sub);
+        TextView close = view.findViewById(R.id.hist_dialog_close);
+        TextView clear = view.findViewById(R.id.hist_clear);
+        LinearLayout list = view.findViewById(R.id.hist_list);
+        if (title != null) title.setText(R.string.daily_board);
+        if (sub != null) sub.setVisibility(View.GONE);
+        if (clear != null) clear.setVisibility(View.GONE);
+        competitiveMode.fetchBoards(list, null, isKidsMode);
+        boardDialog = new Dialog(this);
+        boardDialog.setContentView(view);
+        if (boardDialog.getWindow() != null) {
+            boardDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.92f);
+            int height = Math.round(getResources().getDisplayMetrics().heightPixels * 0.7f);
+            boardDialog.getWindow().setLayout(width, height);
+        }
+        if (close != null) close.setOnClickListener(v -> boardDialog.dismiss());
+        boardDialog.show();
     }
 
     private void paintTops(List<Lexicon.Play> tops, int selected, String mine) {

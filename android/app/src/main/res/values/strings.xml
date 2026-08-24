@@ -215,4 +215,6 @@
     <string name="training_min_cd">Longueur minimale des mots : %1$d lettres</string>
     <string name="find_goal">Le mot le plus payant gagne — pas besoin d’utiliser toutes les lettres.</string>
     <string name="find_better">%1$d pts — on peut faire mieux</string>
+    <string name="training_too_short">À partir de %1$d lettres.</string>
+    <string name="training_need_len">Il faut un mot de %1$d lettres.</string>
 </resources>

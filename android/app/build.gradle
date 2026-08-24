@@ -13,8 +13,8 @@ android {
         applicationId "cc.pfa87.verimots"
         minSdk 26
         targetSdk 36
-        versionCode 58
-        versionName "3.38"
+        versionCode 59
+        versionName "3.39"
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
     }
 
@@ -45,7 +45,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            // R8: Play Console flagged "App optimisation: Low" without it.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             if (keystoreFile.exists()) {
                 signingConfig signingConfigs.release
             }
