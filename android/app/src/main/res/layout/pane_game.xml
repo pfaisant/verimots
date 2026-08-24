@@ -428,19 +428,6 @@
         android:layout_marginTop="4dp"
         android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/game_skip"
-            android:layout_width="wrap_content"
-            android:layout_height="26dp"
-            android:background="@drawable/bg_count"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:letterSpacing="0.04"
-            android:paddingHorizontal="12dp"
-            android:text="@string/play_skip"
-            android:textColor="@color/dim"
-            android:textSize="11sp" />
-
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -482,14 +469,15 @@
             android:minHeight="48dp"
             android:orientation="horizontal" />
 
+        <!-- Same footprint as a closed-rack tile so the row reads as one rack -->
         <ImageButton
             android:id="@+id/game_again"
-            android:layout_width="46dp"
-            android:layout_height="44dp"
+            android:layout_width="48dp"
+            android:layout_height="54dp"
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_next"
             android:contentDescription="@string/encore"
-            android:padding="11dp"
+            android:padding="13dp"
             android:src="@drawable/ic_next"
             android:visibility="gone" />
     </LinearLayout>
@@ -587,6 +575,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/bg_card"
         android:orientation="vertical"
         android:padding="10dp"
@@ -748,6 +737,21 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
+
+    <!-- Discreet skip: plain tappable text, bottom-right above the chart -->
+    <TextView
+        android:id="@+id/game_skip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:text="@string/play_skip"
+        android:textColor="@color/dim"
+        android:textSize="13sp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/game_dock"

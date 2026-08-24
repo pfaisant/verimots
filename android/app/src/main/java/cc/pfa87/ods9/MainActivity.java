@@ -300,6 +300,10 @@ public class MainActivity extends Activity {
                     paintStudy();
                     applyIntent(getIntent());
                     maybeOpenWelcomeCompetition();
+                    // First-launch safety: the play pane can already be open
+                    // with no deal (empty rack) — request one now.
+                    boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+                    if (tab == 1 && playOn && deal == null) requestDeal();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {

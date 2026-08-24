@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=106'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=106'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=108'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=108'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -498,7 +498,10 @@ export function defBody(payload, escapeHtml, extra = {}) {
       <p class="pending">${t('sense_of', formOf)}</p>`
   }
   const sense = payload.senses[0]
-  const defs = (sense.defs || []).slice(0, extra.asRoot ? 2 : 1)
+  // CHEF: "nom commun 1" (dated) hid "nom commun 2" (the common sense) —
+  // when a word has several lexical senses, show each one's first gloss.
+  const multi = payload.senses.slice(0, 4).map((s) => (s.defs || [])[0]).filter(Boolean)
+  const defs = multi.length > 1 ? multi : (sense.defs || []).slice(0, extra.asRoot ? 2 : 1)
   // The header always names the defined word — vital when the user navigated
   // to a root via a "forme de" link and the panel no longer shows their play.
   const headWord = String(extra.word || payload.word || '').toUpperCase()
@@ -1201,7 +1204,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=106')
+        await import('./competitive.js?v=108')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1496,7 +1499,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=106')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=108')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1722,7 +1725,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=106')
+      const { fetchLeaderboard } = await import('./competitive.js?v=108')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

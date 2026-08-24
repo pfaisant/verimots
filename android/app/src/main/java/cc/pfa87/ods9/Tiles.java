@@ -58,9 +58,18 @@ final class Tiles {
         boolean fit = !(parent instanceof HorizontalScrollView);
         int pad = row.getPaddingLeft() + row.getPaddingRight();
         int available = row.getWidth() - pad;
-        if (available <= 0 && fit && row.isAttachedToWindow()) {
-            row.post(() -> {
-                if (row.getWidth() > 0) fill(row, word, used, tap, bonusIndex, alpha);
+        if (available <= 0 && fit) {
+            // First launch fills the rack before the pane has been measured; a
+            // one-shot post missed that layout and left the rack blank until
+            // the next repaint. Refill on the first real layout instead.
+            row.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int l, int t, int r, int b,
+                        int ol, int ot, int or, int ob) {
+                    if (row.getWidth() <= 0) return;
+                    row.removeOnLayoutChangeListener(this);
+                    fill(row, word, used, tap, bonusIndex, alpha);
+                }
             });
         }
         if (available <= 0) {

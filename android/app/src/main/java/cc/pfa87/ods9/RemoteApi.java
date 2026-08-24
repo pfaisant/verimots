@@ -104,9 +104,8 @@ final class RemoteApi {
                     post(() -> cb.empty("missing"));
                     return;
                 }
-                JSONArray defs = s0.optJSONArray("defs");
                 String pos = s0.optString("pos", "");
-                String def = defs != null && defs.length() > 0 ? defs.getString(0) : "";
+                String def = joinSenses(senses, s0);
                 String url = o.optString("url", "https://" + language(lang)
                         + ".wiktionary.org/wiki/" + word.toLowerCase(Locale.ROOT));
                 String lemma = o.optString("lemma", "");
@@ -443,6 +442,39 @@ final class RemoteApi {
             if (defs != null && defs.length() > 0) return sense;
         }
         return null;
+    }
+
+    /**
+     * CHEF has "nom commun 1" (dated: head) and "nom commun 2" (the common
+     * one) — showing only the first sense hid the meaning people expect.
+     * Numbered lines expose every lexical sense; a single sense keeps up to
+     * two of its glosses instead.
+     */
+    private static String joinSenses(JSONArray senses, JSONObject first) {
+        java.util.ArrayList<String> lines = new java.util.ArrayList<>();
+        if (senses != null) {
+            for (int i = 0; i < senses.length() && lines.size() < 4; i++) {
+                JSONObject sense = senses.optJSONObject(i);
+                if (sense == null || properNounPos(sense.optString("pos", ""))) continue;
+                JSONArray defs = sense.optJSONArray("defs");
+                if (defs == null || defs.length() == 0) continue;
+                String gloss = defs.optString(0, "").trim();
+                if (!gloss.isEmpty()) lines.add(gloss);
+            }
+        }
+        if (lines.size() <= 1) {
+            JSONArray defs = first.optJSONArray("defs");
+            String one = defs != null ? defs.optString(0, "") : "";
+            String two = defs != null && defs.length() > 1 ? defs.optString(1, "").trim() : "";
+            if (two.isEmpty()) return one;
+            return "1. " + one + "\n2. " + two;
+        }
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < lines.size(); i++) {
+            if (i > 0) out.append('\n');
+            out.append(i + 1).append(". ").append(lines.get(i));
+        }
+        return out.toString();
     }
 
     private static void post(Runnable r) {

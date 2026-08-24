@@ -2424,6 +2424,16 @@ button:active { transform: translateY(1px); }
 }
 .training-min:hover { color: var(--gold); border-color: var(--rim-gold); }
 .training-min[hidden] { display: none !important; }
+/* Skip reads as quiet text, not a button card */
+#game-skip {
+  border: none;
+  background: transparent;
+  color: var(--dim);
+  font: 650 12px var(--sans);
+  padding: 6px 8px;
+  cursor: pointer;
+}
+#game-skip:hover { color: var(--gold); }
 .training-status button,
 .training-status select {
   min-height: 34px;
