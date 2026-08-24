@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same square shape as bg_tile, gold — the 7+1 bonus letter must read as a
+     tile, not a round button. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#8a6a28" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#e2b954"
+                android:startColor="#f8df95" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</layer-list>

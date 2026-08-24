@@ -214,4 +214,5 @@
     <string name="opt_words_help">Palabras comprobadas y jugadas, más las marcadas con estrella.</string>
     <string name="training_min_cd">Longitud mínima de las palabras: %1$d letras</string>
     <string name="find_goal">Gana la palabra que más puntúa — no hace falta usar todas las letras.</string>
+    <string name="find_better">%1$d pts — se puede mejorar</string>
 </resources>

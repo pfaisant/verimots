@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=109'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=109'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=110'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=110'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -1002,6 +1002,15 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     input.focus()
   }
 
+  // In "find a word", nudge without scolding: valid but below the top word
+  // shows "n pts — on peut faire mieux".
+  function liveScoreText(pts) {
+    const findLike = category !== 'training'
+      && !(typeof isCompetitive === 'function' && isCompetitive())
+    if (findLike && best && pts < best.pts) return t('find_better', pts)
+    return `${pts} pts`
+  }
+
   function preview() {
     if (closed) return
     paintRack()
@@ -1012,7 +1021,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     const hit = catalog.find((w) => w.word === word)
     if (hit) {
-      setLive(`${hit.pts} pts`, 'ok')
+      setLive(liveScoreText(hit.pts), 'ok')
       return
     }
     if (word.length < 2) {
@@ -1025,7 +1034,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         if (!probe || seq !== probeSeq || normalize(input.value) !== word) return
         // While typing, only celebrate valid words — the negative verdicts
         // stay for the actual submit (validate) so the table isn't nagging.
-        if (probe.formable && probe.valid) setLive(`${probe.score} pts`, 'ok')
+        if (probe.formable && probe.valid) setLive(liveScoreText(playPoints(word, probe.score)), 'ok')
         else setLive('')
       })
       .catch(() => {})
@@ -1229,7 +1238,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=109')
+        await import('./competitive.js?v=110')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1526,7 +1535,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=109')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=110')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1752,7 +1761,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=109')
+      const { fetchLeaderboard } = await import('./competitive.js?v=110')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

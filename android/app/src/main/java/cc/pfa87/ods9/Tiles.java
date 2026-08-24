@@ -107,7 +107,7 @@ final class Tiles {
             cell.setLayoutParams(lp);
             boolean spent = used != null && used.contains(i);
             cell.setBackgroundResource(
-                    i == bonusIndex ? R.drawable.bg_gold_btn
+                    i == bonusIndex ? R.drawable.bg_tile_bonus
                             : spent ? R.drawable.bg_tile_used
                                     : R.drawable.bg_tile);
             if (i == bonusIndex) cell.setContentDescription("+1 " + ch);

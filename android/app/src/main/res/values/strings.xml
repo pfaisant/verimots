@@ -214,4 +214,5 @@
     <string name="opt_words_help">Les mots vérifiés et joués, et ceux marqués d’une étoile.</string>
     <string name="training_min_cd">Longueur minimale des mots : %1$d lettres</string>
     <string name="find_goal">Le mot le plus payant gagne — pas besoin d’utiliser toutes les lettres.</string>
+    <string name="find_better">%1$d pts — on peut faire mieux</string>
 </resources>

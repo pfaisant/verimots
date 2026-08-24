@@ -2602,7 +2602,12 @@ public class MainActivity extends Activity {
         // Only positive feedback while typing — the red "not in the list"
         // banner was noise; errors still show on an explicit submit.
         if (hit != null) {
-            gameLive.setText(getString(R.string.pts_n, hit.pts()));
+            Lexicon.Play best = deal.catalog.isEmpty() ? null : deal.catalog.get(0);
+            boolean canDoBetter = "find".equals(gameKind) && !isTrainingMode
+                    && best != null && hit.pts() < best.pts();
+            gameLive.setText(canDoBetter
+                    ? getString(R.string.find_better, hit.pts())
+                    : getString(R.string.pts_n, hit.pts()));
             gameLive.setTextColor(getColor(R.color.ok));
         } else {
             gameLive.setText("");
