@@ -12,118 +12,10 @@
         android:paddingTop="4dp"
         android:paddingBottom="16dp">
 
+        <!-- Mes mots : historique + favoris -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="14dp">
-
-            <TextView
-                style="@style/Display"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:text="@string/about_title"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/about_version"
-                    android:layout_width="wrap_content"
-                    android:layout_height="26dp"
-                    android:background="@drawable/bg_count"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:paddingHorizontal="10dp"
-                    android:textColor="@color/gold"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/about_lex"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:text="@string/loading"
-                    android:textColor="@color/muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:lineSpacingMultiplier="1.25"
-                android:text="@string/about_body"
-                android:textColor="@color/muted"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/hist_open"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_gold_btn"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/hist_open"
-                android:textColor="@color/tile_ink" />
-
-            <TextView
-                android:id="@+id/about_feedback"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_gold_btn"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/feedback"
-                android:textColor="@color/tile_ink" />
-
-            <TextView
-                android:id="@+id/about_dict"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_gold_btn"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/dict_download"
-                android:textColor="@color/tile_ink" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/dict_download_help"
-                android:textColor="@color/dim"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
             android:padding="14dp">
@@ -133,53 +25,54 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false"
-                android:text="@string/google_account"
+                android:text="@string/opt_words_title"
                 android:textColor="@color/ink"
                 android:textSize="15sp" />
 
             <TextView
-                android:id="@+id/auth_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/sign_in_hint"
+                android:text="@string/opt_words_help"
                 android:textColor="@color/muted"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
-            <TextView
-                android:id="@+id/auth_google"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_gold_btn"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/sign_in_google"
-                android:textColor="@color/tile_ink" />
-
-            <TextView
-                android:id="@+id/auth_logout"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:layout_marginTop="6dp"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="@string/sign_out"
-                android:textColor="@color/gold"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/auth_stats"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/muted"
-                android:textSize="12sp"
-                android:visibility="gone" />
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/hist_open"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_gold_btn"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="@string/hist_open"
+                    android:textColor="@color/tile_ink" />
+
+                <TextView
+                    android:id="@+id/fav_open"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="@string/fav_open"
+                    android:textColor="@color/gold" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- Réglages -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -347,6 +240,12 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/line" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -375,7 +274,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:ellipsize="end"
-                        android:maxLines="1"
+                        android:maxLines="2"
                         android:text="@string/advanced_help"
                         android:textColor="@color/muted"
                         android:textSize="12sp" />
@@ -387,8 +286,208 @@
                     android:layout_height="wrap_content"
                     android:checked="false" />
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif-medium"
+                        android:maxLines="1"
+                        android:text="@string/opt_alpha_btn"
+                        android:textColor="@color/ink"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="@string/opt_alpha_help"
+                        android:textColor="@color/muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/alpha_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- Compte Google -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:text="@string/google_account"
+                android:textColor="@color/ink"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/auth_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/sign_in_hint"
+                android:textColor="@color/muted"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/auth_google"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_gold_btn"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/sign_in_google"
+                android:textColor="@color/tile_ink" />
+
+            <TextView
+                android:id="@+id/auth_logout"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="@string/sign_out"
+                android:textColor="@color/gold"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/auth_stats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/muted"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- À propos -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                style="@style/Display"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="@string/about_title"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/about_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:background="@drawable/bg_count"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:paddingHorizontal="10dp"
+                    android:textColor="@color/gold"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/about_lex"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="@string/loading"
+                    android:textColor="@color/muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingMultiplier="1.25"
+                android:text="@string/about_body"
+                android:textColor="@color/muted"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/about_dict"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_pill"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/dict_download"
+                android:textColor="@color/gold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/dict_download_help"
+                android:textColor="@color/dim"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/about_feedback"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_pill"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/feedback"
+                android:textColor="@color/gold" />
+        </LinearLayout>
+
+        <!-- Confidentialité -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

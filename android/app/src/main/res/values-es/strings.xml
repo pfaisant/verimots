@@ -8,9 +8,9 @@
     <string name="tab_check">Ver</string>
     <string name="tab_game">Jugar</string>
     <string name="menu_comp">Bingo</string>
-    <string name="menu_training">Entrenamiento</string>
+    <string name="menu_training">Combinaciones</string>
     <string name="menu_find">Palabra oculta</string>
-    <string name="menu_study">Estudio del día</string>
+    <string name="menu_study">Palabras Cortas</string>
     <string name="menu_back">Volver</string>
     <string name="level_title">Nivel</string>
     <string name="level_beginner">Principiante</string>
@@ -39,7 +39,6 @@
     <string name="see_lemma">Ver %1$s</string>
     <string name="clear">Borrar</string>
     <string name="rack_alpha">A–Z</string>
-    <string name="play_clear">Borrar todo</string>
     <string name="about_title">Acerca de Verimots</string>
     <string name="about_body">Sin conexión: la lista elegida (formas de 2 a 15 letras) sirve para comprobar una palabra y el reto.\n\nLas definiciones se extraen de Wikcionario (fuente libre, a veces errónea) y necesitan conexión, como compartir.\n\nVerimots no está afiliado a FILE, FISE, Mattel ni Hasbro. RLA-ES se distribuye bajo MPL 1.1.</string>
     <string name="settings">Ajustes</string>
@@ -73,8 +72,8 @@
     <string name="competition">Competición</string>
     <string name="competition_on">Competición · activa</string>
     <string name="challenge">Reto</string>
-    <string name="training">Entrenar</string>
-    <string name="training_on">Entrenamiento · activo</string>
+    <string name="training">Combinaciones</string>
+    <string name="training_on">Combinaciones · activo</string>
     <string name="training_all">Todas</string>
     <string name="training_seven">7 letras</string>
     <string name="training_eight">8 letras</string>
@@ -165,17 +164,17 @@
     <string name="board_general">General</string>
     <string name="kids_board">Principiantes</string>
     <string name="kids_board_empty">Aún no hay puntuaciones de principiantes.</string>
-    <string name="study">Estudio del día</string>
+    <string name="study">Palabras Cortas</string>
     <string name="study_today">Hoy · %1$s</string>
     <string name="study_pack">%1$s\n\n2 letras\n%2$s\n\n3 letras\n%3$s</string>
-    <string name="study_share">Compartir el estudio de hoy</string>
+    <string name="study_share">Compartir las palabras de hoy</string>
     <string name="study_share_short">Compartir</string>
     <string name="study_share_twos">Compartir las palabras de 2 letras</string>
     <string name="study_twos">Palabras de 2 letras</string>
     <string name="study_threes">Palabras de 3 letras</string>
     <string name="study_section">%1$s · %2$d</string>
     <string name="share_study_twos">2 letras</string>
-    <string name="share_study_daily">Verimots — Estudio del día · %1$s</string>
+    <string name="share_study_daily">Verimots — Palabras Cortas · %1$s</string>
     <string name="share_study_list">Verimots — palabras de %1$d letras (%2$d)\n\n%3$s\n</string>
     <string name="share_study_word_body">Verimots\n\n*%1$s* está en la lista\n%2$d letras · %3$d ptos\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="dict_download">Descargar la lista</string>
@@ -199,6 +198,18 @@
     <string name="feedback_ok">Gracias, enviado.</string>
     <string name="feedback_err">No se pudo enviar. Inténtalo de nuevo.</string>
     <string name="feedback_need">Escribe un mensaje corto.</string>
-    <string name="training_rules_title">Entrenamiento — las reglas</string>
-    <string name="training_rules_body">Encuentra todas las palabras del atril. Escribe una palabra y valida; las fichas usadas se apagan.\n\n• Todas — cuentan todas las palabras de 2 a 7 letras.\n• 7 letras — solo cuentan las palabras que usan las 7 letras.\n• 8 letras — igual, con un atril de 8.\n• 7 + 1 — una palabra de 7 letras mezclada más una ficha extra (borde dorado): busca las palabras de 8 letras.\n• Comodín — el ? vale por cualquier letra (0 puntos).\n• Difíciles — el atril contiene J, K, Ñ, Q, W, X, Y o Z.\n\nTemporizador opcional: 30 s, 60 s o 2 min. «Ver las respuestas» termina la ronda y muestra la lista.\n\nEl entrenamiento no puntúa: tus estadísticas se quedan en este dispositivo.</string>
+    <string name="training_rules_title">Combinaciones — las reglas</string>
+    <string name="training_rules_body">Encuentra todas las palabras del atril. Escribe una palabra y valida; las fichas usadas se apagan.\n\n• Todas — cuentan todas las palabras de 2 a 7 letras.\n• 7 letras — solo cuentan las palabras que usan las 7 letras.\n• 8 letras — igual, con un atril de 8.\n• 7 + 1 — una palabra de 7 letras mezclada más una ficha extra (borde dorado): busca las palabras de 8 letras.\n• Comodín — el ? vale por cualquier letra (0 puntos).\n• Difíciles — el atril contiene J, K, Ñ, Q, W, X, Y o Z.\n\nTemporizador opcional: 30 s, 60 s o 2 min. «Ver las respuestas» termina la ronda y muestra la lista.\n\nEste modo no puntúa: tus estadísticas se quedan en este dispositivo.</string>
+    <string name="play_skip">Pasar</string>
+    <string name="skip_done">Atril pasado</string>
+    <string name="skip_best">La mejor palabra era:</string>
+    <string name="fav_title">Favoritos</string>
+    <string name="fav_empty">Aún no hay favoritos. Toca ★ en una palabra para guardarla.</string>
+    <string name="fav_add">Añadir a favoritos</string>
+    <string name="fav_remove">Quitar de favoritos</string>
+    <string name="fav_open">Favoritos</string>
+    <string name="opt_alpha_btn">Botón A–Z en el atril</string>
+    <string name="opt_alpha_help">Muestra un botón que ordena las letras del atril.</string>
+    <string name="opt_words_title">Mis palabras</string>
+    <string name="opt_words_help">Palabras comprobadas y jugadas, más las marcadas con estrella.</string>
 </resources>

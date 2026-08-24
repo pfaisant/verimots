@@ -1,7 +1,8 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=103'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=103'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=103'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=103'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=104'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=104'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=104'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=104'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=104'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -237,9 +238,12 @@ function defsHtml(payload) {
   const lemma = payload.lemma && foldKeyClient(payload.lemma) !== foldKeyClient(payload.word)
     ? `<p class="lemma">${t('lemma_entry')} <button type="button" class="form-of" data-form-of="${escapeHtml(payload.lemma)}">${escapeHtml(payload.lemma)}</button></p>`
     : ''
+  // The pos header names the defined word so the reader always knows which
+  // entry is open, root navigation included.
+  const headWord = String(payload.word || '').toUpperCase()
   const blocks = payload.senses.slice(0, 2).map((sense) => `
     <div class="sense">
-      <div class="pos">${escapeHtml(sense.pos)}</div>
+      <div class="pos">${[headWord && escapeHtml(headWord), sense.pos && escapeHtml(sense.pos)].filter(Boolean).join(' · ')}</div>
       <ol>${sense.defs.slice(0, 4).map((d) => `<li>${linkifyDef(d, escapeHtml)}</li>`).join('')}</ol>
     </div>`).join('')
   return `<div class="defs" id="defs">
@@ -354,13 +358,48 @@ function renderHistory() {
       lastDay = day
       blocks.push(`<p class="hist-day">${escapeHtml(day)}</p>`)
     }
-    blocks.push(`<button type="button" class="hist-row" data-word="${escapeHtml(row.word)}">
-      <span class="hist-row-word">${escapeHtml(row.word)}</span>
-      <span class="hist-row-meta">${escapeHtml(historyLabel(row.src))}</span>
-      <span class="hist-row-pts">${row.pts}</span>
-    </button>`)
+    blocks.push(`<div class="hist-row">
+      <button type="button" class="hist-row-main" data-word="${escapeHtml(row.word)}">
+        <span class="hist-row-word">${escapeHtml(row.word)}</span>
+        <span class="hist-row-meta">${escapeHtml(historyLabel(row.src))}</span>
+        <span class="hist-row-pts">${row.pts}</span>
+      </button>
+      ${favButtonHtml(row.word, row.pts, escapeHtml)}
+    </div>`)
   }
   histOut.innerHTML = blocks.join('')
+}
+
+const favSheet = document.getElementById('fav-sheet')
+const favOut = document.getElementById('fav-out')
+
+function renderFavorites() {
+  if (!favOut) return
+  const title = document.getElementById('fav-title')
+  if (title) title.textContent = t('fav_title')
+  const rows = loadFavorites().slice().sort((a, b) => (b.at || 0) - (a.at || 0))
+  if (!rows.length) {
+    favOut.innerHTML = `<p class="empty">${t('fav_empty')}</p>`
+    return
+  }
+  favOut.innerHTML = rows
+    .map(
+      (row) => `<div class="hist-row">
+      <button type="button" class="hist-row-main" data-word="${escapeHtml(row.word)}">
+        <span class="hist-row-word">${escapeHtml(row.word)}</span>
+        <span class="hist-row-meta">${escapeHtml(historyDayLabel(row.at))}</span>
+        <span class="hist-row-pts">${row.pts || ''}</span>
+      </button>
+      ${favButtonHtml(row.word, row.pts, escapeHtml)}
+    </div>`
+    )
+    .join('')
+}
+
+function setFavOpen(on) {
+  if (!favSheet) return
+  favSheet.hidden = !on
+  if (on) renderFavorites()
 }
 
 function setHistOpen(on) {
@@ -377,7 +416,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=103').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=104').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -386,7 +425,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=103')
+    const { fetchHistory } = await import('./competitive.js?v=104')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -394,7 +433,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=103')
+    const { saveHistoryWord } = await import('./competitive.js?v=104')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -681,6 +720,7 @@ function renderCheck(word, result) {
       ${tilesHtml(result.word)}
       <div class="meta-line">
         <span>${t('letters_pts', result.word.length, result.score)}</span>
+        ${favButtonHtml(result.word, result.score, escapeHtml)}
         <a href="${escapeHtml(result.definition?.url || wikiUrl(result.word, result.definition?.lemma))}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
       </div>
       ${shareHtml(lastShare)}
@@ -904,12 +944,19 @@ async function showStudyDef(word, tile) {
   const seq = ++studySeq
   studyHome = null
   wordEl.textContent = word
+  const favBtn = document.getElementById('study-def-fav')
+  if (favBtn) {
+    favBtn.hidden = false
+    favBtn.dataset.favWord = word
+    favBtn.dataset.favPts = String(letterScore(word))
+    paintFavStar(favBtn)
+  }
   textEl.innerHTML = defBody(null, escapeHtml)
   box.hidden = false
   const resolved = await resolvedStudyDef(word)
   if (seq !== studySeq || !tile?.classList.contains('is-on')) return
   studyHome = { word, ...resolved }
-  textEl.innerHTML = defBody(resolved.payload, escapeHtml, { formOf: resolved.formOf, root: resolved.root })
+  textEl.innerHTML = defBody(resolved.payload, escapeHtml, { formOf: resolved.formOf, root: resolved.root, word })
 }
 
 document.getElementById('study-def')?.addEventListener('click', async (e) => {
@@ -917,7 +964,7 @@ document.getElementById('study-def')?.addEventListener('click', async (e) => {
   if (!textEl) return
   if (e.target.closest('[data-def-back]')) {
     if (studyHome) {
-      textEl.innerHTML = defBody(studyHome.payload, escapeHtml, { formOf: studyHome.formOf, root: studyHome.root })
+      textEl.innerHTML = defBody(studyHome.payload, escapeHtml, { formOf: studyHome.formOf, root: studyHome.root, word: studyHome.word })
     }
     return
   }
@@ -1292,6 +1339,15 @@ trainingHelp?.addEventListener('click', (e) => {
 })
 histClose?.addEventListener('click', () => setHistOpen(false))
 document.getElementById('about-hist')?.addEventListener('click', () => setHistOpen(true))
+document.getElementById('about-favs')?.addEventListener('click', () => setFavOpen(true))
+document.getElementById('fav-close')?.addEventListener('click', () => setFavOpen(false))
+favSheet?.addEventListener('click', (e) => {
+  if (e.target === favSheet) setFavOpen(false)
+})
+favOut?.addEventListener('click', (e) => {
+  if (e.target.closest('[data-fav-word]')) return
+  if (e.target.closest('[data-word]')) setFavOpen(false)
+})
 document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (!loadHistory().length) return
   if (!window.confirm(t('hist_clear_confirm'))) return
@@ -1300,7 +1356,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=103')
+      const { clearCloudHistory } = await import('./competitive.js?v=104')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1321,6 +1377,7 @@ document.addEventListener('keydown', (e) => {
     return
   }
   if (e.key === 'Escape' && histSheet && !histSheet.hidden) setHistOpen(false)
+  if (e.key === 'Escape' && favSheet && !favSheet.hidden) setFavOpen(false)
 })
 document.addEventListener('click', (e) => {
   if (!dictPopOpen()) return
@@ -1410,6 +1467,13 @@ function onAddJoker(e) {
 qJoker?.addEventListener('click', onAddJoker)
 
 document.body.addEventListener('click', (e) => {
+  // One handler for every star — game result, check card, study popup, lists.
+  const fav = e.target.closest('[data-fav-word]')
+  if (fav) {
+    toggleFavorite(fav.dataset.favWord, Number(fav.dataset.favPts) || 0)
+    paintFavStar(fav)
+    return
+  }
   const back = e.target.closest('[data-def-back]')
   if (back && nav === 'check') {
     popWord()
@@ -1555,8 +1619,30 @@ async function switchLang(next) {
   }
 }
 
+function initAlphaBtnOption() {
+  const opt = document.getElementById('opt-alpha-btn')
+  if (!opt) return
+  let on = false
+  try {
+    on = localStorage.getItem('verimots-alpha-btn') === '1'
+  } catch {
+    /* private mode */
+  }
+  opt.checked = on
+  opt.addEventListener('change', () => {
+    try {
+      localStorage.setItem('verimots-alpha-btn', opt.checked ? '1' : '0')
+    } catch {
+      /* private mode */
+    }
+    const alphaBtn = document.getElementById('game-alpha')
+    if (alphaBtn) alphaBtn.hidden = !opt.checked
+  })
+}
+
 async function boot() {
   initLang()
+  initAlphaBtnOption()
   document.getElementById('lang-fr')?.addEventListener('click', () => switchLang('fr'))
   document.getElementById('lang-en')?.addEventListener('click', () => switchLang('en'))
   document.getElementById('lang-es')?.addEventListener('click', () => switchLang('es'))
@@ -1603,7 +1689,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=103').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=104').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

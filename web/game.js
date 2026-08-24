@@ -1,4 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=103'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=104'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=104'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -219,11 +220,14 @@ export function scoreChartSvg(scores, opts = {}) {
   }
   const n = pts.length
   const gap = n > 16 ? 2 : 3
-  const step = w / n
+  // Cap the per-game slot so 1–3 games render as slim bars hugging the right
+  // edge (where the newest game lives) instead of giant full-width blocks.
+  const step = Math.min(26, w / n)
+  const x0 = w - n * step
   const bw = Math.max(1.5, step - gap)
   const bars = pts
     .map((p, i) => {
-      const x = i * step + gap / 2
+      const x = x0 + i * step + gap / 2
       const y = yAt(p)
       const bh = Math.max(1.6, base - y)
       return `<rect class="bar${i === n - 1 ? ' last' : ''}" x="${x.toFixed(1)}" y="${(base - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.4"/>`
@@ -495,7 +499,11 @@ export function defBody(payload, escapeHtml, extra = {}) {
   }
   const sense = payload.senses[0]
   const defs = (sense.defs || []).slice(0, extra.asRoot ? 2 : 1)
-  return `${sense.pos ? `<div class="pos">${escapeHtml(sense.pos)}</div>` : ''}
+  // The header always names the defined word — vital when the user navigated
+  // to a root via a "forme de" link and the panel no longer shows their play.
+  const headWord = String(extra.word || payload.word || '').toUpperCase()
+  const posBits = [headWord && escapeHtml(headWord), sense.pos && escapeHtml(sense.pos)].filter(Boolean)
+  return `${posBits.length ? `<div class="pos">${posBits.join(' · ')}</div>` : ''}
     <ol>${defs.map((d) => `<li>${linkifyDef(d, escapeHtml)}</li>`).join('')}</ol>
     ${srcLine(payload, escapeHtml)}`
 }
@@ -522,14 +530,15 @@ export function rememberKidsFound(storage) {
 }
 
 export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, isKids, isTraining, onDeal, onPlayed }) {
-  // One source of truth for the header title: Bingo mode always says Bingo,
-  // suffixed with this week's draw type when it differs.
+  // One source of truth for the header title: the menu label stays the stable
+  // mode name — Bingo suffixes this week's draw type, the plain challenge
+  // keeps "Trouver un mot" instead of surfacing the raw category.
   function kickerText(cat) {
     if (cat === 'kids') return t('kids_cat')
     if (cat === 'training') return t('cat_training')
-    const label = catLabel(cat)
     const comp = typeof isCompetitive === 'function' && isCompetitive()
-    if (!comp) return label
+    if (!comp) return t('menu_find')
+    const label = catLabel(cat)
     const mode = t('menu_comp')
     return label.toLowerCase() === mode.toLowerCase() ? mode : `${mode} · ${label}`
   }
@@ -558,7 +567,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const trainingTimerEl = document.getElementById('training-timer')
   const trainingRevealBtn = document.getElementById('training-reveal')
   const alphaBtn = document.getElementById('game-alpha')
-  const clearAllBtn = document.getElementById('game-clear-all')
+  const skipBtn = document.getElementById('game-skip')
 
   let rack = ''
   let rackAlpha = false
@@ -755,15 +764,24 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return list
   }
 
+  function alphaBtnEnabled() {
+    try {
+      return localStorage.getItem('verimots-alpha-btn') === '1'
+    } catch {
+      return false
+    }
+  }
+
   function paintRackTools() {
     if (alphaBtn) {
+      alphaBtn.hidden = !alphaBtnEnabled()
       alphaBtn.setAttribute('aria-pressed', rackAlpha ? 'true' : 'false')
       alphaBtn.setAttribute('aria-label', t('rack_alpha_aria'))
       alphaBtn.textContent = t('rack_alpha')
     }
-    if (clearAllBtn) {
-      clearAllBtn.textContent = t('play_clear')
-      clearAllBtn.hidden = closed || dealPending || !String(input?.value || '').trim()
+    if (skipBtn) {
+      skipBtn.textContent = t('play_skip')
+      skipBtn.hidden = closed || dealPending || trainingOn() || !rack
     }
   }
 
@@ -970,9 +988,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     ask('probe', { word, rack })
       .then((probe) => {
         if (!probe || seq !== probeSeq || normalize(input.value) !== word) return
-        if (!probe.formable) setLive(t('not_on_rack'), 'bad')
-        else if (!probe.valid) setLive(t('not_in_dict', dictLabel()), 'bad')
-        else setLive(`${probe.score} pts`, 'ok')
+        // While typing, only celebrate valid words — the negative verdicts
+        // stay for the actual submit (validate) so the table isn't nagging.
+        if (probe.formable && probe.valid) setLive(`${probe.score} pts`, 'ok')
+        else setLive('')
       })
       .catch(() => {})
   }
@@ -1058,11 +1077,101 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return { payload, formOf, root }
   }
 
-  function paintDef(id, resolved) {
+  function paintDef(id, resolved, word = '') {
     const box = resultEl.querySelector(id)
     if (!box) return
-    box._home = resolved
-    box.innerHTML = defBody(resolved.payload, escapeHtml, { formOf: resolved.formOf, root: resolved.root })
+    const home = { ...resolved, word: resolved.word || word }
+    box._home = home
+    box.innerHTML = defBody(home.payload, escapeHtml, { formOf: home.formOf, root: home.root, word: home.word })
+  }
+
+  function resultPanelHtml(tops, start, mineWord) {
+    return `
+      <div class="game-top" role="tablist" aria-label="${escapeHtml(t('best_words'))}">
+        ${tops
+          .map(
+            (w, i) => `<button type="button" role="tab" data-def-tab="${i}" data-def-word="${escapeHtml(w.word)}" data-def-pts="${w.pts}" aria-selected="${i === start ? 'true' : 'false'}" class="${mineWord && w.word === mineWord ? 'is-mine' : ''}">
+          <span class="game-top-word">${escapeHtml(w.word)}</span>
+          <span class="game-top-pts">${w.pts}</span>
+        </button>`
+          )
+          .join('')}
+      </div>
+      <div class="game-def-panel">
+        ${favButtonHtml(tops[start]?.word, tops[start]?.pts, escapeHtml, 'game-def-fav')}
+        <div class="game-def-body" id="def-body">${defBody(null, escapeHtml)}</div>
+      </div>`
+  }
+
+  function paintResultFav(word, pts) {
+    const btn = resultEl.querySelector('.game-def-fav')
+    if (!btn) return
+    btn.dataset.favWord = word || ''
+    btn.dataset.favPts = String(Math.max(0, Math.round(Number(pts) || 0)))
+    btn.hidden = !word
+    paintFavStar(btn)
+  }
+
+  function wireResultTabs(shown, canPaint) {
+    let wantTop = ''
+    async function showTop(word, pts) {
+      if (!word) return
+      paintResultFav(word, pts)
+      if (!define) return
+      wantTop = word
+      if (shown.has(word)) {
+        paintDef('#def-body', shown.get(word), word)
+        return
+      }
+      const box = resultEl.querySelector('#def-body')
+      if (box) box.innerHTML = defBody(null, escapeHtml)
+      const resolved = await resolvedDef(word)
+      shown.set(word, resolved)
+      // A later tab click supersedes this fetch — never paint a stale word.
+      if (wantTop !== word) return
+      if (canPaint()) paintDef('#def-body', resolved, word)
+    }
+    resultEl.querySelectorAll('[data-def-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        resultEl.querySelectorAll('[data-def-tab]').forEach((b) =>
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false')
+        )
+        showTop(btn.dataset.defWord, Number(btn.dataset.defPts) || 0)
+      })
+    })
+    return showTop
+  }
+
+  // Ends the round without recording anything: no local score, no ranked
+  // submit — just reveal the best words so the player can learn and move on.
+  function skipRound() {
+    if (closed || dealPending || trainingOn() || !rack) return
+    const dealId = dealSeq
+    setClosed(true)
+    input.disabled = true
+    form.hidden = true
+    if (hintBtn) hintBtn.hidden = true
+    paintRack()
+    setLive('')
+    officialPlay = false
+    const tops = topWords(catalog, null, 5)
+    resultEl.hidden = false
+    resultEl.className = 'game-result'
+    resultEl.innerHTML = `
+      <div class="game-score">
+        <div class="game-pct">—</div>
+        <div class="game-score-words">
+          <p class="game-vs">${best ? t('top_word', escapeHtml(best.word), best.pts) : ''}</p>
+        </div>
+      </div>
+      ${resultPanelHtml(tops, 0, '')}`
+    nextAction = () => deal()
+    if (nextBtn) {
+      nextBtn.hidden = false
+      nextBtn.setAttribute('aria-label', t('again'))
+    }
+    const showTop = wireResultTabs(new Map(), () => closed && dealId === dealSeq && !dealPending)
+    showTop(tops[0]?.word, tops[0]?.pts)
   }
 
   function isPlayContextCurrent(context) {
@@ -1077,7 +1186,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=103')
+        await import('./competitive.js?v=104')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1195,19 +1304,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           <p class="game-vs">${vs}</p>
         </div>
       </div>
-      <div class="game-top" role="tablist" aria-label="${escapeHtml(t('best_words'))}">
-        ${tops
-          .map(
-            (w, i) => `<button type="button" role="tab" data-def-tab="${i}" data-def-word="${escapeHtml(w.word)}" aria-selected="${i === start ? 'true' : 'false'}" class="${w.word === hit.word ? 'is-mine' : ''}">
-          <span class="game-top-word">${escapeHtml(w.word)}</span>
-          <span class="game-top-pts">${w.pts}</span>
-        </button>`
-          )
-          .join('')}
-      </div>
-      <div class="game-def-panel">
-        <div class="game-def-body" id="def-body">${defBody(null, escapeHtml)}</div>
-      </div>`
+      ${resultPanelHtml(tops, start, hit.word)}`
     setLive('')
     if (playKids) {
       rememberKidsFound()
@@ -1230,35 +1327,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       nextBtn.setAttribute('aria-label', t('again'))
     }
 
-    let wantTop = ''
-    async function showTop(word) {
-      if (!define || !word) return
-      wantTop = word
-      if (shown.has(word)) {
-        paintDef('#def-body', shown.get(word))
-        return
-      }
-      const box = resultEl.querySelector('#def-body')
-      if (box) box.innerHTML = defBody(null, escapeHtml)
-      const resolved = await resolvedDef(word)
-      shown.set(word, resolved)
-      // A later tab click supersedes this fetch — never paint a stale word.
-      if (wantTop !== word) return
-      if (closed && isPlayContextCurrent(playContext)) paintDef('#def-body', resolved)
-    }
-
-    resultEl.querySelectorAll('[data-def-tab]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        resultEl.querySelectorAll('[data-def-tab]').forEach((b) =>
-          b.setAttribute('aria-selected', b === btn ? 'true' : 'false')
-        )
-        showTop(btn.dataset.defWord)
-      })
-    })
+    const showTop = wireResultTabs(shown, () => closed && isPlayContextCurrent(playContext))
     const rankedPromise = playContext.ranked
       ? syncRankedScore(percent, hit.word, playContext)
       : null
-    if (define) await showTop(tops[start]?.word)
+    await showTop(tops[start]?.word, tops[start]?.pts)
     if (playKids && isPlayContextCurrent(playContext)) {
       const resolved = shown.get(tops[start]?.word)
       paintStudyShare(hit.word, hit.pts, resolved?.payload?.senses?.[0]?.defs?.[0] || '')
@@ -1315,12 +1388,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     paintRack()
   })
-  clearAllBtn?.addEventListener('click', () => {
-    if (closed || dealPending) return
-    input.value = ''
-    preview()
-    input.focus()
-  })
+  skipBtn?.addEventListener('click', () => skipRound())
   rackEl.addEventListener('click', (e) => {
     if (closed || dealPending) return
     const tile = e.target.closest('[data-rack-i]')
@@ -1355,7 +1423,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const root = btn.dataset.formOf
     const box = btn.closest('.game-def-body')
     if (!box || !root) return
-    const homeWord = box._home?.payload?.word || box.dataset.originWord || ''
+    const homeWord = box._home?.word || box._home?.payload?.word || box.dataset.originWord || ''
     box.innerHTML = `<p class="pending">${t('sense_of', escapeHtml(root))}</p>`
     const resolved = await resolvedDef(root)
     if (closed) {
@@ -1405,7 +1473,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=103')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=104')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1631,7 +1699,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=103')
+      const { fetchLeaderboard } = await import('./competitive.js?v=104')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       paintLeaderboard()

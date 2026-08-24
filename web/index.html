@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=103" />
+  <link rel="stylesheet" href="app.css?v=104" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -144,6 +144,7 @@
         <p class="fine info-note" data-i18n="about_p3">Liste communautaire. Pas Larousse, ni affilié à Scrabble, Mattel, Hasbro ou une fédération.</p>
         <div class="info-actions">
           <button type="button" class="info-action" id="about-hist" data-i18n="hist_open">Historique</button>
+          <button type="button" class="info-action" id="about-favs" data-i18n="fav_title">Favoris</button>
           <button type="button" class="info-action" id="info-feedback" data-i18n="feedback">Avis</button>
         </div>
         <div class="settings-card" id="settings-card">
@@ -185,10 +186,14 @@
               <span class="dict-meta" data-dict-meta="rla"></span>
             </button>
           </div>
+          <label class="opt-row">
+            <input type="checkbox" id="opt-alpha-btn" />
+            <span data-i18n="opt_alpha_btn">Bouton A–Z sur le tirage</span>
+          </label>
           <button type="button" class="info-action info-action-ghost" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
         </div>
         <p class="fine info-legal">
-          <a class="apk-link" href="verimots-3.33.apk" download="verimots-3.33.apk" title="Télécharger verimots-3.33.apk">verimots-3.33.apk</a>
+          <a class="apk-link" href="verimots-3.34.apk" download="verimots-3.34.apk" title="Télécharger verimots-3.34.apk">verimots-3.34.apk</a>
           ·
           <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
           ·
@@ -220,12 +225,12 @@
           </button>
           <button type="button" class="game-menu-item" data-game="training">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a1 1 0 0 1 .7.3l3 3-1.4 1.4L13 7.4V14h-2V7.4L9.7 8.7 8.3 7.3l3-3A1 1 0 0 1 12 4zM5 16h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>
-            <strong data-i18n="menu_training">Entraînement</strong>
+            <strong data-i18n="menu_training">Combinaison</strong>
             <span class="game-menu-sub" data-i18n="training_blurb">Trouve tous les mots du tirage.</span>
           </button>
           <button type="button" class="game-menu-item" data-game="study">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5.4c2-1.1 4-1.5 6-.9.8.2 1.4.6 2 1.1v13.2c-.6-.5-1.2-.9-2-1.1-2-.6-4-.2-6 .9V5.4zm16 0v13.2c-2-1.1-4-1.5-6-.9-.8.2-1.4.6-2 1.1V5.6c.6-.5 1.2-.9 2-1.1 2-.6 4-.2 6 .9z"/></svg>
-            <strong data-i18n="menu_study">Étude du jour</strong>
+            <strong data-i18n="menu_study">Petits Mots</strong>
             <span class="game-menu-sub" data-i18n="menu_study_blurb">Les 2 et 3 lettres du jour</span>
           </button>
         </div>
@@ -249,7 +254,7 @@
         </div>
       <div class="play-main">
        <div class="training-tools" id="training-tools" hidden>
-        <div class="training-presets" role="group" aria-label="Entraînement">
+        <div class="training-presets" role="group" aria-label="Combinaison">
           <button type="button" data-training-preset="all" data-training-label="training_all" aria-pressed="true">Tous</button>
           <button type="button" data-training-preset="seven" data-training-label="training_seven" aria-pressed="false">7 lettres</button>
           <button type="button" data-training-preset="eight" data-training-label="training_eight" aria-pressed="false">8 lettres</button>
@@ -258,7 +263,7 @@
           <button type="button" data-training-preset="hard" data-training-label="training_hard" aria-pressed="false">Difficiles</button>
         </div>
         <div class="training-status">
-          <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Règles de l’entraînement">i</button>
+          <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Combinaison — les règles">i</button>
           <span id="training-progress">0 sur 0</span>
           <select id="training-timer" data-i18n-aria="training_timer" aria-label="Temps">
             <option value="0" data-i18n="training_no_timer">Sans limite</option>
@@ -272,8 +277,8 @@
       <div class="play-table" id="play-table">
         <div id="game-rack" class="game-rack" aria-label="Lettres du tirage"></div>
         <div class="game-rack-tools" id="game-rack-tools">
-          <button type="button" id="game-alpha" class="rack-tool" aria-pressed="false" data-i18n="rack_alpha" data-i18n-aria="rack_alpha_aria">A–Z</button>
-          <button type="button" id="game-clear-all" class="rack-tool" hidden data-i18n="play_clear">Tout effacer</button>
+          <button type="button" id="game-alpha" class="rack-tool rack-tool-quiet" hidden aria-pressed="false" data-i18n="rack_alpha" data-i18n-aria="rack_alpha_aria">A–Z</button>
+          <button type="button" id="game-skip" class="rack-tool" hidden data-i18n="play_skip">Passer</button>
         </div>
         <form id="game-form" class="game-form">
           <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
@@ -337,7 +342,7 @@
         </div>
         <div class="study-card">
           <div class="study-head">
-            <h3 data-i18n="study">Étude du jour</h3>
+            <h3 data-i18n="study">Petits Mots</h3>
             <p class="study-when" id="study-when"></p>
           </div>
           <p class="fine" data-i18n="study_blurb">Les mots de 2 et 3 lettres du jour — touchez un mot pour sa définition. La liste change chaque jour.</p>
@@ -346,7 +351,10 @@
           <p class="study-label" id="study-threes-label">Mots de 3 lettres</p>
           <div class="study-words" id="study-threes"></div>
           <div class="study-def" id="study-def" hidden>
-            <p class="study-def-word" id="study-def-word"></p>
+            <div class="study-def-head">
+              <p class="study-def-word" id="study-def-word"></p>
+              <button type="button" class="fav-btn" id="study-def-fav" hidden aria-pressed="false">☆</button>
+            </div>
             <div class="study-def-text game-def-body" id="study-def-text"></div>
           </div>
         </div>
@@ -369,11 +377,23 @@
     </div>
   </div>
 
+  <div id="fav-sheet" class="hist-sheet" hidden>
+    <div class="hist-card" role="dialog" aria-labelledby="fav-title">
+      <div class="hist-bar">
+        <div class="hist-heading">
+          <h2 id="fav-title" data-i18n="fav_title">Favoris</h2>
+        </div>
+        <button type="button" class="hist-close" id="fav-close" aria-label="Fermer">×</button>
+      </div>
+      <div id="fav-out" class="hist-out"></div>
+    </div>
+  </div>
+
   <div id="training-help" class="hist-sheet" hidden>
     <div class="hist-card" role="dialog" aria-labelledby="training-help-title">
       <div class="hist-bar">
         <div class="hist-heading">
-          <h2 id="training-help-title" data-i18n="training_rules_title">Entraînement — les règles</h2>
+          <h2 id="training-help-title" data-i18n="training_rules_title">Combinaison — les règles</h2>
         </div>
         <button type="button" class="hist-close" id="training-help-close" aria-label="Fermer">×</button>
       </div>
@@ -435,7 +455,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=103" type="module"></script>
+  <script src="app.js?v=104" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

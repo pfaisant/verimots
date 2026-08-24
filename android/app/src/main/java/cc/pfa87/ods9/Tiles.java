@@ -141,13 +141,27 @@ final class Tiles {
         TextView t = new TextView(ctx);
         t.setMinWidth((int) (72 * d));
         t.setGravity(Gravity.CENTER);
-        t.setPadding((int) (8 * d), (int) (6 * d), (int) (8 * d), (int) (6 * d));
+        t.setPadding((int) (6 * d), (int) (8 * d), (int) (6 * d), (int) (8 * d));
         t.setBackgroundResource(on ? R.drawable.bg_chip_on : mine ? R.drawable.bg_chip_mine : R.drawable.bg_chip);
-        t.setTextColor(ctx.getColor(on ? R.color.gold : mine ? R.color.ok : R.color.muted));
+        t.setTextColor(ctx.getColor(on ? R.color.ink : mine ? R.color.ok : R.color.muted));
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         t.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         t.setLetterSpacing(0.04f);
-        t.setText(word + "\n" + pts);
+        t.setMaxLines(1);
+        // Long words shrink instead of clipping on narrow weight-shared rows.
+        t.setAutoSizeTextTypeUniformWithConfiguration(8, 11, 1, TypedValue.COMPLEX_UNIT_SP);
+        // Word + score on one line, the score echoing the small gold value
+        // printed on the letter tiles.
+        String label = word + " " + pts;
+        android.text.SpannableString span = new android.text.SpannableString(label);
+        int at = label.length() - String.valueOf(pts).length();
+        span.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(R.color.gold)),
+                at, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new android.text.style.RelativeSizeSpan(0.82f),
+                at, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new android.text.style.StyleSpan(Typeface.BOLD),
+                at, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        t.setText(span);
         t.setTag(word);
         return t;
     }

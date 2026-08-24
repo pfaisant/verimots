@@ -13,7 +13,8 @@
         android:id="@+id/game_hub_back"
         android:layout_width="wrap_content"
         android:layout_height="32dp"
-        android:layout_marginStart="16dp"
+        android:layout_gravity="end"
+        android:layout_marginEnd="16dp"
         android:layout_marginTop="2dp"
         android:layout_marginBottom="6dp"
         android:background="@drawable/bg_pill"
@@ -254,22 +255,9 @@
         android:paddingBottom="8dp">
 
         <TextView
-            android:id="@+id/game_menu_back"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_pill"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:paddingHorizontal="12dp"
-            android:text="@string/menu_back"
-            android:textColor="@color/gold"
-            android:textSize="13sp" />
-
-        <TextView
             android:id="@+id/game_cat"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
@@ -302,6 +290,7 @@
             android:id="@+id/game_avg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:paddingHorizontal="10dp"
@@ -309,6 +298,18 @@
             android:textColor="@color/dim"
             android:textSize="11sp"
             android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/game_menu_back"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_pill"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:text="@string/menu_back"
+            android:textColor="@color/gold"
+            android:textSize="13sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -318,7 +319,8 @@
         android:layout_marginTop="8dp"
         android:background="@drawable/bg_card"
         android:orientation="vertical"
-        android:padding="8dp"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="10dp"
         android:visibility="gone">
 
         <HorizontalScrollView
@@ -337,7 +339,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
+            android:layout_marginTop="10dp"
             android:gravity="center_vertical">
 
             <TextView
@@ -392,36 +394,40 @@
         android:id="@+id/game_rack_tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:gravity="center_vertical|end">
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:id="@+id/game_clear_all"
+            android:id="@+id/game_skip"
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
-            android:layout_marginEnd="8dp"
+            android:layout_height="26dp"
             android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:letterSpacing="0.04"
             android:paddingHorizontal="12dp"
-            android:text="@string/play_clear"
-            android:textColor="@color/gold"
-            android:textSize="11sp"
-            android:visibility="gone" />
+            android:text="@string/play_skip"
+            android:textColor="@color/dim"
+            android:textSize="11sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/game_alpha"
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="26dp"
             android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:letterSpacing="0.04"
-            android:paddingHorizontal="12dp"
+            android:paddingHorizontal="10dp"
             android:text="@string/rack_alpha"
-            android:textColor="@color/gold"
-            android:textSize="11sp" />
+            android:textColor="@color/dim"
+            android:textSize="10sp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
@@ -617,8 +623,12 @@
                         android:id="@+id/game_break"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:autoSizeMaxTextSize="15sp"
+                        android:autoSizeMinTextSize="10sp"
+                        android:autoSizeTextType="uniform"
                         android:fontFamily="sans-serif-medium"
                         android:letterSpacing="0.04"
+                        android:maxLines="1"
                         android:textColor="@color/ink"
                         android:textSize="14sp" />
 
@@ -647,15 +657,35 @@
                 android:orientation="vertical"
                 android:padding="12dp">
 
-                <TextView
-                    android:id="@+id/game_pos"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.06"
-                    android:textAllCaps="true"
-                    android:textColor="@color/gold"
-                    android:textSize="10sp" />
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/game_pos"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.06"
+                        android:maxLines="1"
+                        android:textAllCaps="true"
+                        android:textColor="@color/gold"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/game_fav"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/fav_add"
+                        android:gravity="center"
+                        android:text="☆"
+                        android:textColor="@color/gold"
+                        android:textSize="19sp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/game_def"
@@ -692,8 +722,8 @@
         android:id="@+id/game_dock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_card"
         android:gravity="center_vertical"
         android:paddingHorizontal="10dp"
@@ -797,23 +827,6 @@
                 android:gravity="center_vertical">
 
                 <TextView
-                    android:id="@+id/study_back"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_pill"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:paddingHorizontal="12dp"
-                    android:text="@string/menu_back"
-                    android:textColor="@color/gold"
-                    android:textSize="13sp" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
                     android:id="@+id/game_study_share"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
@@ -836,6 +849,23 @@
                     android:text="@string/share_study_twos"
                     android:textColor="@color/gold"
                     android:textSize="12sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/study_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_pill"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/menu_back"
+                    android:textColor="@color/gold"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -878,17 +908,69 @@
                     android:textColor="@color/muted"
                     android:textSize="13sp" />
 
-                <TextView
-                    android:id="@+id/game_study_def"
+                <LinearLayout
+                    android:id="@+id/study_def_panel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/bg_count"
-                    android:lineSpacingMultiplier="1.25"
-                    android:padding="10dp"
-                    android:textColor="@color/ink"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
+                    android:orientation="vertical"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="10dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/study_def_head"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.06"
+                            android:maxLines="1"
+                            android:textAllCaps="true"
+                            android:textColor="@color/gold"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/study_fav"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/fav_add"
+                            android:gravity="center"
+                            android:text="☆"
+                            android:textColor="@color/gold"
+                            android:textSize="19sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/study_def_body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:textColor="@color/ink"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/study_def_lemma"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_pill"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:textColor="@color/gold"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/game_study_twos_label"

@@ -410,12 +410,19 @@ body.advanced:not(.view-game):not(.view-board) {
 }
 .hist-day:first-child { margin-top: 2px; }
 .hist-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  margin: 0 0 4px;
+}
+.hist-row-main {
+  flex: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   column-gap: 10px;
-  width: 100%;
-  margin: 0 0 4px;
   padding: 8px 10px;
   border: 0;
   border-radius: 10px;
@@ -424,10 +431,38 @@ body.advanced:not(.view-game):not(.view-board) {
   text-align: left;
   cursor: pointer;
 }
-.hist-row:hover,
-.hist-row:focus-visible {
+.hist-row-main:hover,
+.hist-row-main:focus-visible {
   background: rgba(232, 197, 107, 0.1);
 }
+.fav-btn {
+  flex: 0 0 auto;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+.fav-btn:hover { color: var(--gold); }
+.fav-btn.is-on { color: var(--gold); }
+.fav-btn[hidden] { display: none !important; }
+.game-def-panel .fav-btn {
+  float: right;
+  margin: -4px -4px 4px 8px;
+}
+.study-def-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.study-def-head .study-def-word { margin: 0; }
 .hist-row-word {
   font-family: var(--display);
   font-size: 15px;
@@ -988,6 +1023,16 @@ body.view-rack #q { padding-right: 96px; }
   border-top: 1px solid var(--line);
 }
 #settings-card .info-action-ghost { margin-top: 10px; }
+.opt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+.opt-row input { accent-color: var(--gold); }
 .settings-label {
   margin: 10px 0 4px;
   letter-spacing: 0.04em;
@@ -1915,6 +1960,14 @@ body.view-game:has(#game-play[hidden]) {
   color: var(--gold);
 }
 .rack-tool[hidden] { display: none !important; }
+/* The optional A–Z sorter stays discreet when enabled. */
+.rack-tool-quiet {
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
 body.game-closed .game-rack-tools { display: none; }
 .game-rack .tile.training-extra {
   outline: 2px solid var(--gold);
@@ -2106,7 +2159,15 @@ body.game-closed .play-table { gap: 12px; }
 .game-pct small { font-size: 16px; }
 .game-score-words { text-align: left; min-width: 0; }
 .game-score-words p { margin: 0; color: var(--muted); font-size: 14px; }
-.game-break { font-size: 16px !important; color: var(--ink) !important; letter-spacing: 0.04em; }
+.game-break {
+  font-size: 16px !important;
+  color: var(--ink) !important;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 .game-vs { font-size: 12px !important; }
 .game-top {
   display: flex;
@@ -2155,9 +2216,11 @@ body.game-closed .play-table { gap: 12px; }
 }
 .game-top-pts {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0;
-  opacity: 0.72;
+  color: var(--gold);
+  opacity: 0.9;
+  white-space: nowrap;
 }
 .game-def-panel {
   flex: 1 1 auto;

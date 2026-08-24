@@ -8,9 +8,9 @@
     <string name="tab_check">Check</string>
     <string name="tab_game">Play</string>
     <string name="menu_comp">Bingo</string>
-    <string name="menu_training">Training</string>
+    <string name="menu_training">Combinations</string>
     <string name="menu_find">Find a word</string>
-    <string name="menu_study">Word study</string>
+    <string name="menu_study">Short Words</string>
     <string name="menu_back">Back</string>
     <string name="level_title">Level</string>
     <string name="level_beginner">Beginner</string>
@@ -39,7 +39,6 @@
     <string name="see_lemma">See %1$s</string>
     <string name="clear">Clear</string>
     <string name="rack_alpha">A–Z</string>
-    <string name="play_clear">Clear all</string>
     <string name="about_title">About Verimots</string>
     <string name="about_body">Offline first: the selected list (forms of 2 to 15 letters) checks a word and the challenge with no network.\n\nDefinitions are extracted from Wiktionary (a free community source, sometimes wrong) and need a connection, like sharing.\n\nVerimots is not affiliated with NASPA, Mattel or Hasbro.</string>
     <string name="settings">Settings</string>
@@ -73,8 +72,8 @@
     <string name="competition">Competition</string>
     <string name="competition_on">Competition · on</string>
     <string name="challenge">Challenge</string>
-    <string name="training">Training</string>
-    <string name="training_on">Training · on</string>
+    <string name="training">Combinations</string>
+    <string name="training_on">Combinations · on</string>
     <string name="training_all">All</string>
     <string name="training_seven">7 letters</string>
     <string name="training_eight">8 letters</string>
@@ -165,7 +164,7 @@
     <string name="board_general">General</string>
     <string name="kids_board">Beginners</string>
     <string name="kids_board_empty">No beginner scores yet.</string>
-    <string name="study">Word study</string>
+    <string name="study">Short Words</string>
     <string name="study_today">Today · %1$s</string>
     <string name="study_pack">%1$s\n\n2 letters\n%2$s\n\n3 letters\n%3$s</string>
     <string name="study_share">Share today’s words</string>
@@ -175,7 +174,7 @@
     <string name="study_threes">3-letter words</string>
     <string name="study_section">%1$s · %2$d</string>
     <string name="share_study_twos">2 letters</string>
-    <string name="share_study_daily">Verimots — Word study · %1$s</string>
+    <string name="share_study_daily">Verimots — Short Words · %1$s</string>
     <string name="share_study_list">Verimots — %1$d-letter words (%2$d)\n\n%3$s\n</string>
     <string name="share_study_word_body">Verimots\n\n*%1$s* is in the list\n%2$d letters · %3$d pts\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="dict_download">Download the word list</string>
@@ -199,6 +198,18 @@
     <string name="feedback_ok">Thanks, it\'s sent.</string>
     <string name="feedback_err">Could not send. Try again.</string>
     <string name="feedback_need">Write a short message.</string>
-    <string name="training_rules_title">Training — the rules</string>
-    <string name="training_rules_body">Find every word in the rack. Type a word and submit; used tiles grey out.\n\n• All — every word from 2 to 7 letters counts.\n• 7 letters — only words using all 7 letters count.\n• 8 letters — same, with an 8-tile rack.\n• 7 + 1 — a shuffled 7-letter word plus one bonus tile (gold outline): find the 8-letter words.\n• Joker — the ? stands for any letter (0 points).\n• Hard — the rack contains J, K, Q, W, X, Y or Z.\n\nOptional timer: 30 s, 60 s or 2 min. “Reveal answers” ends the round and shows the list.\n\nTraining is unranked: your stats stay on this device.</string>
+    <string name="training_rules_title">Combinations — the rules</string>
+    <string name="training_rules_body">Find every word in the rack. Type a word and submit; used tiles grey out.\n\n• All — every word from 2 to 7 letters counts.\n• 7 letters — only words using all 7 letters count.\n• 8 letters — same, with an 8-tile rack.\n• 7 + 1 — a shuffled 7-letter word plus one bonus tile (gold outline): find the 8-letter words.\n• Joker — the ? stands for any letter (0 points).\n• Hard — the rack contains J, K, Q, W, X, Y or Z.\n\nOptional timer: 30 s, 60 s or 2 min. “Reveal answers” ends the round and shows the list.\n\nThis mode is unranked: your stats stay on this device.</string>
+    <string name="play_skip">Skip</string>
+    <string name="skip_done">Rack skipped</string>
+    <string name="skip_best">The best word was:</string>
+    <string name="fav_title">Favorites</string>
+    <string name="fav_empty">No favorites yet. Tap ★ on a word to keep it.</string>
+    <string name="fav_add">Add to favorites</string>
+    <string name="fav_remove">Remove from favorites</string>
+    <string name="fav_open">Favorites</string>
+    <string name="opt_alpha_btn">A–Z button on the rack</string>
+    <string name="opt_alpha_help">Shows a button that sorts the rack letters.</string>
+    <string name="opt_words_title">My words</string>
+    <string name="opt_words_help">Checked and played words, plus the ones you starred.</string>
 </resources>

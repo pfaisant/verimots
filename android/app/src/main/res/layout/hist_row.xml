@@ -39,4 +39,16 @@
         android:textColor="@color/gold"
         android:textSize="13sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/hist_row_fav"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="4dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/fav_add"
+        android:gravity="center"
+        android:text="☆"
+        android:textColor="@color/gold"
+        android:textSize="18sp" />
 </LinearLayout>

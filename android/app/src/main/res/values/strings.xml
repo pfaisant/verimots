@@ -8,9 +8,9 @@
     <string name="tab_check">Vérifier</string>
     <string name="tab_game">Jouer</string>
     <string name="menu_comp">Bingo</string>
-    <string name="menu_training">Entraînement</string>
+    <string name="menu_training">Combinaison</string>
     <string name="menu_find">Trouver un mot</string>
-    <string name="menu_study">Étude du jour</string>
+    <string name="menu_study">Petits Mots</string>
     <string name="menu_back">Retour</string>
     <string name="level_title">Niveau</string>
     <string name="level_beginner">Débutant</string>
@@ -39,7 +39,6 @@
     <string name="see_lemma">Voir %1$s</string>
     <string name="clear">Effacer</string>
     <string name="rack_alpha">A–Z</string>
-    <string name="play_clear">Tout effacer</string>
     <string name="about_title">À propos de Verimots</string>
     <string name="about_body">Hors ligne : la liste choisie (formes de 2 à 15 lettres) sert à vérifier un mot et le défi, sans réseau.\n\nLes définitions sont extraites du Wiktionnaire (source libre, parfois fautive) et demandent une connexion, comme le partage.\n\nVerimots n’est pas l’ouvrage Larousse, ni un produit affilié à Mattel ou à une fédération.</string>
     <string name="settings">Réglages</string>
@@ -73,8 +72,8 @@
     <string name="competition">Compétition</string>
     <string name="competition_on">Compétition · on</string>
     <string name="challenge">Défi</string>
-    <string name="training">Entraînement</string>
-    <string name="training_on">Entraînement · on</string>
+    <string name="training">Combinaison</string>
+    <string name="training_on">Combinaison · on</string>
     <string name="training_all">Tous</string>
     <string name="training_seven">7 lettres</string>
     <string name="training_eight">8 lettres</string>
@@ -87,8 +86,8 @@
     <string name="training_no_timer">Sans limite</string>
     <string name="training_complete">Tous trouvés !</string>
     <string name="training_blurb">Trouve tous les mots du tirage.</string>
-    <string name="training_rules_title">Entraînement — les règles</string>
-    <string name="training_rules_body">Trouve tous les mots du tirage. Tape un mot puis valide ; les tuiles utilisées se grisent.\n\n• Tous — tous les mots de 2 à 7 lettres comptent.\n• 7 lettres — seuls les mots qui utilisent les 7 lettres comptent.\n• 8 lettres — pareil, avec un tirage de 8.\n• 7 + 1 — un mot de 7 lettres mélangé plus une lettre bonus (encadrée d’or) : cherche les mots de 8 lettres.\n• Joker — le ? remplace n’importe quelle lettre (0 point).\n• Difficiles — le tirage contient J, K, Q, W, X, Y ou Z.\n\nMinuteur en option : 30 s, 60 s ou 2 min. « Voir les réponses » termine la manche et révèle la liste.\n\nL’entraînement n’est pas classé : tes statistiques restent sur cet appareil.</string>
+    <string name="training_rules_title">Combinaison — les règles</string>
+    <string name="training_rules_body">Trouve tous les mots du tirage. Tape un mot puis valide ; les tuiles utilisées se grisent.\n\n• Tous — tous les mots de 2 à 7 lettres comptent.\n• 7 lettres — seuls les mots qui utilisent les 7 lettres comptent.\n• 8 lettres — pareil, avec un tirage de 8.\n• 7 + 1 — un mot de 7 lettres mélangé plus une lettre bonus (encadrée d’or) : cherche les mots de 8 lettres.\n• Joker — le ? remplace n’importe quelle lettre (0 point).\n• Difficiles — le tirage contient J, K, Q, W, X, Y ou Z.\n\nMinuteur en option : 30 s, 60 s ou 2 min. « Voir les réponses » termine la manche et révèle la liste.\n\nCe mode n’est pas classé : tes statistiques restent sur cet appareil.</string>
     <string name="training_revealed">Réponses affichées</string>
     <string name="training_found">%1$s · %2$d points</string>
     <string name="training_found_left">%1$s · %2$d points · encore %3$d</string>
@@ -167,17 +166,17 @@
     <string name="board_general">Général</string>
     <string name="kids_board">Débutants</string>
     <string name="kids_board_empty">Aucun score débutant pour l’instant.</string>
-    <string name="study">Étude du jour</string>
+    <string name="study">Petits Mots</string>
     <string name="study_today">Aujourd’hui · %1$s</string>
     <string name="study_pack">%1$s\n\n2 lettres\n%2$s\n\n3 lettres\n%3$s</string>
-    <string name="study_share">Partager l’étude du jour</string>
+    <string name="study_share">Partager les mots du jour</string>
     <string name="study_share_short">Partager</string>
     <string name="study_share_twos">Partager les mots de 2 lettres</string>
     <string name="study_twos">Mots de 2 lettres</string>
     <string name="study_threes">Mots de 3 lettres</string>
     <string name="study_section">%1$s · %2$d</string>
     <string name="share_study_twos">2 lettres</string>
-    <string name="share_study_daily">Verimots — Étude du jour · %1$s</string>
+    <string name="share_study_daily">Verimots — Petits Mots · %1$s</string>
     <string name="share_study_list">Verimots — mots de %1$d lettres (%2$d)\n\n%3$s\n</string>
     <string name="share_study_word_body">Verimots\n\n*%1$s* est dans la liste\n%2$d lettres · %3$d pts\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
     <string name="dict_download">Télécharger la liste</string>
@@ -201,4 +200,16 @@
     <string name="feedback_ok">Merci, c’est envoyé.</string>
     <string name="feedback_err">Impossible d’envoyer. Réessayez.</string>
     <string name="feedback_need">Écrivez un petit message.</string>
+    <string name="play_skip">Passer</string>
+    <string name="skip_done">Tirage passé</string>
+    <string name="skip_best">Le meilleur mot était :</string>
+    <string name="fav_title">Favoris</string>
+    <string name="fav_empty">Aucun favori pour l’instant. Touchez ★ sur un mot pour le retenir.</string>
+    <string name="fav_add">Ajouter aux favoris</string>
+    <string name="fav_remove">Retirer des favoris</string>
+    <string name="fav_open">Favoris</string>
+    <string name="opt_alpha_btn">Bouton A–Z sur le tirage</string>
+    <string name="opt_alpha_help">Affiche un bouton pour trier les lettres du tirage.</string>
+    <string name="opt_words_title">Mes mots</string>
+    <string name="opt_words_help">Les mots vérifiés et joués, et ceux marqués d’une étoile.</string>
 </resources>

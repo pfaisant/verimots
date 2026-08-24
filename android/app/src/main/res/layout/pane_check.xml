@@ -215,15 +215,34 @@
                 android:textAllCaps="true"
                 android:textSize="11sp" />
 
-            <TextView
-                android:id="@+id/check_word"
-                style="@style/Display"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:letterSpacing="0.1"
-                android:textSize="26sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/check_word"
+                    style="@style/Display"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:letterSpacing="0.1"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/check_fav"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/fav_add"
+                    android:gravity="center"
+                    android:text="☆"
+                    android:textColor="@color/gold"
+                    android:textSize="22sp"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <HorizontalScrollView
                 android:layout_width="match_parent"

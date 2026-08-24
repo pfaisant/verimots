@@ -80,15 +80,18 @@ public class ScoreChartView extends View {
 
         int n = scores.size();
         float gap = (n > 16 ? 2 : 3) * d;
-        float slot = w / n;
-        float barW = Math.max(1.5f * d, slot - gap);
+        // Cap the slot so 1–3 games render as a few slim bars hugging the
+        // right edge (next to the "last" number) instead of screen-wide slabs.
+        float slot = Math.min(w / n, 22 * d);
+        float barW = Math.max(1.5f * d, Math.min(14 * d, slot - gap));
         float radius = Math.min(3 * d, barW / 2f);
+        float startX = w - n * slot;
         float sum = 0;
 
         for (int i = 0; i < n; i++) {
             int pct = Math.max(0, Math.min(100, scores.get(i)));
             sum += pct;
-            float x = i * slot + gap / 2f;
+            float x = startX + i * slot + gap / 2f;
             float top = padT + (1 - pct / 100f) * innerH;
             if (y0 - top < 2 * d) top = y0 - 2 * d;
             rect.set(x, top, x + barW, y0);
@@ -96,7 +99,7 @@ public class ScoreChartView extends View {
         }
         if (n > 1) {
             float yAvg = padT + (1 - sum / n / 100f) * innerH;
-            c.drawLine(0, yAvg, w, yAvg, mid);
+            c.drawLine(Math.max(0, startX), yAvg, w, yAvg, mid);
         }
     }
 }
