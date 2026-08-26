@@ -252,10 +252,16 @@ final class RemoteApi {
     }
 
     static void fetchBoard(String trailId, String lang, boolean kids, BoardCb cb) {
+        fetchBoard(trailId, lang, kids, false, cb);
+    }
+
+    /** all=true asks for the all-time board (scope=all): same JSON shape. */
+    static void fetchBoard(String trailId, String lang, boolean kids, boolean all, BoardCb cb) {
         IO.execute(() -> {
             try {
                 String url = HOST + "/api/game/board?lang=" + language(lang);
                 if (kids) url += "&kids=1";
+                if (all) url += "&scope=all";
                 if (trailId != null && !trailId.isEmpty()) url += "&trailId=" + trailId;
                 HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
                 auth(c);
@@ -483,6 +489,50 @@ final class RemoteApi {
             out.append(i + 1).append(". ").append(lines.get(i));
         }
         return out.toString();
+    }
+
+    interface BitmapCb {
+        void ok(android.graphics.Bitmap bitmap);
+    }
+
+    private static final java.util.Map<String, android.graphics.Bitmap> AVATARS = new java.util.HashMap<>();
+
+    /** Google avatar for the user card / stats sheet. Cached per URL; the
+     *  callback fires on the UI thread, null when the image cannot load. */
+    static void fetchAvatar(String url, BitmapCb cb) {
+        if (url == null || url.isEmpty() || !url.startsWith("https://")) {
+            post(() -> cb.ok(null));
+            return;
+        }
+        android.graphics.Bitmap hit;
+        synchronized (AVATARS) {
+            hit = AVATARS.get(url);
+        }
+        if (hit != null) {
+            post(() -> cb.ok(hit));
+            return;
+        }
+        IO.execute(() -> {
+            android.graphics.Bitmap bmp = null;
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                c.setConnectTimeout(6000);
+                c.setReadTimeout(6000);
+                c.setInstanceFollowRedirects(true);
+                try (InputStream in = c.getInputStream()) {
+                    bmp = android.graphics.BitmapFactory.decodeStream(in);
+                }
+                c.disconnect();
+            } catch (Exception ignored) {
+            }
+            if (bmp != null) {
+                synchronized (AVATARS) {
+                    AVATARS.put(url, bmp);
+                }
+            }
+            final android.graphics.Bitmap out = bmp;
+            post(() -> cb.ok(out));
+        });
     }
 
     private static void post(Runnable r) {

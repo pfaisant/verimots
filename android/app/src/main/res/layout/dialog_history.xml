@@ -24,7 +24,9 @@
                 android:id="@+id/hist_dialog_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="serif"
+                android:maxLines="2"
                 android:text="@string/hist_local"
                 android:textColor="@color/ink"
                 android:textSize="22sp"
@@ -50,6 +52,54 @@
             android:text="×"
             android:textColor="@color/ink"
             android:textSize="24sp" />
+    </LinearLayout>
+
+    <!-- Leaderboard only: "Semaine | Général" segmented pill (web .board-tabs) -->
+    <LinearLayout
+        android:id="@+id/hist_dialog_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_seg_track"
+            android:orientation="horizontal"
+            android:padding="2dp">
+
+            <TextView
+                android:id="@+id/board_scope_week"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.04"
+                android:maxLines="1"
+                android:minWidth="64dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/board_week"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/board_scope_all"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:layout_marginStart="2dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.04"
+                android:maxLines="1"
+                android:minWidth="64dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/board_general"
+                android:textSize="11sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <ScrollView

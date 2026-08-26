@@ -32,7 +32,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import android.widget.EditText;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
@@ -201,9 +205,13 @@ public class MainActivity extends Activity {
     private boolean trainingRecorded;
     private View boardOpen;
     private Dialog boardDialog;
-    private TextView boardTabGeneral;
-    private TextView boardTabKids;
-    private boolean boardKidsTab;
+    private Dialog statsDialog;
+    private LinearLayout statsBody;
+    private View gameLiveRow;
+    private View authUserRow;
+    private TextView authName;
+    private ImageView authPic;
+    private TextView authPicFallback;
 
     private LinearLayout gameRack;
     private LinearLayout gameForm;
@@ -228,10 +236,6 @@ public class MainActivity extends Activity {
     private TextView gameChartAvgUnit;
     private TextView gameLast;
     private TextView gameLastUnit;
-    private TextView boardChartAvg;
-    private TextView boardChartAvgUnit;
-    private ScoreChartView boardChart;
-    private TextView boardChartLast;
     private View gameSpacer;
     private View gameDock;
     private Lexicon.Deal deal;
@@ -365,10 +369,7 @@ public class MainActivity extends Activity {
         boolean appAuth = ("verimots".equals(u.getScheme()) && "auth".equals(u.getHost()))
                 || path.contains("auth-android");
         if (appAuth && token != null && !token.isEmpty()) {
-            competitiveMode.finishWebSignIn(token, () -> {
-                paintAuth();
-                syncHistory();
-            });
+            competitiveMode.finishWebSignIn(token, this::onSignedIn);
             return;
         }
         if (lex == null) return;
@@ -454,16 +455,23 @@ public class MainActivity extends Activity {
         stamp.setText(getString(R.string.build_stamp, name, code, BuildConfig.BUILD_TIME));
     }
 
+    private static final String[] DICT_IDS = {Dict.ODS, Dict.CSW, Dict.WOW24, Dict.RLA};
+    private static final int[] DICT_CARDS = {R.id.dict_fr, R.id.dict_en, R.id.dict_wow24, R.id.dict_es};
+    private static final int[] DICT_LANGS = {R.id.dict_fr_lang, R.id.dict_en_lang, R.id.dict_wow24_lang, R.id.dict_es_lang};
+    private static final int[] DICT_CHECKS = {R.id.dict_fr_check, R.id.dict_en_check, R.id.dict_wow24_check, R.id.dict_es_check};
+    private static final int[] DICT_METAS = {R.id.dict_fr_meta, R.id.dict_en_meta, R.id.dict_wow24_meta, R.id.dict_es_meta};
+    private static final String[] DICT_META_FILES = {
+            "data/meta.json", "data/meta-en.json", "data/meta-en-wow24.json", "data/meta-es.json"};
+
     private void bindDicts() {
-        View fr = findViewById(R.id.dict_fr);
-        View en = findViewById(R.id.dict_en);
-        View wow = findViewById(R.id.dict_wow24);
-        View es = findViewById(R.id.dict_es);
-        if (fr == null || en == null || wow == null || es == null) return;
-        fr.setOnClickListener(v -> setDictionary(Dict.ODS));
-        en.setOnClickListener(v -> setDictionary(Dict.CSW));
-        wow.setOnClickListener(v -> setDictionary(Dict.WOW24));
-        es.setOnClickListener(v -> setDictionary(Dict.RLA));
+        for (int i = 0; i < DICT_CARDS.length; i++) {
+            View card = findViewById(DICT_CARDS[i]);
+            if (card == null) return;
+            final String id = DICT_IDS[i];
+            card.setOnClickListener(v -> setDictionary(id));
+        }
+        layoutDictGrid();
+        loadDictMeta();
         View popOds = findViewById(R.id.pop_dict_ods);
         View popCsw = findViewById(R.id.pop_dict_csw);
         View popWow = findViewById(R.id.pop_dict_wow24);
@@ -507,17 +515,90 @@ public class MainActivity extends Activity {
     }
 
     private void paintDicts() {
-        View fr = findViewById(R.id.dict_fr);
-        View en = findViewById(R.id.dict_en);
-        View wow = findViewById(R.id.dict_wow24);
-        View es = findViewById(R.id.dict_es);
-        if (fr == null || en == null || wow == null || es == null) return;
         String dict = Dict.get(this);
-        styleDictRow(fr, Dict.ODS.equals(dict));
-        styleDictRow(en, Dict.CSW.equals(dict));
-        styleDictRow(wow, Dict.WOW24.equals(dict));
-        styleDictRow(es, Dict.RLA.equals(dict));
+        for (int i = 0; i < DICT_CARDS.length; i++) {
+            View card = findViewById(DICT_CARDS[i]);
+            if (card == null) return;
+            boolean on = DICT_IDS[i].equals(dict);
+            card.setBackgroundResource(on ? R.drawable.bg_dict_on : R.drawable.bg_dict_off);
+            card.setSelected(on);
+            TextView lang = findViewById(DICT_LANGS[i]);
+            if (lang != null) {
+                lang.setBackgroundResource(on ? R.drawable.bg_lang_badge_on : R.drawable.bg_lang_badge);
+                lang.setTextColor(getColor(on ? R.color.tile_ink : R.color.gold));
+            }
+            View check = findViewById(DICT_CHECKS[i]);
+            if (check != null) check.setVisibility(on ? View.VISIBLE : View.GONE);
+        }
         paintDictBadge();
+    }
+
+    /** Web .dict-list: one column on phones, two columns from 560dp. */
+    private void layoutDictGrid() {
+        LinearLayout list = findViewById(R.id.dict_list);
+        if (list == null || getResources().getConfiguration().screenWidthDp < 560) return;
+        ArrayList<View> cards = new ArrayList<>();
+        for (int id : DICT_CARDS) {
+            View card = findViewById(id);
+            if (card != null) cards.add(card);
+        }
+        if (cards.size() != DICT_CARDS.length) return;
+        list.removeAllViews();
+        for (int r = 0; r < 2; r++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setBaselineAligned(false);
+            for (int c = 0; c < 2; c++) {
+                View card = cards.get(r * 2 + c);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+                if (c > 0) lp.setMarginStart(dp(8));
+                row.addView(card, lp);
+            }
+            LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            if (r > 0) rlp.topMargin = dp(8);
+            list.addView(row, rlp);
+        }
+    }
+
+    /** "407 128 mots · en vigueur depuis le 1 janv. 2024" under each card
+     *  (web data-dict-meta), read once from the bundled meta files. */
+    private void loadDictMeta() {
+        final java.util.Locale locale = new java.util.Locale(Lang.get(this));
+        new Thread(() -> {
+            final String[] lines = new String[DICT_META_FILES.length];
+            for (int i = 0; i < DICT_META_FILES.length; i++) {
+                try (java.io.InputStream in = getAssets().open(DICT_META_FILES[i])) {
+                    java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                    byte[] buf = new byte[8192];
+                    int k;
+                    while ((k = in.read(buf)) > 0) bos.write(buf, 0, k);
+                    org.json.JSONObject meta = new org.json.JSONObject(bos.toString("UTF-8"));
+                    String count = String.format(locale, "%,d", meta.optInt("count", 0)).replace('\u00a0', ' ');
+                    String iso = meta.isNull("inForce") ? "" : meta.optString("inForce", "");
+                    String date = "";
+                    if (iso.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                        Calendar cal = Calendar.getInstance();
+                        cal.set(Integer.parseInt(iso.substring(0, 4)), Integer.parseInt(iso.substring(5, 7)) - 1,
+                                Integer.parseInt(iso.substring(8, 10)));
+                        date = java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, locale).format(cal.getTime());
+                    }
+                    lines[i] = date.isEmpty()
+                            ? getString(R.string.word_count, count)
+                            : getString(R.string.dict_stats, count, date);
+                } catch (Exception ignored) {
+                }
+            }
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                for (int i = 0; i < DICT_METAS.length; i++) {
+                    TextView meta = findViewById(DICT_METAS[i]);
+                    if (meta == null) continue;
+                    meta.setText(lines[i] == null ? "" : lines[i]);
+                    meta.setVisibility(lines[i] == null ? View.GONE : View.VISIBLE);
+                }
+            });
+        }).start();
     }
 
     private void paintDictBadge() {
@@ -535,14 +616,11 @@ public class MainActivity extends Activity {
         SpannableString bold = new SpannableString(label);
         int end = Math.min(n.length(), label.length());
         bold.setSpan(new StyleSpan(Typeface.BOLD), 0, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        // Web .info-lex strong: the count reads gold inside the muted pill.
+        bold.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.gold)), 0, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         if (aboutLex != null) aboutLex.setText(bold);
         if (live != null) live.setText(label);
         paintDictBadge();
-    }
-
-    private void styleDictRow(View row, boolean on) {
-        row.setBackgroundResource(on ? R.drawable.bg_chip_on : R.drawable.bg_chip);
-        row.setSelected(on);
     }
 
     private void bindLang() {
@@ -603,6 +681,7 @@ public class MainActivity extends Activity {
                     paintStudy();
                     if (tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE) {
                         deal = null;
+                        clearTable();
                         requestDeal();
                     }
                 });
@@ -673,8 +752,15 @@ public class MainActivity extends Activity {
             if (!playOn && !studyOn) {
                 if (welcomeCompetition && lex != null) openWelcomeCompetition();
                 else showGameView("menu");
+            } else if (playOn && deal == null && lex != null) {
+                // Sign-in/out emptied the table while another tab was up.
+                requestDeal();
             }
         }
+    }
+
+    private int dp(float v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
     }
 
     private void requestDeal() {
@@ -899,6 +985,7 @@ public class MainActivity extends Activity {
                 ? getString(R.string.playable, Dict.label(this))
                 : getString(R.string.not_in_list, Dict.label(this)));
         checkStatus.setTextColor(getColor(ok ? R.color.ok : R.color.no));
+        checkStatus.setBackgroundResource(ok ? R.drawable.bg_status_ok : R.drawable.bg_status_no);
         // Tiles already spell the word — the headline only shows when refused.
         checkWord.setText(word);
         checkWord.setVisibility(ok ? View.GONE : View.VISIBLE);
@@ -998,7 +1085,7 @@ public class MainActivity extends Activity {
     private void styleLevelChip(TextView chip, boolean on) {
         if (chip == null) return;
         chip.setBackgroundResource(on ? R.drawable.bg_seg_on : 0);
-        chip.setTextColor(getColor(on ? R.color.tile_ink : R.color.dim));
+        chip.setTextColor(getColor(on ? R.color.tile_ink : R.color.muted));
     }
 
     private void showGameView(String view) {
@@ -1026,9 +1113,77 @@ public class MainActivity extends Activity {
         deal = null;
         officialDeal = false;
         hintLevel = 0;
+        clearTable();
         paintAuth();
         showGameView("play");
         requestDeal();
+    }
+
+    /** Empties the play table while a deal is in flight, so the previous
+     *  game's rack, chips and result never linger under the new kicker. */
+    private void clearTable() {
+        closed = false;
+        pickedTiles.clear();
+        if (gameRack != null) gameRack.removeAllViews();
+        if (gameQ != null) {
+            gameQ.setText("");
+            gameQ.setEnabled(false);
+        }
+        if (gameForm != null) gameForm.setVisibility(View.INVISIBLE);
+        if (gameLive != null) gameLive.setText("");
+        if (gameResult != null) gameResult.setVisibility(View.GONE);
+        if (gameAgain != null) gameAgain.setVisibility(View.GONE);
+        if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
+        if (gameSkip != null) gameSkip.setVisibility(View.GONE);
+        if (gameRackTools != null) gameRackTools.setVisibility(View.GONE);
+        if (gameHint != null) gameHint.setVisibility(View.GONE);
+        if (gameCat != null) gameCat.setText(kickerLabel(""));
+        trainingFoundPlays.clear();
+        trainingFound.clear();
+        trainingNeeded.clear();
+        paintTrainingFound();
+        hideTrainingHint();
+        hideTrainingDef();
+        paintFindTools();
+        paintTrainingActions();
+        paintClearAll();
+        paintShare(null);
+        syncLiveRow();
+    }
+
+    /** Web parity: after a sign-in or sign-out the ranked view is rebuilt
+     *  from scratch — same mode + same rack must not short-circuit it. */
+    private void rebuildRanked() {
+        if (isTrainingMode || !(isCompetitiveMode || isKidsMode)) return;
+        deal = null;
+        officialDeal = false;
+        hintLevel = 0;
+        clearTable();
+        boolean playOn = tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
+        if (playOn && lex != null) requestDeal();
+    }
+
+    private void onSignedIn() {
+        paintAuth();
+        syncHistory();
+        refreshBoards();
+        rebuildRanked();
+    }
+
+    private void signOutAndRebuild() {
+        competitiveMode.signOut();
+        statStreak = 0;
+        statBest = 0;
+        statWords = 0;
+        rankedSubmitGeneration++;
+        rankedSubmitInFlight = false;
+        pendingRankedPercent = -1;
+        pendingRankedWord = "";
+        if (statsDialog != null && statsDialog.isShowing()) statsDialog.dismiss();
+        paintAuth();
+        paintHistory();
+        refreshBoards();
+        rebuildRanked();
     }
 
     private void maybeOpenWelcomeCompetition() {
@@ -1051,6 +1206,10 @@ public class MainActivity extends Activity {
         authStatus = findViewById(R.id.auth_status);
         authGoogle = findViewById(R.id.auth_google);
         authLogout = findViewById(R.id.auth_logout);
+        authUserRow = findViewById(R.id.auth_user_row);
+        authName = findViewById(R.id.auth_name);
+        authPic = findViewById(R.id.auth_pic);
+        authPicFallback = findViewById(R.id.auth_pic_fallback);
         gameMode = findViewById(R.id.game_mode);
         gameTraining = findViewById(R.id.game_training);
         gameKids = findViewById(R.id.game_kids);
@@ -1093,16 +1252,8 @@ public class MainActivity extends Activity {
         if (authStats != null) authStats.setOnClickListener(v -> showUserStatsDialog());
         boardOpen = findViewById(R.id.board_open);
         if (boardOpen != null) boardOpen.setOnClickListener(v -> showBoardDialog());
-        if (authGoogle != null) authGoogle.setOnClickListener(v -> competitiveMode.signIn(() -> {
-            paintAuth();
-            syncHistory();
-        }));
-        if (authLogout != null) authLogout.setOnClickListener(v -> {
-            competitiveMode.signOut();
-            isCompetitiveMode = false;
-            paintAuth();
-            paintHistory();
-        });
+        if (authGoogle != null) authGoogle.setOnClickListener(v -> competitiveMode.signIn(this::onSignedIn));
+        if (authLogout != null) authLogout.setOnClickListener(v -> signOutAndRebuild());
         histOpen = findViewById(R.id.hist_open);
         if (histOpen != null) histOpen.setOnClickListener(v -> showHistoryDialog());
         TextView favOpen = findViewById(R.id.fav_open);
@@ -1169,9 +1320,35 @@ public class MainActivity extends Activity {
         if (hintLevel == 1) gameLive.setText(getString(R.string.kids_hint_letter, target.substring(0, 1)));
         else {
             gameLive.setText(getString(R.string.kids_hint_word, target));
-            gameHint.setEnabled(false);
+            setPillEnabled(gameHint, false);
         }
         gameLive.setTextColor(getColor(R.color.ok));
+        syncLiveRow();
+    }
+
+    /** Web :disabled — opacity .4, no tap. */
+    private void setPillEnabled(View pill, boolean on) {
+        if (pill == null) return;
+        pill.setEnabled(on);
+        pill.setAlpha(on ? 1f : 0.4f);
+    }
+
+    /** The live line + beginner hint row collapses when both are empty, so
+     *  nothing sits between the input and the tools row (web
+     *  .game-live-row:has(.game-live:empty):has(.game-hint[hidden])). */
+    private void syncLiveRow() {
+        if (gameLiveRow == null || gameLive == null) return;
+        boolean hint = gameHint != null && gameHint.getVisibility() == View.VISIBLE;
+        boolean text = gameLive.getVisibility() == View.VISIBLE && gameLive.getText().length() > 0;
+        boolean open = !closed && deal != null;
+        gameLiveRow.setVisibility(open && (hint || text) ? View.VISIBLE : View.GONE);
+    }
+
+    /** Round closed: live line and hint leave together. */
+    private void closeLiveRow() {
+        if (gameLive != null) gameLive.setVisibility(View.GONE);
+        if (gameHint != null) gameHint.setVisibility(View.GONE);
+        syncLiveRow();
     }
 
     private void bindTrainingControls() {
@@ -1279,12 +1456,16 @@ public class MainActivity extends Activity {
     private void paintAuth() {
         boolean on = competitiveMode.loggedIn();
         if (authStatus != null) {
-            authStatus.setText(on
-                    ? getString(R.string.signed_in, competitiveMode.userName())
-                    : getString(R.string.sign_in_hint));
+            authStatus.setText(R.string.sign_in_hint);
+            authStatus.setVisibility(on ? View.GONE : View.VISIBLE);
         }
         if (authGoogle != null) authGoogle.setVisibility(on ? View.GONE : View.VISIBLE);
-        if (authLogout != null) authLogout.setVisibility(on ? View.VISIBLE : View.GONE);
+        if (authUserRow != null) authUserRow.setVisibility(on ? View.VISIBLE : View.GONE);
+        if (on) {
+            String name = displayName();
+            if (authName != null) authName.setText(name);
+            paintAvatar(authPic, authPicFallback, name, competitiveMode.userPicture());
+        }
         if (gameMode != null) {
             gameMode.setText(isCompetitiveMode ? R.string.competition_on : R.string.competition);
         }
@@ -1295,7 +1476,6 @@ public class MainActivity extends Activity {
             gameTraining.setText(isTrainingMode ? R.string.training_on : R.string.training);
         }
         if (trainingTools != null) trainingTools.setVisibility(isTrainingMode ? View.VISIBLE : View.GONE);
-        if (authStats != null) authStats.setVisibility(on ? View.VISIBLE : View.GONE);
         if (!isTrainingMode) {
             hideTrainingHint();
             hideTrainingDef();
@@ -1309,18 +1489,31 @@ public class MainActivity extends Activity {
         paintHistory();
     }
 
-    private void styleBoardTabs() {
-        if (boardTabGeneral != null) {
-            boolean on = !boardKidsTab;
-            boardTabGeneral.setBackgroundResource(on ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
-            boardTabGeneral.setTextColor(getColor(on ? R.color.tile_ink : R.color.ink));
+    private String displayName() {
+        String name = competitiveMode.userName();
+        return name == null || name.trim().isEmpty() ? getString(R.string.user_fallback) : name.trim();
+    }
+
+    /** Google photo clipped to a circle inside the gold ring; until it loads
+     *  (or when there is none) a gold disc shows the initial. */
+    private void paintAvatar(ImageView pic, TextView fallback, String name, String url) {
+        if (fallback != null) {
+            String initial = name == null || name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase(java.util.Locale.ROOT);
+            fallback.setText(initial);
+            fallback.setVisibility(View.VISIBLE);
         }
-        if (boardTabKids != null) {
-            boolean on = boardKidsTab;
-            boardTabKids.setBackgroundResource(on ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
-            boardTabKids.setTextColor(getColor(on ? R.color.tile_ink : R.color.ink));
-        }
-        paintChart();
+        if (pic == null) return;
+        pic.setVisibility(View.GONE);
+        if (url == null || url.isEmpty()) return;
+        RemoteApi.fetchAvatar(url, bmp -> {
+            if (bmp == null || isFinishing() || isDestroyed()) return;
+            if (!url.equals(competitiveMode.userPicture())) return;
+            RoundedBitmapDrawable round = RoundedBitmapDrawableFactory.create(getResources(), bmp);
+            round.setCircular(true);
+            pic.setImageDrawable(round);
+            pic.setVisibility(View.VISIBLE);
+            if (fallback != null) fallback.setVisibility(View.GONE);
+        });
     }
 
     private void bindFeedback() {
@@ -1698,7 +1891,7 @@ public class MainActivity extends Activity {
             });
             int padEnd = (int) ((rack ? 100 : 48) * getResources().getDisplayMetrics().density);
             checkQ.setPadding(checkQ.getPaddingLeft(), checkQ.getPaddingTop(), padEnd, checkQ.getPaddingBottom());
-            checkQ.setHint(rack ? "Ex. AERTIN?" : getString(R.string.word_hint));
+            checkQ.setHint(getString(rack ? R.string.rack_hint_short : R.string.word_hint));
         }
         if (checkHint != null) {
             int hint = R.string.hint_check;
@@ -1729,11 +1922,14 @@ public class MainActivity extends Activity {
             chip.setText(mode[1]);
             chip.setTextColor(getColor(mode[0].equals(findMode) ? R.color.tile_ink : R.color.gold));
             chip.setBackgroundResource(mode[0].equals(findMode) ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
-            chip.setPadding(28, 16, 28, 16);
-            chip.setTextSize(12);
+            chip.setPadding(dp(14), 0, dp(14), 0);
+            chip.setMinHeight(dp(36));
+            chip.setGravity(android.view.Gravity.CENTER);
+            chip.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            chip.setTextSize(13);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.setMarginEnd(10);
+            lp.setMarginEnd(dp(6));
             chip.setLayoutParams(lp);
             final String next = mode[0];
             chip.setOnClickListener(v -> {
@@ -1758,11 +1954,15 @@ public class MainActivity extends Activity {
             chip.setText(labels[i]);
             chip.setTextColor(getColor(sel ? R.color.tile_ink : R.color.gold));
             chip.setBackgroundResource(sel ? R.drawable.bg_gold_btn : R.drawable.bg_pill);
-            chip.setPadding(26, 14, 26, 14);
+            chip.setPadding(dp(12), 0, dp(12), 0);
+            chip.setMinHeight(dp(32));
+            chip.setMinWidth(dp(40));
+            chip.setGravity(android.view.Gravity.CENTER);
+            chip.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             chip.setTextSize(12);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.setMarginEnd(8);
+            lp.setMarginEnd(dp(6));
             chip.setLayoutParams(lp);
             final int next = lens[i];
             chip.setOnClickListener(v -> {
@@ -1850,7 +2050,7 @@ public class MainActivity extends Activity {
             sum.setText(getString(R.string.playable_count, total, total > 1 ? "s" : ""));
             sum.setTextColor(getColor(R.color.muted));
             sum.setTextSize(13);
-            sum.setPadding(0, 0, 0, 10);
+            sum.setPadding(0, 0, 0, dp(6));
             checkMatches.addView(sum);
             if (total == 0) {
                 TextView emptyMsg = new TextView(this);
@@ -1865,7 +2065,7 @@ public class MainActivity extends Activity {
                 head.setText(getString(R.string.letters_n, len) + " · " + by[len].size());
                 head.setTextColor(getColor(R.color.gold));
                 head.setTextSize(13);
-                head.setPadding(0, 14, 0, 8);
+                head.setPadding(0, dp(10), 0, dp(6));
                 checkMatches.addView(head);
                 FlowLayout row = new FlowLayout(this);
                 for (Lexicon.Play p : by[len]) {
@@ -2157,8 +2357,8 @@ public class MainActivity extends Activity {
                     statBest = stats.optInt("best");
                     statWords = stats.optInt("words");
                 }
-                if (authStats != null) authStats.setVisibility(competitiveMode.loggedIn() ? View.VISIBLE : View.GONE);
                 paintHistory();
+                if (statsDialog != null && statsDialog.isShowing()) paintUserStats();
             }
 
             @Override
@@ -2212,7 +2412,7 @@ public class MainActivity extends Activity {
             empty.setText(R.string.hist_empty);
             empty.setTextColor(getColor(R.color.muted));
             empty.setGravity(android.view.Gravity.CENTER);
-            empty.setPadding(16, 48, 16, 32);
+            empty.setPadding(dp(16), dp(32), dp(16), dp(24));
             empty.setTextSize(15);
             list.addView(empty);
             return;
@@ -2228,7 +2428,7 @@ public class MainActivity extends Activity {
                 head.setTextColor(getColor(R.color.dim));
                 head.setTextSize(11);
                 head.setLetterSpacing(0.08f);
-                head.setPadding(8, 12, 8, 8);
+                head.setPadding(dp(6), dp(10), dp(6), dp(6));
                 list.addView(head);
             }
             View line = getLayoutInflater().inflate(R.layout.hist_row, list, false);
@@ -2293,7 +2493,7 @@ public class MainActivity extends Activity {
             empty.setText(R.string.fav_empty);
             empty.setTextColor(getColor(R.color.muted));
             empty.setGravity(android.view.Gravity.CENTER);
-            empty.setPadding(16, 48, 16, 32);
+            empty.setPadding(dp(16), dp(32), dp(16), dp(24));
             empty.setTextSize(15);
             list.addView(empty);
             return;
@@ -2391,10 +2591,7 @@ public class MainActivity extends Activity {
         gameChartAvgUnit = findViewById(R.id.game_chart_avg_unit);
         gameLast = findViewById(R.id.game_last);
         gameLastUnit = findViewById(R.id.game_last_unit);
-        boardChartAvg = findViewById(R.id.board_chart_avg);
-        boardChartAvgUnit = findViewById(R.id.board_chart_avg_unit);
-        boardChart = findViewById(R.id.board_chart);
-        boardChartLast = findViewById(R.id.board_chart_last);
+        gameLiveRow = findViewById(R.id.game_live_row);
         gameSpacer = findViewById(R.id.game_spacer);
         gameDock = findViewById(R.id.game_dock);
         gameClear = findViewById(R.id.game_clear);
@@ -2461,6 +2658,12 @@ public class MainActivity extends Activity {
             @Override public void onTextChanged(CharSequence s, int a, int b, int c) { previewPlay(); }
             @Override public void afterTextChanged(Editable s) {}
         });
+        // Every live-line update decides whether the row shows at all.
+        gameLive.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(Editable s) { syncLiveRow(); }
+        });
         gameWa.setOnClickListener(v -> {
             if (waText != null) share(waText);
         });
@@ -2510,8 +2713,9 @@ public class MainActivity extends Activity {
         if (gameHint != null) {
             boolean kids = isKidsMode || "kids".equals(next.category);
             gameHint.setVisibility(kids ? View.VISIBLE : View.GONE);
-            gameHint.setEnabled(true);
+            setPillEnabled(gameHint, true);
         }
+        syncLiveRow();
         paintRack();
         paintAlphaBtn();
         paintClearAll();
@@ -2642,7 +2846,7 @@ public class MainActivity extends Activity {
                         : getString(R.string.find_best_btn);
             }
             findBestBtn.setText(label);
-            findBestBtn.setEnabled(best != null);
+            setPillEnabled(findBestBtn, best != null);
             findBestBtn.setBackgroundResource(findBestShown ? R.drawable.bg_chip_on : R.drawable.bg_pill);
             findBestBtn.setTextColor(getColor(findBestShown ? R.color.ink : R.color.gold));
         }
@@ -2664,7 +2868,7 @@ public class MainActivity extends Activity {
         pendingRankedWord = "";
         gameQ.setEnabled(false);
         gameForm.setVisibility(View.GONE);
-        gameLive.setVisibility(View.GONE);
+        closeLiveRow();
         paintRack();
         Lexicon.Play best = deal.catalog.isEmpty() ? null : deal.catalog.get(0);
         gamePct.setText("0%");
@@ -2700,6 +2904,10 @@ public class MainActivity extends Activity {
         if (trainingActions == null) return;
         boolean show = isTrainingMode && deal != null && !closed;
         trainingActions.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (!show) return;
+        boolean left = !trainingRemaining().isEmpty();
+        setPillEnabled(trainingHintBtn, left);
+        setPillEnabled(trainingRevealWordBtn, left);
     }
 
     private void hideTrainingDef() {
@@ -2850,109 +3058,278 @@ public class MainActivity extends Activity {
         }, Lang.get(this));
     }
 
-    /** "Mes statistiques": three tiles — Série, Meilleur score, Mots joués. */
+    /** "Mes statistiques" (web paintUserSheet): header card with avatar +
+     *  name, "Cette semaine" from the live weekly board, "Depuis le début"
+     *  from the account stats. Max 420dp wide. */
     private void showUserStatsDialog() {
-        float d = getResources().getDisplayMetrics().density;
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundResource(R.drawable.bg_card);
-        int pad = (int) (20 * d);
-        root.setPadding(pad, pad, pad, pad);
+        root.setPadding(dp(16), dp(16), dp(16), dp(18));
 
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        LinearLayout titles = new LinearLayout(this);
-        titles.setOrientation(LinearLayout.VERTICAL);
         TextView title = new TextView(this);
         title.setText(R.string.user_stats_title);
         title.setTextColor(getColor(R.color.ink));
         title.setTextSize(20);
         title.setTypeface(Typeface.create("serif", Typeface.BOLD));
-        titles.addView(title);
-        String name = competitiveMode.userName();
-        if (name != null && !name.isEmpty()) {
-            TextView sub = new TextView(this);
-            sub.setText(name);
-            sub.setTextColor(getColor(R.color.gold));
-            sub.setTextSize(12);
-            sub.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            titles.addView(sub);
-        }
-        head.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        title.setMaxLines(1);
+        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        head.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         TextView close = new TextView(this);
         close.setText("×");
         close.setGravity(android.view.Gravity.CENTER);
         close.setTextColor(getColor(R.color.ink));
         close.setTextSize(24);
+        close.setIncludeFontPadding(false);
         close.setBackgroundResource(R.drawable.bg_count);
-        head.addView(close, new LinearLayout.LayoutParams((int) (40 * d), (int) (40 * d)));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(40), dp(40));
+        clp.setMarginStart(dp(8));
+        head.addView(close, clp);
         root.addView(head);
 
-        if (statStreak <= 0 && statBest <= 0 && statWords <= 0) {
+        statsBody = new LinearLayout(this);
+        statsBody.setOrientation(LinearLayout.VERTICAL);
+        root.addView(statsBody, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        paintUserStats();
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        scroll.addView(root);
+
+        Dialog dlg = new Dialog(this);
+        dlg.setContentView(scroll);
+        if (dlg.getWindow() != null) {
+            dlg.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            int width = Math.min(Math.round(getResources().getDisplayMetrics().widthPixels * 0.92f), dp(420));
+            dlg.getWindow().setLayout(width, android.view.WindowManager.LayoutParams.WRAP_CONTENT);
+        }
+        close.setOnClickListener(v -> dlg.dismiss());
+        dlg.setOnDismissListener(d -> {
+            if (statsDialog == dlg) {
+                statsDialog = null;
+                statsBody = null;
+            }
+        });
+        statsDialog = dlg;
+        dlg.show();
+        // Fresh standing + account stats behind the sheet.
+        competitiveMode.refreshWeekly(isKidsMode, this::paintUserStats);
+        if (competitiveMode.loggedIn()) syncHistory();
+    }
+
+    private void paintUserStats() {
+        if (statsBody == null) return;
+        statsBody.removeAllViews();
+        String name = displayName();
+
+        // Header card: avatar (44dp, gold ring) · name · "Compte Google"
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_panel14);
+        card.setPadding(dp(12), dp(10), dp(12), dp(10));
+        FrameLayout avatar = new FrameLayout(this);
+        TextView fallback = new TextView(this);
+        fallback.setBackgroundResource(R.drawable.bg_avatar_fallback);
+        fallback.setGravity(android.view.Gravity.CENTER);
+        fallback.setTextColor(getColor(R.color.tile_ink));
+        fallback.setTextSize(20);
+        fallback.setIncludeFontPadding(false);
+        fallback.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        avatar.addView(fallback, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        ImageView pic = new ImageView(this);
+        pic.setBackgroundResource(R.drawable.bg_avatar_ring);
+        pic.setPadding(dp(2), dp(2), dp(2), dp(2));
+        pic.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        avatar.addView(pic, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        card.addView(avatar, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        paintAvatar(pic, fallback, name, competitiveMode.userPicture());
+        LinearLayout who = new LinearLayout(this);
+        who.setOrientation(LinearLayout.VERTICAL);
+        TextView strong = new TextView(this);
+        strong.setText(name);
+        strong.setTextColor(getColor(R.color.ink));
+        strong.setTextSize(15);
+        strong.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        strong.setMaxLines(1);
+        strong.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        who.addView(strong);
+        TextView small = new TextView(this);
+        small.setText(R.string.stat_account);
+        small.setTextColor(getColor(R.color.dim));
+        small.setTextSize(11);
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        slp.topMargin = dp(2);
+        who.addView(small, slp);
+        LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        wlp.setMarginStart(dp(12));
+        card.addView(who, wlp);
+        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        hlp.topMargin = dp(14);
+        statsBody.addView(card, hlp);
+
+        org.json.JSONObject me = competitiveMode.weeklyMe(isKidsMode);
+        if (statStreak <= 0 && statBest <= 0 && statWords <= 0 && me == null) {
             TextView empty = new TextView(this);
             empty.setText(R.string.stat_empty);
             empty.setTextColor(getColor(R.color.muted));
             empty.setTextSize(14);
-            empty.setPadding(0, (int) (18 * d), 0, (int) (6 * d));
-            root.addView(empty);
-        } else {
+            empty.setGravity(android.view.Gravity.CENTER);
+            empty.setPadding(0, dp(14), 0, dp(4));
+            statsBody.addView(empty);
+            return;
+        }
+        java.util.Locale locale = new java.util.Locale(Lang.get(this));
+        java.text.NumberFormat nf = java.text.NumberFormat.getIntegerInstance(locale);
+
+        if (me != null) {
+            statsBody.addView(sectionTitle(getString(R.string.stat_week_title)));
             LinearLayout grid = new LinearLayout(this);
             grid.setOrientation(LinearLayout.HORIZONTAL);
-            LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            glp.topMargin = (int) (16 * d);
-            String streak = statStreak == 1 ? getString(R.string.stat_streak_one)
-                    : getString(R.string.stat_streak_n, statStreak);
-            java.text.NumberFormat nf = java.text.NumberFormat.getIntegerInstance(new java.util.Locale(Lang.get(this)));
-            grid.addView(statTile(getString(R.string.stat_streak), streak, 0));
-            grid.addView(statTile(getString(R.string.stat_best), statBest + " %", (int) (8 * d)));
-            grid.addView(statTile(getString(R.string.stat_words), nf.format(statWords), (int) (8 * d)));
-            root.addView(grid, glp);
+            grid.setBaselineAligned(false);
+            int rank = me.optInt("rank", 0);
+            grid.addView(statTile(getString(R.string.stat_rank),
+                    unitValue("#", rank > 0 ? String.valueOf(rank) : "—", true), 0));
+            grid.addView(statTile(getString(R.string.stat_avg),
+                    unitValue(fmtPct(me.optDouble("percent", 0), locale), "%", false), dp(8)));
+            grid.addView(statTile(getString(R.string.stat_plays),
+                    nf.format(Math.max(1, me.optInt("plays", 1))), dp(8)));
+            statsBody.addView(grid, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            String word = me.isNull("word") ? "" : me.optString("word", "");
+            if (!word.isEmpty()) {
+                int pts = me.optInt("pts", 0);
+                String lead = getString(R.string.stat_last_word) + " ";
+                String tail = pts > 0 ? "  " + getString(R.string.pts_n, pts) : "";
+                String text = lead + word + tail;
+                SpannableString sp = new SpannableString(text);
+                sp.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.ink)),
+                        lead.length(), lead.length() + word.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sp.setSpan(new StyleSpan(Typeface.BOLD),
+                        lead.length(), lead.length() + word.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if (!tail.isEmpty()) {
+                    sp.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.dim)),
+                            text.length() - tail.length(), text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    sp.setSpan(new android.text.style.RelativeSizeSpan(0.92f),
+                            text.length() - tail.length(), text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+                TextView line = new TextView(this);
+                line.setText(sp);
+                line.setTextColor(getColor(R.color.muted));
+                line.setTextSize(13);
+                line.setMaxLines(1);
+                line.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                line.setLetterSpacing(0.02f);
+                LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                llp.topMargin = dp(8);
+                llp.setMarginStart(dp(2));
+                statsBody.addView(line, llp);
+            }
         }
 
-        Dialog dlg = new Dialog(this);
-        dlg.setContentView(root);
-        if (dlg.getWindow() != null) {
-            dlg.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.92f);
-            dlg.getWindow().setLayout(width, android.view.WindowManager.LayoutParams.WRAP_CONTENT);
-        }
-        close.setOnClickListener(v -> dlg.dismiss());
-        dlg.show();
+        statsBody.addView(sectionTitle(getString(R.string.stat_alltime_title)));
+        LinearLayout grid = new LinearLayout(this);
+        grid.setOrientation(LinearLayout.HORIZONTAL);
+        grid.setBaselineAligned(false);
+        String unit = " " + getString(statStreak == 1 ? R.string.stat_day : R.string.stat_days);
+        grid.addView(statTile(getString(R.string.stat_streak), unitValue(String.valueOf(statStreak), unit, false), 0));
+        grid.addView(statTile(getString(R.string.stat_best), unitValue(String.valueOf(statBest), "%", false), dp(8)));
+        grid.addView(statTile(getString(R.string.stat_words), nf.format(statWords), dp(8)));
+        statsBody.addView(grid, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
     }
 
-    private View statTile(String label, String value, int marginStart) {
-        float d = getResources().getDisplayMetrics().density;
+    /** Like the web toLocaleString(maximumFractionDigits: 1). */
+    private static String fmtPct(double v, java.util.Locale locale) {
+        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(locale);
+        nf.setMaximumFractionDigits(1);
+        nf.setMinimumFractionDigits(0);
+        return nf.format(v);
+    }
+
+    /** Value with a smaller unit (web .user-stat-value small): "12 jours", "87%", "#3". */
+    private static CharSequence unitValue(String a, String b, boolean unitFirst) {
+        String text = a + b;
+        SpannableString sp = new SpannableString(text);
+        int from = unitFirst ? 0 : a.length();
+        int to = unitFirst ? a.length() : text.length();
+        sp.setSpan(new android.text.style.RelativeSizeSpan(0.6f), from, to, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return sp;
+    }
+
+    /** Small gold uppercase title with a fading gold hairline to the right
+     *  (web .user-sheet-section / .settings-card h3). */
+    private View sectionTitle(String text) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setAllCaps(true);
+        t.setTextColor(getColor(R.color.gold));
+        t.setTextSize(11);
+        t.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        t.setLetterSpacing(0.12f);
+        t.setMaxLines(1);
+        t.setIncludeFontPadding(false);
+        row.addView(t);
+        View line = new View(this);
+        line.setBackgroundResource(R.drawable.bg_hairline_gold);
+        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(0, dp(1), 1f);
+        llp.setMarginStart(dp(10));
+        row.addView(line, llp);
+        LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        rlp.topMargin = dp(14);
+        rlp.bottomMargin = dp(8);
+        row.setLayoutParams(rlp);
+        return row;
+    }
+
+    /** Web .user-stat: label (10.5sp dim uppercase, one line) over a 22sp
+     *  gold serif value, in a dark-green 14dp tile. */
+    private View statTile(String label, CharSequence value, int marginStart) {
         LinearLayout tile = new LinearLayout(this);
         tile.setOrientation(LinearLayout.VERTICAL);
         tile.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
         tile.setBackgroundResource(R.drawable.bg_stat_tile);
-        int p = (int) (12 * d);
-        tile.setPadding(p, p, p, p);
-        TextView v = new TextView(this);
-        v.setText(value);
-        v.setTextColor(getColor(R.color.gold));
-        v.setTextSize(20);
-        v.setTypeface(Typeface.create("serif", Typeface.BOLD));
-        v.setGravity(android.view.Gravity.CENTER);
-        v.setMaxLines(1);
-        v.setAutoSizeTextTypeUniformWithConfiguration(12, 20, 1, android.util.TypedValue.COMPLEX_UNIT_SP);
-        tile.addView(v, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        tile.setPadding(dp(8), dp(14), dp(8), dp(12));
         TextView l = new TextView(this);
         l.setText(label);
         l.setTextColor(getColor(R.color.dim));
-        l.setTextSize(10);
         l.setAllCaps(true);
+        l.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         l.setLetterSpacing(0.08f);
         l.setGravity(android.view.Gravity.CENTER);
-        l.setMaxLines(2);
-        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
+        l.setMaxLines(1);
+        l.setIncludeFontPadding(false);
+        // "PALABRAS JUGADAS" must stay on one line in a ~95dp tile.
+        l.setAutoSizeTextTypeUniformWithConfiguration(8, 11, 1, android.util.TypedValue.COMPLEX_UNIT_SP);
+        tile.addView(l, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        TextView v = new TextView(this);
+        v.setText(value);
+        v.setTextColor(getColor(R.color.gold));
+        v.setTextSize(22);
+        v.setTypeface(Typeface.create("serif", Typeface.NORMAL));
+        v.setGravity(android.view.Gravity.CENTER);
+        v.setMaxLines(1);
+        v.setIncludeFontPadding(false);
+        v.setAutoSizeTextTypeUniformWithConfiguration(14, 22, 1, android.util.TypedValue.COMPLEX_UNIT_SP);
+        LinearLayout.LayoutParams vlp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        llp.topMargin = (int) (4 * d);
-        tile.addView(l, llp);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        vlp.topMargin = dp(6);
+        tile.addView(v, vlp);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         lp.setMarginStart(marginStart);
         tile.setLayoutParams(lp);
         return tile;
@@ -3035,7 +3412,7 @@ public class MainActivity extends Activity {
         closed = true;
         gameQ.setEnabled(false);
         gameForm.setVisibility(View.GONE);
-        gameLive.setVisibility(View.GONE);
+        closeLiveRow();
         paintRack();
         Lexicon.Play best = deal.catalog.isEmpty() ? hit : deal.catalog.get(0);
         int percent = Math.min(100, Math.round(100f * hit.pts() / Math.max(1, best.pts())));
@@ -3102,7 +3479,7 @@ public class MainActivity extends Activity {
         pendingRankedWord = "";
         gameQ.setEnabled(false);
         gameForm.setVisibility(View.GONE);
-        gameLive.setVisibility(View.GONE);
+        closeLiveRow();
         paintRack();
         Lexicon.Play best = deal.catalog.isEmpty() ? null : deal.catalog.get(0);
         gamePct.setText("—");
@@ -3215,7 +3592,7 @@ public class MainActivity extends Activity {
         closed = true;
         gameQ.setEnabled(false);
         gameForm.setVisibility(View.GONE);
-        gameLive.setVisibility(View.GONE);
+        closeLiveRow();
         paintTrainingFound();
         paintRack();
         int total = trainingNeeded.isEmpty() ? deal.catalog.size() : trainingNeeded.size();
@@ -3258,12 +3635,18 @@ public class MainActivity extends Activity {
         });
     }
 
+    /** After a ranked play (or sign-in/out): the weekly and all-time boards
+     *  moved — refetch whatever is on screen, drop the all-time cache. */
     private void refreshBoards() {
-        boardKidsTab = isKidsMode;
+        competitiveMode.invalidateAll();
         syncPlayBoard();
         if (boardDialog != null && boardDialog.isShowing()) {
             LinearLayout list = boardDialog.findViewById(R.id.hist_list);
-            if (list != null) competitiveMode.fetchBoards(list, null, isKidsMode);
+            TextView title = boardDialog.findViewById(R.id.hist_dialog_title);
+            if (list != null) competitiveMode.fetchBoards(list, title, isKidsMode);
+        }
+        if (statsDialog != null && statsDialog.isShowing()) {
+            competitiveMode.refreshWeekly(isKidsMode, this::paintUserStats);
         }
     }
 
@@ -3283,10 +3666,24 @@ public class MainActivity extends Activity {
         TextView close = view.findViewById(R.id.hist_dialog_close);
         TextView clear = view.findViewById(R.id.hist_clear);
         LinearLayout list = view.findViewById(R.id.hist_list);
+        View tabs = view.findViewById(R.id.hist_dialog_tabs);
+        TextView week = view.findViewById(R.id.board_scope_week);
+        TextView all = view.findViewById(R.id.board_scope_all);
         if (title != null) title.setText(R.string.daily_board);
         if (sub != null) sub.setVisibility(View.GONE);
         if (clear != null) clear.setVisibility(View.GONE);
-        competitiveMode.fetchBoards(list, null, isKidsMode);
+        // "Semaine | Général" — persisted scope, gold selected segment.
+        if (tabs != null) tabs.setVisibility(View.VISIBLE);
+        styleBoardScope(week, all);
+        if (week != null) week.setOnClickListener(v -> {
+            competitiveMode.setBoardScope(false);
+            styleBoardScope(week, all);
+        });
+        if (all != null) all.setOnClickListener(v -> {
+            competitiveMode.setBoardScope(true);
+            styleBoardScope(week, all);
+        });
+        competitiveMode.fetchBoards(list, title, isKidsMode);
         boardDialog = new Dialog(this);
         boardDialog.setContentView(view);
         if (boardDialog.getWindow() != null) {
@@ -3297,6 +3694,18 @@ public class MainActivity extends Activity {
         }
         if (close != null) close.setOnClickListener(v -> boardDialog.dismiss());
         boardDialog.show();
+    }
+
+    private void styleBoardScope(TextView week, TextView all) {
+        boolean general = competitiveMode.boardAll();
+        styleSegment(week, !general);
+        styleSegment(all, general);
+    }
+
+    private void styleSegment(TextView seg, boolean on) {
+        if (seg == null) return;
+        seg.setBackgroundResource(on ? R.drawable.bg_seg_gold : 0);
+        seg.setTextColor(getColor(on ? R.color.tile_ink : R.color.dim));
     }
 
     private void paintTops(List<Lexicon.Play> tops, int selected, String mine) {
@@ -3437,10 +3846,6 @@ public class MainActivity extends Activity {
         if (gameChartAvgUnit != null) gameChartAvgUnit.setVisibility(spark ? View.VISIBLE : View.GONE);
         if (gameLast != null) gameLast.setText(last);
         if (gameLastUnit != null) gameLastUnit.setVisibility(has ? View.VISIBLE : View.GONE);
-        if (boardChart != null) boardChart.setScores(spark ? scores : java.util.Collections.emptyList());
-        if (boardChartAvg != null) boardChartAvg.setText(avg);
-        if (boardChartAvgUnit != null) boardChartAvgUnit.setVisibility(spark ? View.VISIBLE : View.GONE);
-        if (boardChartLast != null) boardChartLast.setText(last);
         syncGameDock();
     }
 

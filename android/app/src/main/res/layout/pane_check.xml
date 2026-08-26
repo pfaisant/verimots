@@ -124,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.14"
-                android:text="TIROIR"
+                android:text="@string/rack_help_kicker"
                 android:textAllCaps="true"
                 android:textColor="@color/gold"
                 android:textSize="12sp" />
@@ -134,7 +134,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:fontFamily="serif"
-                android:text="Que pouvez-vous jouer ?"
+                android:text="@string/rack_help_title"
                 android:textColor="@color/ink"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -144,7 +144,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:lineSpacingMultiplier="1.3"
-                android:text="Tapez vos lettres. Un blanc se note ? — jusqu’à deux. Touchez ? pour en poser un."
+                android:text="@string/rack_help_body"
                 android:textColor="@color/muted"
                 android:textSize="15sp" />
 
@@ -154,7 +154,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="Exemple : AERTIN?"
+                android:text="@string/rack_help_example"
                 android:textColor="@color/gold"
                 android:textSize="15sp" />
         </LinearLayout>
@@ -211,18 +211,25 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
+                <!-- Inline verdict pill (web .verdict .status), not a full-width bar -->
                 <TextView
                     android:id="@+id/check_status"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:background="@drawable/bg_status_ok"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.08"
+                    android:maxLines="1"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
                     android:textAllCaps="true"
                     android:textSize="11sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
                 <TextView
                     android:id="@+id/check_fav"

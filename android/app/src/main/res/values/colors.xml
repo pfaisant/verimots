@@ -1,8 +1,8 @@
 <resources>
-    <color name="felt">#243d2e</color>
+    <color name="felt">#1f3a2b</color>
     <color name="felt_dark">#0e1711</color>
     <color name="felt_mid">#17241c</color>
-    <color name="felt_card">#1a2c22</color>
+    <color name="felt_card">#1b2a21</color>
     <color name="tile">#f6ead0</color>
     <color name="tile_ink">#1a1408</color>
     <color name="tile_used_ink">#3d3a32</color>
@@ -11,8 +11,8 @@
     <color name="feedback">#4aa3b8</color>
     <color name="gold_soft">#33e8c56b</color>
     <color name="ink">#f7f2e8</color>
-    <color name="muted">#b9c6ba</color>
-    <color name="dim">#7d9183</color>
+    <color name="muted">#b7c4b8</color>
+    <color name="dim">#7f9183</color>
     <color name="ok">#3dce8a</color>
     <color name="ok_bg">#1a3dce8a</color>
     <color name="no">#f07171</color>
@@ -21,4 +21,11 @@
     <color name="wa">#1f6b46</color>
     <color name="orange">#f0a04a</color>
     <color name="scroll_thumb">#2f5b40</color>
+    <!-- Web parity: card-line / rim-gold and the translucent panel fills -->
+    <color name="card_line">#14f4efe4</color>
+    <color name="rim_gold">#59e8c56b</color>
+    <color name="panel">#1d3125</color>
+    <color name="panel_soft">#1c2f24</color>
+    <color name="panel_deep">#15211a</color>
+    <color name="hint_orange">#f0b35c</color>
 </resources>

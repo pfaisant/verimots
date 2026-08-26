@@ -34,6 +34,10 @@ final class Session {
         return prefs(ctx).getString("name", "");
     }
 
+    static String picture(Context ctx) {
+        return prefs(ctx).getString("picture", "");
+    }
+
     private static SharedPreferences prefs(Context ctx) {
         return ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE);
     }
