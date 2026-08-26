@@ -265,7 +265,7 @@
     <string name="dict_name_wow24">WGPO WOW24</string>
     <string name="dict_name_es">RLA-ES</string>
     <string name="menu_back_short">‹ Volver</string>
-    <string name="daily_title">Palabra del día</string>
+    <string name="daily_title">Una palabra por descubrir</string>
     <string name="daily_tap">Toca para comprobar</string>
     <string name="game_rules">Cómo funciona</string>
     <string name="bingo_rules_title">Bingo — cómo funciona</string>
@@ -273,4 +273,5 @@
     <string name="find_rules_title">Palabra oculta — cómo funciona</string>
     <string name="find_rules_body">Gana la palabra que más puntúa — no hace falta usar todas las letras. Una palabra de 7 letras da 50 puntos extra.\n\nTu puntuación es el porcentaje de la mejor palabra posible; se queda en este dispositivo. «Ver la mejor puntuación» muestra el máximo, «Rendirse» revela las mejores palabras.\n\nEn nivel Principiante, «Pista» ayuda a encontrar una palabra.</string>
     <string name="result_intro">Mejores palabras del atril</string>
+    <string name="daily_next">Otra palabra</string>
 </resources>

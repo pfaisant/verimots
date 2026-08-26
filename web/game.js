@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=125'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=125'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=126'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=126'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -1556,7 +1556,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=125')
+        await import('./competitive.js?v=126')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1948,7 +1948,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=125')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=126')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -2018,6 +2018,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let lastAllBoard = null
   let lastAllKidsBoard = null
   let boardExpanded = false
+  let boardPage = false
   let boardScope = 'week'
   try {
     if (localStorage.getItem('verimots-board-scope') === 'all') boardScope = 'all'
@@ -2026,7 +2027,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadGeneralBoard(kids) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=125')
+    const { fetchLeaderboard } = await import('./competitive.js?v=126')
     const data = await fetchLeaderboard(null, getLang(), { kids, scope: 'all' })
     if (kids) lastAllKidsBoard = data
     else lastAllBoard = data
@@ -2091,7 +2092,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (board.kids) lastKidsBoard = board
       else lastBoard = board
     }
-    const ranked = !trainingOn() && (kidsOn() || (typeof isCompetitive === 'function' && isCompetitive()))
+    const ranked = boardPage || (!trainingOn() && (kidsOn() || (typeof isCompetitive === 'function' && isCompetitive())))
     if (!ranked) {
       boardEl.hidden = true
       boardEl.innerHTML = ''
@@ -2201,8 +2202,26 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       }
       if (!closed) input.focus()
     },
+    // Leaderboard tab: paint regardless of the active game mode.
+    async setBoardPage(on) {
+      boardPage = !!on
+      if (!on) {
+        paintLeaderboard()
+        return
+      }
+      paintLeaderboard()
+      const { fetchLeaderboard } = await import('./competitive.js?v=126')
+      const [week, kidsWeek] = await Promise.all([
+        fetchLeaderboard(null, getLang()),
+        fetchLeaderboard(null, getLang(), { kids: true }),
+      ])
+      lastBoard = week
+      lastKidsBoard = kidsWeek
+      if (boardScope === 'all') await loadGeneralBoard(kidsOn())
+      if (boardPage) paintLeaderboard()
+    },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=125')
+      const { fetchLeaderboard } = await import('./competitive.js?v=126')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       lastAllBoard = null

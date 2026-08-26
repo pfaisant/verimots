@@ -254,15 +254,21 @@ function hash32(str) {
   }
   return h >>> 0
 }
-function dailyWord() {
-  const pool = []
-  for (let len = 5; len <= 8; len++) {
-    for (const w of byLen[len] || []) if (scoreWord(w) >= 9) pool.push(w)
+let dailyPool = null
+let dailyPoolKey = ''
+function dailyWord(random = false) {
+  const poolKey = `${currentLang}|${currentDict}`
+  if (!dailyPool || dailyPoolKey !== poolKey) {
+    dailyPool = []
+    for (let len = 5; len <= 8; len++) {
+      for (const w of byLen[len] || []) if (scoreWord(w) >= 9) dailyPool.push(w)
+    }
+    dailyPoolKey = poolKey
   }
-  if (!pool.length) return null
-  const key = `${parisDayKey()}|${currentLang}|${currentDict}`
-  const word = pool[hash32(key) % pool.length]
-  return { word, score: scoreWord(word), day: parisDayKey() }
+  if (!dailyPool.length) return null
+  const key = `${parisDayKey()}|${poolKey}`
+  const word = random ? pickWord(dailyPool) : dailyPool[hash32(key) % dailyPool.length]
+  return { word, score: scoreWord(word), day: parisDayKey(), random }
 }
 
 function anagrams(rack, minLen, maxLen) {
@@ -451,7 +457,7 @@ async function handle(msg) {
     return
   }
   if (msg.type === 'daily') {
-    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord() || {}), lang: currentLang, dict: currentDict })
+    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord(!!msg.random) || {}), lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'find') {

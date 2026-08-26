@@ -327,6 +327,8 @@ public class MainActivity extends Activity {
                     paintStudy();
                     applyIntent(getIntent());
                     maybeOpenWelcomeCompetition();
+                    // Empty checker → show the word to discover right away.
+                    if (checkQ != null && checkQ.getText().toString().trim().isEmpty()) doCheck(false);
                     // First-launch safety: the play pane can already be open
                     // with no deal (empty rack) — request one now.
                     boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
@@ -748,6 +750,10 @@ public class MainActivity extends Activity {
         styleTab(tabAbout, which == 2);
         paintDictBadge();
         syncHeaderBack();
+        if (which == 0 && lex != null && checkQ != null && checkQ.getText().toString().trim().isEmpty()
+                && checkCard != null && checkCard.getVisibility() != View.VISIBLE) {
+            doCheck(false);
+        }
         if (which == 1) {
             boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
             boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
@@ -954,12 +960,23 @@ public class MainActivity extends Activity {
     }
 
     /** Empty checker → the word of the day, with its definition, in the card. */
+    private boolean discoverSeen;
+
     private void paintDailyWord() {
+        paintDailyWord(discoverSeen);
+    }
+
+    /** Empty checker → a word to discover: the day's word first, a random one
+     *  afterwards (each clear, or the ↻ button). */
+    private void paintDailyWord(boolean random) {
         if (lex == null || checkCard == null) return;
         SimpleDateFormat keyFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
         keyFmt.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
         String day = keyFmt.format(new Date());
-        final String word = lex.dailyWord(day + "|" + Lang.get(this) + "|" + Dict.get(this));
+        final String word = random
+                ? lex.randomWord()
+                : lex.dailyWord(day + "|" + Lang.get(this) + "|" + Dict.get(this));
+        discoverSeen = true;
         if (word == null) {
             checkCard.setVisibility(View.GONE);
             return;
@@ -968,7 +985,12 @@ public class MainActivity extends Activity {
         String when = new SimpleDateFormat("EEEE d MMMM", loc).format(new Date());
         int pts = lex.score(word, null);
         checkCard.setVisibility(View.VISIBLE);
-        checkStatus.setText(getString(R.string.daily_title) + " · " + when);
+        View next = findViewById(R.id.check_daily_next);
+        if (next != null) {
+            next.setVisibility(View.VISIBLE);
+            next.setOnClickListener(v -> paintDailyWord(true));
+        }
+        checkStatus.setText(random ? getString(R.string.daily_title) : getString(R.string.daily_title) + " · " + when);
         checkStatus.setTextColor(getColor(R.color.gold));
         checkStatus.setBackgroundResource(R.drawable.bg_lex_pill);
         checkWord.setVisibility(View.GONE);
@@ -1042,6 +1064,8 @@ public class MainActivity extends Activity {
             return;
         }
         if (checkTiles != null) checkTiles.setOnClickListener(null);
+        View dailyNext = findViewById(R.id.check_daily_next);
+        if (dailyNext != null) dailyNext.setVisibility(View.GONE);
         boolean ok = lex.has(word);
         int pts = ok ? lex.score(word, null) : 0;
         checkCard.setVisibility(View.VISIBLE);

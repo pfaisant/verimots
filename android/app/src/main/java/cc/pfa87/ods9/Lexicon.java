@@ -234,11 +234,27 @@ public final class Lexicon {
 
     /** Word of the day: deterministic for a given key (Paris date + list),
      *  5–8 letters and worth at least 9 points so there is something to read. */
-    public String dailyWord(String key) {
+    private ArrayList<String> discoverPool;
+
+    private ArrayList<String> discoverPool() {
+        if (discoverPool != null) return discoverPool;
         ArrayList<String> pool = new ArrayList<>();
         for (int len = 5; len <= 8 && len < byLen.length; len++) {
             for (String w : byLen[len]) if (scoreWord(w, null) >= 9) pool.add(w);
         }
+        discoverPool = pool;
+        return pool;
+    }
+
+    /** A random word to discover (5–8 letters, ≥ 9 points). */
+    public String randomWord() {
+        ArrayList<String> pool = discoverPool();
+        if (pool.isEmpty()) return null;
+        return pool.get(rng.nextInt(pool.size()));
+    }
+
+    public String dailyWord(String key) {
+        ArrayList<String> pool = discoverPool();
         if (pool.isEmpty()) return null;
         int h = 0x811c9dc5;
         for (int i = 0; i < key.length(); i++) {

@@ -226,6 +226,19 @@
                     android:textAllCaps="true"
                     android:textSize="11sp" />
 
+                <TextView
+                    android:id="@+id/check_daily_next"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_count"
+                    android:contentDescription="@string/daily_next"
+                    android:gravity="center"
+                    android:text="↻"
+                    android:textColor="@color/gold"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"
@@ -289,17 +302,6 @@
                     android:textColor="@color/muted"
                     android:textSize="13sp" />
 
-                <ImageButton
-                    android:id="@+id/check_share"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_wa"
-                    android:contentDescription="@string/share"
-                    android:padding="7dp"
-                    android:src="@drawable/ic_wa"
-                    android:visibility="gone" />
-
                 <TextView
                     android:id="@+id/check_wiki"
                     android:layout_width="wrap_content"
@@ -350,6 +352,25 @@
                 android:textColor="@color/gold"
                 android:textSize="14sp"
                 android:visibility="gone" />
+
+            <!-- Share sits in the card's bottom-right corner, away from the definition -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/check_share"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:background="@drawable/bg_wa"
+                    android:contentDescription="@string/share"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_wa"
+                    android:visibility="gone" />
+            </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>

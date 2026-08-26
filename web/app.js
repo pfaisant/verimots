@@ -1,8 +1,8 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=125'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=125'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=125'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=125'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=125'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=126'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=126'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=126'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=126'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=126'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -57,7 +57,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=82', { type: 'module' })
+const worker = new Worker('worker.js?v=83', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -416,7 +416,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=125').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=126').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -425,7 +425,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=125')
+    const { fetchHistory } = await import('./competitive.js?v=126')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -433,7 +433,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=125')
+    const { saveHistoryWord } = await import('./competitive.js?v=126')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -471,6 +471,7 @@ function writeUrl() {
   }
   if (nav === 'rack') p.set('vue', 'tiroir')
   if (nav === 'info') p.set('vue', 'info')
+  if (nav === 'board') p.set('vue', 'classement')
   if (advanced) {
     p.set('adv', '1')
     if (nav !== 'check' && nav !== 'game' && nav !== 'rack') p.set('vue', nav)
@@ -487,7 +488,7 @@ function writeUrl() {
   history.replaceState(null, '', next)
   writingUrl = false
   document.title =
-    nav === 'game' ? t('doc_game') : nav === 'rack' ? t('doc_rack') : word ? `${word} · Verimots` : t('title')
+    nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : word ? `${word} · Verimots` : t('title')
 }
 
 function readUrl() {
@@ -504,14 +505,14 @@ function readUrl() {
       vue === 'jeu'
         ? 'game'
         : vue === 'classement'
-          ? 'game'
+          ? 'board'
           : vue === 'tiroir'
             ? 'rack'
-            : ['check', 'lists', 'info', 'rack', 'game'].includes(vue)
+            : ['check', 'lists', 'info', 'rack', 'game', 'board'].includes(vue)
               ? vue
               : 'game'
   }
-  if (!advanced && nav !== 'game' && nav !== 'info') nav = 'check'
+  if (!advanced && nav !== 'game' && nav !== 'info' && nav !== 'board') nav = 'check'
   findMode = ['prefix', 'suffix', 'has', 'multi', 'exact'].includes(p.get('t')) ? p.get('t') : 'exact'
   if (p.get('len') && /^\d+$/.test(p.get('len'))) rackLen = p.get('len')
   if (word) q.value = word
@@ -545,11 +546,11 @@ function syncChrome() {
     brandHome.setAttribute('aria-label', t('home'))
   }
   document.title =
-    nav === 'game' ? t('doc_game') : nav === 'rack' ? t('doc_rack') : t('title')
+    nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : t('title')
   const apk = document.querySelector('.apk-link')
   if (apk) apk.hidden = inApp
   document.querySelectorAll('.legal-link').forEach((el) => {
-    el.hidden = nav === 'game'
+    el.hidden = nav === 'game' || nav === 'board'
     const href = el.getAttribute('href') || ''
     if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy') || href.includes('privacidad'))) {
       el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : getLang() === 'es' ? '/privacidad.html' : '/confidentialite.html')
@@ -558,9 +559,9 @@ function syncChrome() {
       el.setAttribute('href', dictsPage())
     }
   })
-  if (advToggle) advToggle.textContent = advanced ? t('simple') : t('advanced')
-  advNav.hidden = !advanced || nav === 'game'
-  search.hidden = nav === 'game' || nav === 'lists' || nav === 'info'
+  if (advToggle) advToggle.setAttribute('aria-pressed', advanced ? 'true' : 'false')
+  advNav.hidden = !advanced || nav === 'game' || nav === 'board'
+  search.hidden = nav === 'game' || nav === 'lists' || nav === 'info' || nav === 'board'
   document.querySelectorAll('#tabs [data-tab]').forEach((btn) => {
     const key = btn.dataset.tab
     const on =
@@ -629,6 +630,7 @@ function setNav(name) {
   if (name === 'lists') renderLists()
   if (name === 'info') renderStudy()
   if (name === 'game') enterGame()
+  mountBoardPage(name === 'board')
   if (name === 'check' || name === 'rack') {
     renderRackPreview()
     run()
@@ -637,9 +639,25 @@ function setNav(name) {
   writeUrl()
 }
 
+// The leaderboard has its own tab: the board node moves into the page and
+// back to the game rail, so game.js keeps painting one element.
+const boardPageEl = document.getElementById('board-page')
+function mountBoardPage(on) {
+  const boardEl = document.getElementById('game-board')
+  const rail = document.getElementById('play-rail')
+  if (!boardEl || !boardPageEl || !rail) return
+  if (on) {
+    if (boardEl.parentElement !== boardPageEl) boardPageEl.appendChild(boardEl)
+    game.setBoardPage(true)
+  } else {
+    if (boardEl.parentElement !== rail) rail.insertBefore(boardEl, document.getElementById('game-dock'))
+    game.setBoardPage(false)
+  }
+}
+
 function setAdvanced(on) {
   advanced = on
-  if (!advanced && nav !== 'game' && nav !== 'info') {
+  if (!advanced && nav !== 'game' && nav !== 'info' && nav !== 'board') {
     nav = 'check'
     findMode = 'exact'
   }
@@ -698,9 +716,11 @@ function renderRackPreview() {
 
 const dailyEl = document.getElementById('daily')
 let dailySeq = 0
+let dailySeen = false
 
-// Word of the day: fills the empty check page with something to read.
-async function renderDaily() {
+// A word to discover on the empty check page: the day's word first, then a
+// random one each time the field is cleared or the shuffle is tapped.
+async function renderDaily(random = dailySeen) {
   if (!dailyEl) return
   if (nav !== 'check' || findMode !== 'exact' || normalize(q.value) || !ready) {
     dailyEl.hidden = true
@@ -709,10 +729,11 @@ async function renderDaily() {
   const seq = ++dailySeq
   let daily = null
   try {
-    daily = await ask('daily')
+    daily = await ask('daily', { random })
   } catch {
     daily = null
   }
+  dailySeen = true
   if (seq !== dailySeq || !daily?.word || staleResult(daily)) return
   if (nav !== 'check' || normalize(q.value)) return
   const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
@@ -721,7 +742,12 @@ async function renderDaily() {
   dailyEl.innerHTML = `
     <div class="daily-head">
       <p class="daily-kicker">${escapeHtml(t('daily_title'))}</p>
-      <p class="daily-date">${escapeHtml(when)}</p>
+      <span class="daily-side">
+        ${daily.random ? '' : `<span class="daily-date">${escapeHtml(when)}</span>`}
+        <button type="button" class="daily-next" id="daily-next" aria-label="${escapeHtml(t('daily_next'))}" title="${escapeHtml(t('daily_next'))}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </button>
+      </span>
     </div>
     <button type="button" class="daily-word" data-word="${escapeHtml(daily.word)}">
       ${tilesHtml(daily.word)}
@@ -739,6 +765,13 @@ async function renderDaily() {
   const box = document.getElementById('daily-def')
   if (box) box.innerHTML = defBody(payload, escapeHtml, { formOf, root, word: daily.word })
 }
+
+dailyEl?.addEventListener('click', (e) => {
+  if (e.target.closest('#daily-next')) {
+    e.stopPropagation()
+    renderDaily(true)
+  }
+})
 
 function renderCheck(word, result) {
   findOut.hidden = true
@@ -1299,6 +1332,7 @@ function applyUrl() {
   if (nav === 'lists') renderLists()
   if (nav === 'info') renderStudy()
   if (nav === 'game') enterGame()
+  mountBoardPage(nav === 'board')
   if (nav === 'check' || nav === 'rack') run()
 }
 
@@ -1427,7 +1461,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=125')
+      const { clearCloudHistory } = await import('./competitive.js?v=126')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1751,6 +1785,7 @@ async function boot() {
     else if (nav === 'lists') renderLists()
     else if (nav === 'info') renderStudy()
     else if (nav === 'game') enterGame()
+    else if (nav === 'board') mountBoardPage(true)
   } catch (err) {
     setLive(t('lex_fail'))
     paintAboutCount(t('lex_fail'))
@@ -1761,7 +1796,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=125').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=126').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
