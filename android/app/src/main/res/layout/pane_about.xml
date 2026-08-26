@@ -613,28 +613,6 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/about_dict"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_pill_quiet"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/dict_download"
-                android:textColor="@color/muted"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/dict_download_help"
-                android:textColor="@color/dim"
-                android:textSize="12sp" />
-
-            <TextView
                 android:id="@+id/about_version"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

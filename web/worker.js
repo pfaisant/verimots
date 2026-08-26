@@ -431,17 +431,6 @@ async function handle(msg) {
     self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang, dict: currentDict })
     return
   }
-  if (msg.type === 'export') {
-    self.postMessage({
-      type: 'export',
-      id: msg.id,
-      text: words.join('\n') + (words.length ? '\n' : ''),
-      count: words.length,
-      lang: currentLang,
-      dict: currentDict,
-    })
-    return
-  }
   self.postMessage({ type: 'error', id: msg.id, error: 'unknown ' + msg.type, lang: currentLang })
 }
 

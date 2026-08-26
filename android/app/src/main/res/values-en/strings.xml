@@ -176,10 +176,6 @@
     <string name="share_study_daily">Verimots — Short Words · %1$s</string>
     <string name="share_study_list">Verimots — %1$d-letter words (%2$d)\n\n%3$s\n</string>
     <string name="share_study_word_body">Verimots\n\n*%1$s* is in the list\n%2$d letters · %3$d pts\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
-    <string name="dict_download">Download the word list</string>
-    <string name="dict_download_help">The exact list this checker uses, one word per line.</string>
-    <string name="dict_downloading">Preparing the list…</string>
-    <string name="dict_download_err">Could not export the list.</string>
     <string name="hist_open">History</string>
     <string name="hist_clear">Clear history</string>
     <string name="hist_clear_confirm">Clear all history?</string>

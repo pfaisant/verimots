@@ -178,10 +178,6 @@
     <string name="share_study_daily">Verimots — Petits Mots · %1$s</string>
     <string name="share_study_list">Verimots — mots de %1$d lettres (%2$d)\n\n%3$s\n</string>
     <string name="share_study_word_body">Verimots\n\n*%1$s* est dans la liste\n%2$d lettres · %3$d pts\n%4$s\nhttps://s.pfa87.cc/?w=%1$s</string>
-    <string name="dict_download">Télécharger la liste</string>
-    <string name="dict_download_help">La liste exacte utilisée par le vérificateur, un mot par ligne.</string>
-    <string name="dict_downloading">Préparation de la liste…</string>
-    <string name="dict_download_err">Impossible d’exporter la liste.</string>
     <string name="hist_open">Historique</string>
     <string name="hist_clear">Effacer l’historique</string>
     <string name="hist_clear_confirm">Effacer tout l’historique ?</string>

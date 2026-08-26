@@ -162,23 +162,6 @@ public final class Lexicon {
         return new ArrayList<>(byLen[len]);
     }
 
-    public String exportText() {
-        StringBuilder b = new StringBuilder(Math.max(16, count * 8));
-        for (int len = 2; len < byLen.length; len++) {
-            for (String w : byLen[len]) b.append(w).append('\n');
-        }
-        return b.toString();
-    }
-
-    public static String exportFileName(String dictOrLang) {
-        String dict = Dict.normalize(dictOrLang);
-        if (dict.isEmpty()) dict = Dict.defaultFor(dictOrLang);
-        if (Dict.CSW.equals(dict)) return "verimots-en-csw.txt";
-        if (Dict.WOW24.equals(dict)) return "verimots-en-wow24.txt";
-        if (Dict.RLA.equals(dict)) return "verimots-es-rla.txt";
-        return "verimots-fr-ods.txt";
-    }
-
     public static List<String> dailyStudySlice(List<String> words, int year, int month, int day, int size) {
         if (words == null || words.isEmpty() || size <= 0) return Collections.emptyList();
         int take = Math.min(size, words.size());

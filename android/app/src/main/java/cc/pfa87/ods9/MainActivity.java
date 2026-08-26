@@ -6,7 +6,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import androidx.core.content.FileProvider;
 import android.text.format.DateFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -43,8 +42,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -132,7 +129,6 @@ public class MainActivity extends Activity {
     private String lastPlayedWord = "";
     private int lastPlayedPts;
     private String lastPlayedDef = "";
-    private TextView aboutDict;
     private View checkClear;
     private View gameClear;
     private View gameSkip;
@@ -1603,8 +1599,6 @@ public class MainActivity extends Activity {
     }
 
     private void bindStudy() {
-        aboutDict = findViewById(R.id.about_dict);
-        if (aboutDict != null) aboutDict.setOnClickListener(v -> exportLexicon());
         gameStudyBody = findViewById(R.id.game_study_body);
         TextView gameStudyShare = findViewById(R.id.game_study_share);
         TextView gameStudyTwos = findViewById(R.id.game_study_twos);
@@ -1830,45 +1824,6 @@ public class MainActivity extends Activity {
         if (lex == null) return;
         List<String> twos = lex.wordsOfLength(2);
         share(getString(R.string.share_study_list, 2, twos.size(), Lexicon.joinWords(twos)));
-    }
-
-    private void exportLexicon() {
-        if (lex == null) {
-            Toast.makeText(this, R.string.lex_unavailable, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (aboutDict != null) {
-            aboutDict.setEnabled(false);
-            aboutDict.setText(R.string.dict_downloading);
-        }
-        new Thread(() -> {
-            try {
-                File out = new File(getCacheDir(), Lexicon.exportFileName(Dict.get(this)));
-                try (FileOutputStream fos = new FileOutputStream(out)) {
-                    fos.write(lex.exportText().getBytes(StandardCharsets.UTF_8));
-                }
-                Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".files", out);
-                runOnUiThread(() -> {
-                    Intent i = new Intent(Intent.ACTION_SEND);
-                    i.setType("text/plain");
-                    i.putExtra(Intent.EXTRA_STREAM, uri);
-                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(Intent.createChooser(i, getString(R.string.dict_download)));
-                    if (aboutDict != null) {
-                        aboutDict.setEnabled(true);
-                        aboutDict.setText(R.string.dict_download);
-                    }
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(this, R.string.dict_download_err, Toast.LENGTH_SHORT).show();
-                    if (aboutDict != null) {
-                        aboutDict.setEnabled(true);
-                        aboutDict.setText(R.string.dict_download);
-                    }
-                });
-            }
-        }).start();
     }
 
     private void addJoker() {
