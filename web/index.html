@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=123" />
+  <link rel="stylesheet" href="app.css?v=124" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -99,6 +99,7 @@
         </div>
       </div>
       <p class="hint" id="hint" data-i18n="hint_exact">Dans la liste ? Sans accents.</p>
+      <div id="daily" class="daily" hidden></div>
       <div id="verdict" class="verdict idle" hidden></div>
       <div id="find-out" class="results" hidden></div>
     </section>
@@ -147,6 +148,17 @@
           <button type="button" class="info-action" id="about-favs" data-i18n="fav_title">Favoris</button>
           <button type="button" class="info-action" id="info-feedback" data-i18n="feedback">Avis</button>
         </div>
+        <div id="game-user" class="game-user" hidden>
+          <p class="settings-label" data-i18n="account_title">Compte</p>
+          <div class="user-card">
+            <img id="user-pic" class="user-pic" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden />
+            <span class="user-who">
+              <span id="user-name" class="user-name"></span>
+            </span>
+            <button type="button" id="user-info" class="user-info" aria-haspopup="dialog" data-i18n-aria="user_stats_title" aria-label="Mes statistiques">i</button>
+            <button type="button" id="logout-btn" class="logout-btn" data-i18n="sign_out">Se déconnecter</button>
+          </div>
+        </div>
         <div class="settings-card" id="settings-card">
           <h3 data-i18n="settings">Réglages</h3>
           <p class="settings-label" data-i18n="settings_dicts">Dictionnaire</p>
@@ -193,7 +205,7 @@
           <button type="button" class="info-action info-action-ghost" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
         </div>
         <p class="fine info-legal">
-          <a class="apk-link" href="verimots-4.0.apk" download="verimots-4.0.apk" title="Télécharger verimots-4.0.apk">verimots-4.0.apk</a>
+          <a class="apk-link" href="verimots-4.0.1.apk" download="verimots-4.0.1.apk" title="Télécharger verimots-4.0.1.apk">verimots-4.0.1.apk</a>
           ·
           <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
           ·
@@ -254,6 +266,17 @@
           <p class="game-kicker" id="game-cat" data-i18n="cat_defi">Défi</p>
           <p class="game-meta" id="game-global" hidden></p>
         </div>
+      <div id="game-auth" class="game-auth" hidden>
+        <div class="auth-gate-card">
+          <div class="auth-gate-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 3h12v2h3v3a4 4 0 0 1-4 4h-.35A5.5 5.5 0 0 1 13 15.4V18h3v3H8v-3h3v-2.6A5.5 5.5 0 0 1 7.35 12H7a4 4 0 0 1-4-4V5h3V3zm0 4v2a2 2 0 0 0 1.27 1.86A9 9 0 0 1 6 7H6zm12 0h-.01a9 9 0 0 1-1.26 3.86A2 2 0 0 0 18 9V7z"/></svg>
+          </div>
+          <h2 data-i18n="auth_gate_title">Connexion requise</h2>
+          <p data-i18n="auth_gate_text">Le Bingo est classé : connecte-toi avec Google pour jouer et apparaître au classement de la semaine.</p>
+          <div id="google-signin-btn" class="google-signin-area"></div>
+          <p class="auth-help fine" data-i18n="auth_gate_note">Sans compte, tu peux jouer à Trouver un mot, Combinaisons et Petits Mots.</p>
+        </div>
+      </div>
       <div class="play-main">
        <div class="training-tools" id="training-tools" hidden>
         <div class="training-pick">
@@ -313,20 +336,6 @@
       <div id="game-result" class="game-result" hidden></div>
       </div>
       <div class="play-rail" id="play-rail">
-        <div id="game-auth" class="game-auth" hidden>
-          <div id="google-signin-btn" class="google-signin-area"></div>
-          <p class="auth-help" data-i18n="auth_help">Connecte-toi pour être classé</p>
-        </div>
-        <div id="game-user" class="game-user" hidden>
-          <div class="user-card">
-            <img id="user-pic" class="user-pic" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden />
-            <span class="user-who">
-              <span id="user-name" class="user-name"></span>
-            </span>
-            <button type="button" id="user-info" class="user-info" aria-haspopup="dialog" data-i18n-aria="user_stats_title" aria-label="Mes statistiques">i</button>
-            <button type="button" id="logout-btn" class="logout-btn" data-i18n="sign_out">Se déconnecter</button>
-          </div>
-        </div>
         <aside id="game-board" class="game-board" hidden></aside>
         <div class="game-dock" id="game-dock">
           <div class="game-chart" id="game-chart" role="img" aria-label="Vos scores sur 100"></div>
@@ -489,7 +498,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=123" type="module"></script>
+  <script src="app.js?v=124" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

@@ -133,6 +133,7 @@ public class MainActivity extends Activity {
     private View gameClear;
     private View gameSkip;
     private TextView gameAlpha;
+    private TextView headerBack;
     private View gameRackTools;
     private boolean rackAlpha;
     private boolean alphaBtnOn;
@@ -742,6 +743,7 @@ public class MainActivity extends Activity {
         styleTab(tabGame, which == 1);
         styleTab(tabAbout, which == 2);
         paintDictBadge();
+        syncHeaderBack();
         if (which == 1) {
             boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
             boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
@@ -1054,6 +1056,16 @@ public class MainActivity extends Activity {
         if (hubBack != null) hubBack.setOnClickListener(v -> showTab(0));
         if (backPlay != null) backPlay.setOnClickListener(v -> showGameView("menu"));
         if (backStudy != null) backStudy.setOnClickListener(v -> showGameView("menu"));
+        // One "Retour" lives in the top bar (same row as the brand, dictionary
+        // and language pills): back to the game menu from a game, back to the
+        // checker from the game menu.
+        headerBack = findViewById(R.id.header_back);
+        if (headerBack != null) headerBack.setOnClickListener(v -> {
+            if (tab != 1) return;
+            boolean menuOn = gameMenu != null && gameMenu.getVisibility() == View.VISIBLE;
+            if (menuOn) showTab(0);
+            else showGameView("menu");
+        });
         if (levelBeginner != null) levelBeginner.setOnClickListener(v -> setLevel("beginner"));
         if (levelConfirmed != null) levelConfirmed.setOnClickListener(v -> setLevel("confirmed"));
         paintLevel();
@@ -1090,6 +1102,13 @@ public class MainActivity extends Activity {
         if (gameStudy != null) gameStudy.setVisibility("study".equals(view) ? View.VISIBLE : View.GONE);
         syncPlayBoard();
         syncGameDock();
+        syncHeaderBack();
+    }
+
+    /** The top-bar "Retour" only makes sense on the Jouer tab. */
+    private void syncHeaderBack() {
+        if (headerBack == null) return;
+        headerBack.setVisibility(tab == 1 ? View.VISIBLE : View.GONE);
     }
 
     private void pickGame(String choice) {

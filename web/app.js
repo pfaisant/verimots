@@ -1,8 +1,8 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=123'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=123'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=123'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=123'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=123'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=124'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=124'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=124'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=124'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=124'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -57,7 +57,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=81', { type: 'module' })
+const worker = new Worker('worker.js?v=82', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -416,7 +416,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=123').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=124').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -425,7 +425,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=123')
+    const { fetchHistory } = await import('./competitive.js?v=124')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -433,7 +433,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=123')
+    const { saveHistoryWord } = await import('./competitive.js?v=124')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -531,7 +531,9 @@ function syncChrome() {
     multi: t('hint_multi'),
   }
   const keepClosed = nav === 'game' && document.body.classList.contains('game-closed')
-  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}${isTraining() ? ' training' : ''}`
+  // State classes owned by game.js survive the rebuild.
+  const keep = ['auth-gate', 'has-chart'].filter((c) => document.body.classList.contains(c)).map((c) => ` ${c}`).join('')
+  document.body.className = `${advanced ? 'advanced' : 'simple'} view-${nav}${inApp ? ' in-app' : ''}${keepClosed ? ' game-closed' : ''}${boardSplit() ? ' game-split' : ''}${isKids() ? ' kids' : ''}${isTraining() ? ' training' : ''}${keep}`
   if (brandSub) {
     brandSub.textContent = dictLabel()
     brandSub.setAttribute('aria-label', `${t('dict_open')} · ${dictLabel()}`)
@@ -694,14 +696,60 @@ function renderRackPreview() {
     <p class="preview-cap">${raw ? `${raw.length} lettre${raw.length > 1 ? 's' : ''}` : 'Tapez A–Z ou posez un ?'}${blanks ? ` · ${blanks} joker${blanks > 1 ? 's' : ''}` : ''}</p>`
 }
 
+const dailyEl = document.getElementById('daily')
+let dailySeq = 0
+
+// Word of the day: fills the empty check page with something to read.
+async function renderDaily() {
+  if (!dailyEl) return
+  if (nav !== 'check' || findMode !== 'exact' || normalize(q.value) || !ready) {
+    dailyEl.hidden = true
+    return
+  }
+  const seq = ++dailySeq
+  let daily = null
+  try {
+    daily = await ask('daily')
+  } catch {
+    daily = null
+  }
+  if (seq !== dailySeq || !daily?.word || staleResult(daily)) return
+  if (nav !== 'check' || normalize(q.value)) return
+  const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  const when = new Date().toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })
+  dailyEl.hidden = false
+  dailyEl.innerHTML = `
+    <div class="daily-head">
+      <p class="daily-kicker">${escapeHtml(t('daily_title'))}</p>
+      <p class="daily-date">${escapeHtml(when)}</p>
+    </div>
+    <button type="button" class="daily-word" data-word="${escapeHtml(daily.word)}">
+      ${tilesHtml(daily.word)}
+      <span class="daily-meta">${t('letters_pts', daily.word.length, daily.score)}</span>
+      <span class="daily-tap">${escapeHtml(t('daily_tap'))} →</span>
+    </button>
+    <div class="game-def-body" id="daily-def">${defBody(null, escapeHtml)}</div>`
+  const payload = await loadDefinition(daily.word, { stable: true })
+  if (seq !== dailySeq || dailyEl.hidden) return
+  const blob = (payload?.senses || []).flatMap((s) => s.defs).join(' ')
+  const formOf = extractFormOf(blob)
+  const inflection = payload?.found && (payload.senses || []).every((s) => s.defs.every(isInflectionDef))
+  const root = inflection && formOf ? await loadDefinition(formOf, { stable: true }) : null
+  if (seq !== dailySeq || dailyEl.hidden) return
+  const box = document.getElementById('daily-def')
+  if (box) box.innerHTML = defBody(payload, escapeHtml, { formOf, root, word: daily.word })
+}
+
 function renderCheck(word, result) {
   findOut.hidden = true
   if (!word) {
     verdict.hidden = true
     verdict.className = 'verdict idle'
     lastShare = null
+    renderDaily()
     return
   }
+  if (dailyEl) dailyEl.hidden = true
   verdict.hidden = false
   if (!ready) {
     verdict.className = 'verdict idle'
@@ -1141,6 +1189,7 @@ async function run() {
 
   if (nav === 'check') {
     verdict.hidden = true
+    if (dailyEl) dailyEl.hidden = true
     const filters = findMode === 'multi' ? multiFilters() : null
     if (findMode === 'multi' ? !hasMultiFilter(filters) : raw.length < 2) {
       findOut.hidden = false
@@ -1378,7 +1427,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=123')
+      const { clearCloudHistory } = await import('./competitive.js?v=124')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1677,6 +1726,7 @@ async function boot() {
   paintApkLink()
   try {
     const user = await checkSession()
+    game.setUser(user)
     if (user) await syncCloudHistory()
   } catch {
     /* not signed in */
@@ -1711,7 +1761,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=123').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=124').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
@@ -1724,8 +1774,8 @@ window.addEventListener('resize', () => {
 
 document.getElementById('logout-btn')?.addEventListener('click', async () => {
   await logout()
-  // Same mode + same rack would short-circuit switchMode and leave the user
-  // card on screen — force the ranked view to rebuild (sign-in button back).
+  game.setUser(null)
+  // Force the ranked view to rebuild: the sign-in gate comes back in Bingo.
   await game.switchMode(isKids() ? 'kids' : isCompetitive() ? 'competitive' : 'defi', { force: true })
   if (histSheet && !histSheet.hidden) renderHistory()
 })

@@ -23,7 +23,8 @@
         android:paddingHorizontal="12dp"
         android:text="@string/menu_back"
         android:textColor="@color/gold"
-        android:textSize="13sp" />
+        android:textSize="13sp"
+            android:visibility="gone" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -332,7 +333,8 @@
             android:paddingHorizontal="12dp"
             android:text="@string/menu_back"
             android:textColor="@color/gold"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
@@ -1095,7 +1097,8 @@
                     android:paddingHorizontal="12dp"
                     android:text="@string/menu_back"
                     android:textColor="@color/gold"
-                    android:textSize="13sp" />
+                    android:textSize="13sp"
+            android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout

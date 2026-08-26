@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=123'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=123'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=124'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=124'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -1556,7 +1556,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=123')
+        await import('./competitive.js?v=124')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1910,8 +1910,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       await initRanked(next === 'kids', requestId)
       return
     }
-    if (authEl) authEl.hidden = true
-    if (userEl) userEl.hidden = true
+    setAuthGate(false)
     paintGlobal()
     paintLeaderboard()
     await deal()
@@ -1921,35 +1920,46 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return initRanked(false)
   }
 
+  // The account card lives on the Infos page; it mirrors the session state.
+  function paintUserCard(user) {
+    lastUser = user || null
+    if (userEl) userEl.hidden = !user
+    if (!user) return
+    const pic = document.getElementById('user-pic')
+    const name = document.getElementById('user-name')
+    if (pic) {
+      const src = String(user.picture || '')
+      pic.hidden = !src
+      pic.onerror = () => {
+        pic.removeAttribute('src')
+        pic.hidden = true
+      }
+      if (src) pic.src = src
+      else pic.removeAttribute('src')
+    }
+    if (name) name.textContent = user.name || t('user_fallback')
+    if (userInfoBtn) userInfoBtn.setAttribute('aria-label', t('user_stats_title'))
+    if (userSheet && !userSheet.hidden) paintUserSheet()
+  }
+
+  function setAuthGate(on) {
+    if (authEl) authEl.hidden = !on
+    document.body.classList.toggle('auth-gate', !!on)
+  }
+
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=123')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=124')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
-      if (authEl) authEl.hidden = true
-      if (userEl) {
-        userEl.hidden = false
-        const pic = document.getElementById('user-pic')
-        const name = document.getElementById('user-name')
-        if (pic) {
-          const src = String(user.picture || '')
-          pic.hidden = !src
-          pic.onerror = () => {
-            pic.removeAttribute('src')
-            pic.hidden = true
-          }
-          if (src) pic.src = src
-          else pic.removeAttribute('src')
-        }
-        if (name) name.textContent = user.name || t('user_fallback')
-        lastUser = user
-        if (userInfoBtn) userInfoBtn.setAttribute('aria-label', t('user_stats_title'))
-        if (userSheet && !userSheet.hidden) paintUserSheet()
-        document.dispatchEvent(new CustomEvent('verimots-auth', { detail: user }))
-      }
+      setAuthGate(false)
+      paintUserCard(user)
+      document.dispatchEvent(new CustomEvent('verimots-auth', { detail: user }))
     } else {
-      if (userEl) userEl.hidden = true
-      if (authEl) authEl.hidden = false
+      paintUserCard(null)
+      // Ranked play needs an account: the sign-in gate takes the whole panel.
+      setAuthGate(true)
+      if (catEl) catEl.textContent = t(kids ? 'kids_cat' : 'mode_comp')
       try {
         await initGoogleSignIn()
       } catch {
@@ -1979,6 +1989,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       }
     }
 
+    if (!user) return
     const [trail, adultBoard, kidsBoard, allBoard] = await Promise.all([
       fetchDailyTrail(getLang(), { kids }),
       fetchLeaderboard(null, getLang()),
@@ -2015,7 +2026,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadGeneralBoard(kids) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=123')
+    const { fetchLeaderboard } = await import('./competitive.js?v=124')
     const data = await fetchLeaderboard(null, getLang(), { kids, scope: 'all' })
     if (kids) lastAllKidsBoard = data
     else lastAllBoard = data
@@ -2191,7 +2202,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=123')
+      const { fetchLeaderboard } = await import('./competitive.js?v=124')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       lastAllBoard = null
@@ -2203,5 +2214,6 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     deal,
     switchMode,
     setTrainingPreset,
+    setUser: paintUserCard,
   }
 }

@@ -240,6 +240,31 @@ function dealTraining(preset = 'all', excludeSeed = '', excludeRack = '') {
   return { category: 'training', rack: '', groups: [], seed: '', preset: mode, targetLength, total: 0 }
 }
 
+
+// Word of the day: deterministic per (Paris date, language). Picks a 5–8 letter
+// word worth at least 9 points so the definition card has something to say.
+function parisDayKey() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+}
+function hash32(str) {
+  let h = 2166136261
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+function dailyWord() {
+  const pool = []
+  for (let len = 5; len <= 8; len++) {
+    for (const w of byLen[len] || []) if (scoreWord(w) >= 9) pool.push(w)
+  }
+  if (!pool.length) return null
+  const key = `${parisDayKey()}|${currentLang}|${currentDict}`
+  const word = pool[hash32(key) % pool.length]
+  return { word, score: scoreWord(word), day: parisDayKey() }
+}
+
 function anagrams(rack, minLen, maxLen) {
   const { counts, blanks, tiles } = rackCounts(rack)
   const hi = Math.min(maxLen, tiles)
@@ -423,6 +448,10 @@ async function handle(msg) {
   if (msg.type === 'training') {
     const deal = dealTraining(msg.preset, msg.excludeSeed, msg.excludeRack)
     self.postMessage({ type: 'training', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
+    return
+  }
+  if (msg.type === 'daily') {
+    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord() || {}), lang: currentLang, dict: currentDict })
     return
   }
   if (msg.type === 'find') {

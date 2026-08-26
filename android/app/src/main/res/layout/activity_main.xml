@@ -105,6 +105,30 @@
                 android:textSize="10sp" />
         </LinearLayout>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/header_back"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_count"
+            android:drawablePadding="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:paddingStart="8dp"
+            android:paddingEnd="10dp"
+            android:singleLine="true"
+            android:text="@string/menu_back_short"
+            android:textColor="@color/gold"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/live"
             android:layout_width="0dp"
