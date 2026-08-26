@@ -3362,3 +3362,18 @@ body.view-board .fab-board { display: grid; }
     border-radius: 12px 12px 0 0;
   }
 }
+
+/* Roadmap page */
+.roadmap ol { padding-left: 20px; }
+.roadmap ol li, .roadmap ul li { margin: 0 0 8px; }
+.roadmap h3 { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.roadmap-when {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--rim-gold);
+  border-radius: 999px;
+  color: var(--gold);
+  font: 700 10.5px var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

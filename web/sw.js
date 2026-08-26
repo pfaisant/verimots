@@ -1,15 +1,15 @@
-const CACHE = 'verimots-v119'
+const CACHE = 'verimots-v120'
 const SHELL = [
   './',
   './index.html',
-  './app.css?v=119',
+  './app.css?v=120',
   './analytics.js?v=28',
-  './app.js?v=119',
-  './competitive.js?v=119',
-  './game.js?v=119',
-  './favorites.js?v=119',
-  './history.js?v=119',
-  './i18n.js?v=119',
+  './app.js?v=120',
+  './competitive.js?v=120',
+  './game.js?v=120',
+  './favorites.js?v=120',
+  './history.js?v=120',
+  './i18n.js?v=120',
   './worker.js?v=80',
   './kids.js?v=68',
   './favicon.svg',
@@ -27,6 +27,7 @@ const SHELL = [
   './dictionnaires.html',
   './dictionaries.html',
   './diccionarios.html',
+  './roadmap.html',
 ]
 
 self.addEventListener('install', (event) => {

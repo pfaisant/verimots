@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Feuille de route — Verimots</title>
+  <meta name="description" content="Feuille de route de Verimots : d’abord tout ce qui est gratuit et libre (Wiktionnaire, WordNet, listes communautaires), puis, plus tard, des licences officielles si elles sont accessibles." />
+  <meta name="theme-color" content="#142018" />
+  <link rel="canonical" href="https://verimots.pfa87.cc/roadmap.html" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="app.css?v=120" />
+</head>
+<body class="simple legal">
+  <header class="top">
+    <div class="brand">
+      <a href="https://verimots.pfa87.cc/?lang=fr" class="brand-home">
+        <span class="mark" aria-hidden="true">V</span>
+        <h1>Verimots</h1>
+      </a>
+      <span class="legal-kicker">Feuille de route</span>
+    </div>
+    <a class="menu-back" href="/?lang=fr">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.4 6.4 10.8 11l4.6 4.6L14 17l-6-6 6-6z"/></svg>
+      <span>Retour</span>
+    </a>
+  </header>
+  <main>
+    <article class="info roadmap">
+      <h2>Feuille de route</h2>
+      <p>Dernière mise à jour : 26 août 2026.</p>
+      <p class="info-lead">
+        Verimots est un projet indépendant, gratuit, sans publicité et sans budget.
+        La ligne est simple : <strong>d’abord tout ce qui est libre et gratuit</strong> ; ensuite,
+        quand le projet aura une audience et une méthode solides, <strong>explorer des licences officielles</strong>
+        (ODS, CSW, NWL, Lexicón) — mais pas maintenant.
+      </p>
+
+      <h3>Où en est-on</h3>
+      <ul>
+        <li>Listes de mots <strong>communautaires</strong>, une par langue (FR, EN ×2, ES), sans copie d’ouvrage officiel.</li>
+        <li>Définitions tirées du <strong>Wiktionnaire</strong> (CC BY-SA 4.0), avec attribution dans l’app.</li>
+        <li>Modes de jeu : Bingo (classement hebdomadaire et général), Trouver un mot, Combinaisons, Petits Mots.</li>
+        <li>Web (s.pfa87.cc) et application Android native, même code de règles.</li>
+      </ul>
+
+      <h3>Phase 1 — Budget zéro : consolider avec des sources libres <span class="roadmap-when">maintenant → fin 2026</span></h3>
+      <ol>
+        <li>
+          <strong>Dire clairement ce que Verimots est et n’est pas.</strong> Avertissements précis (page Infos,
+          page Dictionnaires, fiches store) : listes communautaires, pas d’ODS/CSW/NWL/Lexicón, pas de conformité
+          officielle, pas d’arbitrage de tournoi, marques SCRABBLE citées avec leurs titulaires.
+        </li>
+        <li>
+          <strong>Documenter la provenance de chaque liste</strong> : source, licence, date d’import, méthode de
+          construction et de nettoyage, choix d’inclusion/exclusion. Cette traçabilité est la meilleure protection
+          contre le reproche d’« extraction » d’un ouvrage protégé.
+        </li>
+        <li>
+          <strong>Définitions FR hors-ligne</strong> : extraire le Wiktionnaire FR (dumps + Wiktextract/Kaikki),
+          le mapper sur la liste, embarquer un sous-ensemble compact dans l’app. Attribution CC BY-SA visible.
+        </li>
+        <li>
+          <strong>Définitions EN</strong> : ajouter <strong>WordNet 3.0</strong> (licence permissive, sans
+          share-alike) pour les sens courants ; compléter par le Wiktionnaire EN pour les formes fléchies.
+          Notice WordNet dans les crédits, sans usage du nom « Princeton » en promotion.
+        </li>
+        <li>
+          <strong>Définitions ES</strong> : Wiktionnaire ES uniquement ; pas d’extraction du DLE (contenu RAE)
+          ni d’usage du Lexicón FILE.
+        </li>
+        <li>
+          <strong>Définitions communautaires</strong> pour les trous (mots de tournoi absents du Wiktionnaire) :
+          courtes, rédigées par les joueurs, publiées sous CC BY-SA pour rester compatibles.
+        </li>
+        <li>
+          <strong>Listes EN et ES indépendantes</strong> : consolider à partir de sources ouvertes (YAWL, SCOWL,
+          listes CC0, RLA-ES MPL, fichiers publiés par la WGPO) et assumer l’écart avec CSW/NWL/FILE
+          (« mode approximatif » signalé aux joueurs de tournoi).
+        </li>
+        <li>
+          <strong>Hygiène</strong> : ne plus nommer ODS9 / CSW24 / NWL2023 dans le code et les données ;
+          garder les noms de listes comme repères pour les joueurs, jamais comme revendication de conformité.
+        </li>
+      </ol>
+
+      <h3>Phase 2 — Mesurer, puis frapper aux portes <span class="roadmap-when">2027, si l’audience le justifie</span></h3>
+      <ol>
+        <li>Suivre l’usage (joueurs actifs, parties, langues) pour pouvoir décrire honnêtement le projet.</li>
+        <li>
+          Écrire pour <em>clarifier</em>, pas pour acheter : Larousse (licences numériques ODS) et FISF d’abord,
+          puis HarperCollins (Collins API / CSW), NASPA (NWL), FILE (Lexicón).
+          Question posée : existe-t-il un cadre pour une app gratuite, hors-ligne, sans publicité ?
+          À défaut, confirmer que l’intégration est exclue — et rester sur le libre.
+        </li>
+        <li>Options « légères » à privilégier si une porte s’ouvre : lien vers l’outil officiel, API en ligne limitée, module co-brandé.</li>
+      </ol>
+
+      <h3>Phase 3 — Licences, seulement si accessibles <span class="roadmap-when">non planifié</span></h3>
+      <ul>
+        <li>Aucun tarif public n’existe pour ODS, CSW, NWL ou Lexicón ; les accords se font au cas par cas.</li>
+        <li>Seule grille connue : Collins API (dictionnaire général, EN) — gratuit jusqu’à 5 000 appels/mois, puis 50 £, 170 £, 375 £ par mois selon le volume. Non compatible avec un budget zéro au-delà du palier gratuit.</li>
+        <li>Décision : pas de licence tant que le projet n’a ni budget ni besoin avéré. Le libre suffit pour apprendre et s’entraîner.</li>
+      </ul>
+
+      <h3>Ce que Verimots ne fera pas</h3>
+      <ul>
+        <li>Reproduire ou redistribuer l’ODS, le CSW, le NWL, le Lexicón FILE ou le DLE, même partiellement.</li>
+        <li>Se présenter comme « conforme » à un lexique officiel ou comme arbitre.</li>
+        <li>Ajouter de la publicité ou un paiement pour financer une licence.</li>
+      </ul>
+
+      <h3>Crédits et licences</h3>
+      <ul>
+        <li>Wiktionnaire / Wiktionary / Wikcionario — CC BY-SA 4.0 (définitions).</li>
+        <li>YAWL — domaine public (liste EN « CSW · YAWL »).</li>
+        <li>WGPO Official Words 2024 — fichier publié par la WGPO (liste EN).</li>
+        <li>RLA-ES 2.9 — Mozilla Public License 1.1 (liste ES).</li>
+        <li>À venir : WordNet 3.0 (Princeton University) pour les définitions EN.</li>
+      </ul>
+      <p class="fine">
+        SCRABBLE est une marque déposée de Mattel (hors États-Unis et Canada) et de Hasbro (États-Unis et Canada).
+        Verimots n’est affilié à aucun éditeur, aucune fédération ni aucun fabricant de jeu.
+      </p>
+
+      <h3 lang="en">In English — the short version</h3>
+      <p lang="en">
+        Verimots is free, ad-free and has no budget. Phase 1 (now): rely only on free sources — community word
+        lists, Wiktionary (CC BY-SA), WordNet for English — with clear disclaimers and documented provenance.
+        Phase 2 (2027, if usage justifies it): write to Larousse/FISF, HarperCollins, NASPA and FILE to
+        <em>clarify</em> whether any framework exists for a free offline app. Phase 3 (unplanned): licences only
+        if they turn out to be accessible. No official list is reproduced, and none will be without an agreement.
+      </p>
+
+      <p class="fine">
+        <a href="/?lang=fr">Retour à Verimots</a> ·
+        <a href="/dictionnaires.html">Dictionnaires</a> ·
+        <a href="/confidentialite.html">Confidentialité</a> ·
+        <a href="/support.html">Aide</a>
+      </p>
+    </article>
+  </main>
+</body>
+</html>
