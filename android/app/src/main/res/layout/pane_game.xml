@@ -42,6 +42,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <TextView
+                style="@style/Display"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="@string/menu_title"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
             <LinearLayout
                 android:id="@+id/menu_comp"
                 android:layout_width="match_parent"
@@ -514,7 +526,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="16dp"
         android:gravity="center_vertical">
 
         <FrameLayout
@@ -581,7 +593,7 @@
             android:id="@+id/training_hint_btn"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:background="@drawable/bg_pill_hint"
+            android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:includeFontPadding="false"
@@ -595,7 +607,7 @@
             android:id="@+id/training_reveal_word"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:background="@drawable/bg_pill_pass"
+            android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:includeFontPadding="false"
@@ -609,7 +621,7 @@
             android:id="@+id/training_reveal"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:background="@drawable/bg_pill_quiet"
+            android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:includeFontPadding="false"
@@ -670,7 +682,7 @@
             android:id="@+id/find_best_btn"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:background="@drawable/bg_pill"
+            android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:includeFontPadding="false"
@@ -684,14 +696,14 @@
             android:id="@+id/find_giveup_btn"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:background="@drawable/bg_pill"
+            android:background="@drawable/bg_count"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:includeFontPadding="false"
             android:maxLines="1"
             android:paddingHorizontal="12dp"
             android:text="@string/find_giveup"
-            android:textColor="@color/gold"
+            android:textColor="@color/muted"
             android:textSize="11.5sp" />
     </cc.pfa87.ods9.FlowLayout>
 
@@ -1011,6 +1023,21 @@
                 android:visibility="gone" />
         </LinearLayout>
 
+        <!-- How-it-works "i": same row as the chart, far right -->
+        <TextView
+            android:id="@+id/game_rules_info"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_count"
+            android:contentDescription="@string/game_rules"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:text="i"
+            android:textColor="@color/gold"
+            android:textSize="13sp"
+            android:textStyle="bold|italic" />
+
         <ImageButton
             android:id="@+id/board_open"
             android:layout_width="34dp"
@@ -1034,22 +1061,6 @@
             android:src="@drawable/ic_wa"
             android:visibility="invisible" />
     </LinearLayout>
-    <!-- How-it-works: one quiet "i" at the bottom, per game mode -->
-    <TextView
-        android:id="@+id/game_rules_info"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/bg_count"
-        android:contentDescription="@string/game_rules"
-        android:fontFamily="serif"
-        android:gravity="center"
-        android:text="i"
-        android:textColor="@color/gold"
-        android:textSize="13sp"
-        android:textStyle="bold|italic" />
     </LinearLayout>
 
     <ScrollView
@@ -1073,30 +1084,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/game_study_share"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_count"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/study_share_short"
-                    android:textColor="@color/ink"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/game_study_twos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="6dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:paddingHorizontal="8dp"
-                    android:text="@string/share_study_twos"
-                    android:textColor="@color/gold"
-                    android:textSize="12sp" />
 
                 <View
                     android:layout_width="0dp"
@@ -1262,6 +1249,18 @@
                     android:layout_height="0dp"
                     android:visibility="gone" />
             </LinearLayout>
+
+            <!-- Share the day's short words: same round WA icon as everywhere -->
+            <ImageButton
+                android:id="@+id/game_study_share"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="end"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_wa"
+                android:contentDescription="@string/study_share_short"
+                android:padding="8dp"
+                android:src="@drawable/ic_wa" />
 
             <!-- Petits Mots → Combinaisons restricted to 2–3 letter words -->
             <TextView

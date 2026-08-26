@@ -274,4 +274,6 @@
     <string name="find_rules_body">The highest-scoring word wins — you don’t need every letter. A 7-letter word earns a 50-point bonus.\n\nYour score is the percentage of the best possible word; it stays on this device. “Show best score” shows the maximum, “Give up” reveals the best words.\n\nAt Beginner level, “Hint” helps you find a word.</string>
     <string name="result_intro">Best words on this rack</string>
     <string name="daily_next">Another word</string>
+    <string name="menu_title">Games</string>
+    <string name="options_title">Options</string>
 </resources>

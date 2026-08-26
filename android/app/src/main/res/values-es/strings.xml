@@ -184,7 +184,7 @@
     <string name="hist_word">Palabra</string>
     <string name="hist_pts">Ptos</string>
     <string name="hist_empty">Aún no hay palabras.</string>
-    <string name="feedback">Opinión</string>
+    <string name="feedback">Feedback</string>
     <string name="feedback_title">Un comentario</string>
     <string name="feedback_help">Una palabra, un error o una idea — llega a mi buzón.</string>
     <string name="feedback_placeholder">Tu mensaje</string>
@@ -274,4 +274,6 @@
     <string name="find_rules_body">Gana la palabra que más puntúa — no hace falta usar todas las letras. Una palabra de 7 letras da 50 puntos extra.\n\nTu puntuación es el porcentaje de la mejor palabra posible; se queda en este dispositivo. «Ver la mejor puntuación» muestra el máximo, «Rendirse» revela las mejores palabras.\n\nEn nivel Principiante, «Pista» ayuda a encontrar una palabra.</string>
     <string name="result_intro">Mejores palabras del atril</string>
     <string name="daily_next">Otra palabra</string>
+    <string name="menu_title">Juegos</string>
+    <string name="options_title">Opciones</string>
 </resources>

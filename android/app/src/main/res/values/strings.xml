@@ -186,7 +186,7 @@
     <string name="hist_word">Mot</string>
     <string name="hist_pts">Pts</string>
     <string name="hist_empty">Aucun mot pour l’instant.</string>
-    <string name="feedback">Avis</string>
+    <string name="feedback">Feedback</string>
     <string name="feedback_title">Un commentaire</string>
     <string name="feedback_help">Un mot, un bug, une idée — ça arrive dans ma boîte mail.</string>
     <string name="feedback_placeholder">Votre message</string>
@@ -274,4 +274,6 @@
     <string name="find_rules_body">Le mot le plus payant gagne — pas besoin d’utiliser toutes les lettres. Un mot de 7 lettres rapporte 50 points de bonus.\n\nTon score est le pourcentage du meilleur mot possible ; il reste sur cet appareil. « Voir le meilleur score » montre le maximum atteignable, « Abandonner » révèle les meilleurs mots.\n\nEn niveau Débutant, « Indice » aide à trouver un mot.</string>
     <string name="result_intro">Meilleurs mots du tirage</string>
     <string name="daily_next">Un autre mot</string>
+    <string name="menu_title">Les jeux</string>
+    <string name="options_title">Options</string>
 </resources>

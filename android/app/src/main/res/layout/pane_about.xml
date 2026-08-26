@@ -12,128 +12,149 @@
         android:paddingTop="4dp"
         android:paddingBottom="16dp">
 
-        <!-- À propos + Réglages (web .info / .settings-card) -->
+        <!-- Compte Google (web .game-auth / .user-card) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="14dp">
-
-            <!-- Title + word-count pill top-right (web .info-head / .info-lex) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    style="@style/Display"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:maxLines="2"
-                    android:text="@string/about_title"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/about_lex"
-                    android:layout_width="wrap_content"
-                    android:layout_height="28dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_lex_pill"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:maxWidth="150dp"
-                    android:paddingHorizontal="12dp"
-                    android:text="@string/loading"
-                    android:textColor="@color/muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:text="@string/google_account"
+                android:textColor="@color/ink"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/auth_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:lineSpacingMultiplier="1.3"
-                android:text="@string/about_body"
+                android:text="@string/sign_in_hint"
                 android:textColor="@color/muted"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
-            <!-- Historique · Favoris · Avis (web .info-actions) -->
+            <TextView
+                android:id="@+id/auth_google"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_gold_btn"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/sign_in_google"
+                android:textColor="@color/tile_ink" />
+
+            <!-- Signed in: avatar (gold ring) · name · i · Se déconnecter -->
             <LinearLayout
+                android:id="@+id/auth_user_row"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:orientation="horizontal">
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_panel14"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:layout_width="32dp"
+                    android:layout_height="32dp">
+
+                    <TextView
+                        android:id="@+id/auth_pic_fallback"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_avatar_fallback"
+                        android:fontFamily="serif"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:textColor="@color/tile_ink"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/auth_pic"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_avatar_ring"
+                        android:contentDescription="@null"
+                        android:padding="2dp"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+                </FrameLayout>
 
                 <TextView
-                    android:id="@+id/hist_open"
+                    android:id="@+id/auth_name"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_gold_btn"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
                     android:maxLines="1"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/hist_open"
-                    android:textColor="@color/tile_ink"
-                    android:textSize="14sp" />
+                    android:textColor="@color/ink"
+                    android:textSize="13sp" />
 
+                <!-- Round "i": opens the "Mes statistiques" dialog -->
                 <TextView
-                    android:id="@+id/fav_open"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:id="@+id/auth_stats"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
                     android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_pill"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
+                    android:background="@drawable/bg_count"
+                    android:clickable="true"
+                    android:contentDescription="@string/user_stats_title"
+                    android:focusable="true"
+                    android:fontFamily="serif"
                     android:gravity="center"
-                    android:maxLines="1"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/fav_open"
+                    android:includeFontPadding="false"
+                    android:text="i"
                     android:textColor="@color/gold"
-                    android:textSize="14sp" />
+                    android:textSize="13sp"
+                    android:textStyle="bold|italic" />
 
                 <TextView
-                    android:id="@+id/about_feedback"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:id="@+id/auth_logout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
                     android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_pill_quiet"
+                    android:background="@drawable/bg_logout"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
                     android:gravity="center"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
-                    android:paddingHorizontal="6dp"
-                    android:text="@string/feedback"
-                    android:textColor="@color/muted"
-                    android:textSize="14sp" />
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/sign_out"
+                    android:textColor="@color/gold"
+                    android:textSize="11sp" />
             </LinearLayout>
+        </LinearLayout>
 
-            <!-- ── RÉGLAGES ──────────── (web .settings-card h3 + hairline) -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="18dp"
-                android:background="@color/line" />
+        <!-- Options -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -144,7 +165,135 @@
                     android:includeFontPadding="false"
                     android:letterSpacing="0.14"
                     android:maxLines="1"
-                    android:text="@string/settings"
+                    android:text="@string/options_title"
+                    android:textAllCaps="true"
+                    android:textColor="@color/gold"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_hairline_gold" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_opt_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/opt_alpha_btn"
+                        android:textColor="@color/ink"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="@string/opt_alpha_help"
+                        android:textColor="@color/muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/alpha_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:checked="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_opt_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/advanced_mode"
+                        android:textColor="@color/ink"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="@string/advanced_help"
+                        android:textColor="@color/muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/advanced_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:checked="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Dictionnaire -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="0.14"
+                    android:maxLines="1"
+                    android:text="@string/settings_dicts"
                     android:textAllCaps="true"
                     android:textColor="@color/gold"
                     android:textSize="11sp"
@@ -161,7 +310,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="12dp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06"
                 android:text="@string/settings_dicts"
@@ -522,94 +671,121 @@
                         android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>
+        </LinearLayout>
 
-            <!-- Switch rows (web .opt-row): dark-green 14dp cards -->
+        <!-- À propos (web .info) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="14dp">
+
+            <!-- Title + word-count pill top-right (web .info-head / .info-lex) -->
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/Display"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="@string/about_title"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/about_lex"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:visibility="gone"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_lex_pill"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:maxWidth="150dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/loading"
+                    android:textColor="@color/muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:background="@drawable/bg_opt_row"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:lineSpacingMultiplier="1.3"
+                android:text="@string/about_body"
+                android:textColor="@color/muted"
+                android:textSize="14sp" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="@string/opt_alpha_btn"
-                        android:textColor="@color/ink"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:text="@string/opt_alpha_help"
-                        android:textColor="@color/muted"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/alpha_toggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:checked="false" />
-            </LinearLayout>
-
+            <!-- Historique · Favoris · Avis (web .info-actions) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_opt_row"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/hist_open"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="44dp"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:background="@drawable/bg_gold_btn"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/hist_open"
+                    android:textColor="@color/tile_ink"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="@string/advanced_mode"
-                        android:textColor="@color/ink"
-                        android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/fav_open"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/fav_open"
+                    android:textColor="@color/gold"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:text="@string/advanced_help"
-                        android:textColor="@color/muted"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/advanced_toggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:checked="false" />
+                <TextView
+                    android:id="@+id/about_feedback"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill_quiet"
+                    android:drawableStart="@drawable/ic_feedback"
+                    android:drawablePadding="6dp"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/feedback"
+                    android:textColor="@color/muted"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <TextView
@@ -622,135 +798,6 @@
                 android:maxLines="1"
                 android:textColor="@color/dim"
                 android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- Compte Google (web .game-auth / .user-card) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="14dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:includeFontPadding="false"
-                android:text="@string/google_account"
-                android:textColor="@color/ink"
-                android:textSize="15sp" />
-
-            <TextView
-                android:id="@+id/auth_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:lineSpacingMultiplier="1.3"
-                android:text="@string/sign_in_hint"
-                android:textColor="@color/muted"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/auth_google"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_gold_btn"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/sign_in_google"
-                android:textColor="@color/tile_ink" />
-
-            <!-- Signed in: avatar (gold ring) · name · i · Se déconnecter -->
-            <LinearLayout
-                android:id="@+id/auth_user_row"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_panel14"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp"
-                android:visibility="gone">
-
-                <FrameLayout
-                    android:layout_width="32dp"
-                    android:layout_height="32dp">
-
-                    <TextView
-                        android:id="@+id/auth_pic_fallback"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_avatar_fallback"
-                        android:fontFamily="serif"
-                        android:gravity="center"
-                        android:includeFontPadding="false"
-                        android:textColor="@color/tile_ink"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/auth_pic"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_avatar_ring"
-                        android:contentDescription="@null"
-                        android:padding="2dp"
-                        android:scaleType="centerCrop"
-                        android:visibility="gone" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/auth_name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:maxLines="1"
-                    android:textColor="@color/ink"
-                    android:textSize="13sp" />
-
-                <!-- Round "i": opens the "Mes statistiques" dialog -->
-                <TextView
-                    android:id="@+id/auth_stats"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_count"
-                    android:clickable="true"
-                    android:contentDescription="@string/user_stats_title"
-                    android:focusable="true"
-                    android:fontFamily="serif"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:text="i"
-                    android:textColor="@color/gold"
-                    android:textSize="13sp"
-                    android:textStyle="bold|italic" />
-
-                <TextView
-                    android:id="@+id/auth_logout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="28dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_logout"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/sign_out"
-                    android:textColor="@color/gold"
-                    android:textSize="11sp" />
-            </LinearLayout>
         </LinearLayout>
 
         <!-- Confidentialité -->

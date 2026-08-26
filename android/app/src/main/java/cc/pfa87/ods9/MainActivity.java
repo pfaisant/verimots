@@ -431,15 +431,15 @@ public class MainActivity extends Activity {
     private void syncGameDock() {
         if (gameDock == null) return;
         boolean playOn = tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
-        if (imeOpen || !playOn || isTrainingMode) {
+        // The dock carries the "how it works" i now — keep it up whenever a
+        // game is on screen (Combinaisons included), even before any score.
+        if (imeOpen || !playOn) {
             gameDock.setVisibility(View.GONE);
             return;
         }
         java.util.List<Integer> scores = ScoreStore.load(this, isKidsMode);
-        boolean has = scores != null && !scores.isEmpty();
-        boolean share = gameWa != null && gameWa.getVisibility() == View.VISIBLE;
-        boolean board = boardOpen != null && boardOpen.getVisibility() == View.VISIBLE;
-        gameDock.setVisibility(has || share || board ? View.VISIBLE : View.GONE);
+        boolean has = !isTrainingMode && scores != null && !scores.isEmpty();
+        gameDock.setVisibility(View.VISIBLE);
         if (gameChart != null) gameChart.setVisibility(has ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -1726,10 +1726,8 @@ public class MainActivity extends Activity {
 
     private void bindStudy() {
         gameStudyBody = findViewById(R.id.game_study_body);
-        TextView gameStudyShare = findViewById(R.id.game_study_share);
-        TextView gameStudyTwos = findViewById(R.id.game_study_twos);
+        View gameStudyShare = findViewById(R.id.game_study_share);
         if (gameStudyShare != null) gameStudyShare.setOnClickListener(v -> shareDailyStudy());
-        if (gameStudyTwos != null) gameStudyTwos.setOnClickListener(v -> shareTodayTwos());
         // Petits Mots → "Mode défi": Combinaisons restricted to 2–3 letter words.
         View studyChallenge = findViewById(R.id.study_challenge);
         if (studyChallenge != null) studyChallenge.setOnClickListener(v -> {
@@ -2930,7 +2928,7 @@ public class MainActivity extends Activity {
         }
         if (findGiveupBtn != null) {
             findGiveupBtn.setText(bingo ? R.string.bingo_pass : R.string.find_giveup);
-            findGiveupBtn.setBackgroundResource(bingo ? R.drawable.bg_pill_pass : R.drawable.bg_pill);
+            findGiveupBtn.setBackgroundResource(R.drawable.bg_count);
             findGiveupBtn.setTextColor(getColor(bingo ? R.color.no : R.color.gold));
         }
     }
