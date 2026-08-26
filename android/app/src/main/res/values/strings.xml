@@ -265,4 +265,12 @@
     <string name="dict_name_wow24">WGPO WOW24</string>
     <string name="dict_name_es">RLA-ES</string>
     <string name="menu_back_short">‹ Retour</string>
+    <string name="daily_title">Mot du jour</string>
+    <string name="daily_tap">Touchez pour vérifier</string>
+    <string name="game_rules">Comment ça marche</string>
+    <string name="bingo_rules_title">Bingo — comment ça marche</string>
+    <string name="bingo_rules_body">Sept lettres, un seul mot : le plus payant gagne. Pas besoin d’utiliser toutes les lettres — un mot de 7 lettres rapporte 50 points de bonus.\n\nTon score est le pourcentage du meilleur mot possible. Le classement de la semaine fait la moyenne de tes parties ; « Passer » compte 0 %.\n\n« Indice » révèle la longueur et les points du meilleur mot. Il faut être connecté avec Google pour être classé.</string>
+    <string name="find_rules_title">Trouver un mot — comment ça marche</string>
+    <string name="find_rules_body">Le mot le plus payant gagne — pas besoin d’utiliser toutes les lettres. Un mot de 7 lettres rapporte 50 points de bonus.\n\nTon score est le pourcentage du meilleur mot possible ; il reste sur cet appareil. « Voir le meilleur score » montre le maximum atteignable, « Abandonner » révèle les meilleurs mots.\n\nEn niveau Débutant, « Indice » aide à trouver un mot.</string>
+    <string name="result_intro">Meilleurs mots du tirage</string>
 </resources>

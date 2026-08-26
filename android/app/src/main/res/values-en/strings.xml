@@ -265,4 +265,12 @@
     <string name="dict_name_wow24">WGPO WOW24</string>
     <string name="dict_name_es">RLA-ES</string>
     <string name="menu_back_short">‹ Back</string>
+    <string name="daily_title">Word of the day</string>
+    <string name="daily_tap">Tap to check</string>
+    <string name="game_rules">How it works</string>
+    <string name="bingo_rules_title">Bingo — how it works</string>
+    <string name="bingo_rules_body">Seven letters, one word: the highest-scoring word wins. You don’t need every letter — a 7-letter word earns a 50-point bonus.\n\nYour score is the percentage of the best possible word. The weekly board averages your games; “Pass” counts as 0 %.\n\n“Hint” reveals the length and points of the best word. Sign in with Google to be ranked.</string>
+    <string name="find_rules_title">Find a word — how it works</string>
+    <string name="find_rules_body">The highest-scoring word wins — you don’t need every letter. A 7-letter word earns a 50-point bonus.\n\nYour score is the percentage of the best possible word; it stays on this device. “Show best score” shows the maximum, “Give up” reveals the best words.\n\nAt Beginner level, “Hint” helps you find a word.</string>
+    <string name="result_intro">Best words on this rack</string>
 </resources>

@@ -44,8 +44,11 @@ import android.widget.Toast;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,7 +78,8 @@ public class MainActivity extends Activity {
     private TextView live;
     private TextView brandSub;
     private int tab;
-    private boolean welcomeCompetition = true;
+    // First visit lands on the game menu, never straight into Bingo.
+    private boolean welcomeCompetition = false;
     
     private CompetitiveMode competitiveMode;
     private boolean isCompetitiveMode = false;
@@ -283,7 +287,7 @@ public class MainActivity extends Activity {
             showTab(1);
             boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
             boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
-            if (!playOn && !studyOn) openWelcomeCompetition();
+            if (!playOn && !studyOn) showGameView("menu");
         };
         View mark = findViewById(R.id.mark);
         View brandTitle = findViewById(R.id.brand_title);
@@ -949,6 +953,66 @@ public class MainActivity extends Activity {
         });
     }
 
+    /** Empty checker → the word of the day, with its definition, in the card. */
+    private void paintDailyWord() {
+        if (lex == null || checkCard == null) return;
+        SimpleDateFormat keyFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+        keyFmt.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+        String day = keyFmt.format(new Date());
+        final String word = lex.dailyWord(day + "|" + Lang.get(this) + "|" + Dict.get(this));
+        if (word == null) {
+            checkCard.setVisibility(View.GONE);
+            return;
+        }
+        Locale loc = "en".equals(Lang.get(this)) ? Locale.UK : "es".equals(Lang.get(this)) ? new Locale("es", "ES") : Locale.FRANCE;
+        String when = new SimpleDateFormat("EEEE d MMMM", loc).format(new Date());
+        int pts = lex.score(word, null);
+        checkCard.setVisibility(View.VISIBLE);
+        checkStatus.setText(getString(R.string.daily_title) + " · " + when);
+        checkStatus.setTextColor(getColor(R.color.gold));
+        checkStatus.setBackgroundResource(R.drawable.bg_lex_pill);
+        checkWord.setVisibility(View.GONE);
+        checkWordShown = word;
+        if (checkFav != null) {
+            checkFav.setVisibility(View.VISIBLE);
+            paintFavStar(checkFav, word);
+        }
+        if (checkTilesScroll != null) checkTilesScroll.setVisibility(View.VISIBLE);
+        Tiles.fill(checkTiles, word, null, null);
+        if (checkTiles != null) checkTiles.setOnClickListener(v -> {
+            checkQ.setText(word);
+            checkQ.setSelection(word.length());
+            doCheck(true);
+        });
+        checkMeta.setText(getString(R.string.letters_pts, word.length(), pts, pts > 1 ? "s" : "")
+                + " · " + getString(R.string.daily_tap));
+        checkPos.setText("");
+        checkDef.setText(R.string.def_pending);
+        if (checkLemma != null) checkLemma.setVisibility(View.GONE);
+        checkWiki.setVisibility(View.GONE);
+        checkShare.setVisibility(View.VISIBLE);
+        lastShare = getString(R.string.share_check_ok, word, word.length(), pts, "", Dict.label(this));
+        final int seq = ++checkSeq;
+        RemoteApi.define(word, new RemoteApi.DefCb() {
+            @Override
+            public void ok(String pos, String text, String url, String lemma) {
+                if (seq != checkSeq) return;
+                checkPos.setText(pos);
+                paintDef(checkDef, checkLemma, text, lemma, word);
+                checkWiki.setVisibility(View.VISIBLE);
+                checkWiki.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
+            }
+
+            @Override
+            public void empty(String message) {
+                if (seq != checkSeq) return;
+                checkPos.setText("");
+                checkDef.setText(defMessage(message));
+                if (checkLemma != null) checkLemma.setVisibility(View.GONE);
+            }
+        }, Lang.get(this));
+    }
+
     private void doCheck(boolean immediateDef) {
         if (checkQ == null) return;
         String typed = checkQ.getText().toString();
@@ -972,10 +1036,12 @@ public class MainActivity extends Activity {
         }
         if (checkMatches != null) checkMatches.setVisibility(View.GONE);
         if (word.length() < 2) {
-            checkCard.setVisibility(View.GONE);
             checkHandler.removeCallbacksAndMessages(null);
+            if (word.isEmpty()) paintDailyWord();
+            else checkCard.setVisibility(View.GONE);
             return;
         }
+        if (checkTiles != null) checkTiles.setOnClickListener(null);
         boolean ok = lex.has(word);
         int pts = ok ? lex.score(word, null) : 0;
         checkCard.setVisibility(View.VISIBLE);
@@ -1094,6 +1160,23 @@ public class MainActivity extends Activity {
         if (chip == null) return;
         chip.setBackgroundResource(on ? R.drawable.bg_seg_on : 0);
         chip.setTextColor(getColor(on ? R.color.tile_ink : R.color.muted));
+    }
+
+    /** "Comment ça marche" for the current game — replaces the old goal line. */
+    private void showGameRules() {
+        int title = isTrainingMode ? R.string.training_rules_title
+                : isCompetitiveMode ? R.string.bingo_rules_title : R.string.find_rules_title;
+        int body = isTrainingMode ? R.string.training_rules_body
+                : isCompetitiveMode ? R.string.bingo_rules_body : R.string.find_rules_body;
+        android.app.AlertDialog dlg = new android.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+        if (dlg.getWindow() != null) {
+            int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.94f);
+            dlg.getWindow().setLayout(width, android.view.WindowManager.LayoutParams.WRAP_CONTENT);
+        }
     }
 
     private void showGameView(String view) {
@@ -2597,6 +2680,8 @@ public class MainActivity extends Activity {
             });
         }
         findViewById(R.id.game_go).setOnClickListener(v -> submitPlay());
+        View rulesInfo = findViewById(R.id.game_rules_info);
+        if (rulesInfo != null) rulesInfo.setOnClickListener(v -> showGameRules());
         View trainingInfo = findViewById(R.id.training_info);
         if (trainingInfo != null) {
             trainingInfo.setOnClickListener(v -> {
@@ -2674,11 +2759,6 @@ public class MainActivity extends Activity {
         gameForm.setVisibility(View.VISIBLE);
         gameLive.setVisibility(View.VISIBLE);
         gameLive.setText("");
-        if ("find".equals(gameKind) && !isTrainingMode) {
-            // Make the goal explicit — you do NOT have to use every letter.
-            gameLive.setText(R.string.find_goal);
-            gameLive.setTextColor(getColor(R.color.dim));
-        }
         gameResult.setVisibility(View.GONE);
         if (gameAgain != null) gameAgain.setVisibility(View.GONE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
@@ -3686,6 +3766,19 @@ public class MainActivity extends Activity {
         gameTop.removeAllViews();
         int n = tops.size();
         if (n == 0) return;
+        // Small gold intro so the chip list reads as a section, not loose buttons.
+        TextView intro = new TextView(this);
+        intro.setText(getString(R.string.result_intro) + " · " + n);
+        intro.setTextColor(getColor(R.color.gold));
+        intro.setTextSize(11);
+        intro.setLetterSpacing(0.12f);
+        intro.setAllCaps(true);
+        intro.setTypeface(intro.getTypeface(), android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        ilp.bottomMargin = (int) (10 * getResources().getDisplayMetrics().density);
+        ilp.leftMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        gameTop.addView(intro, ilp);
         // Balanced rows: 5 chips render 3+2, 6 render 3+3 — never 5 then a
         // lone straggler like the old flow wrap (chips have a 72dp min width,
         // so 5 across can overflow narrow phones).

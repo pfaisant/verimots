@@ -845,7 +845,7 @@
                 android:id="@+id/game_top"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="14dp"
                 android:orientation="vertical" />
 
             <LinearLayout
@@ -1034,6 +1034,22 @@
             android:src="@drawable/ic_wa"
             android:visibility="invisible" />
     </LinearLayout>
+    <!-- How-it-works: one quiet "i" at the bottom, per game mode -->
+    <TextView
+        android:id="@+id/game_rules_info"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_count"
+        android:contentDescription="@string/game_rules"
+        android:fontFamily="serif"
+        android:gravity="center"
+        android:text="i"
+        android:textColor="@color/gold"
+        android:textSize="13sp"
+        android:textStyle="bold|italic" />
     </LinearLayout>
 
     <ScrollView

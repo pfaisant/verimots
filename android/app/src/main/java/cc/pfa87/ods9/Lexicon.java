@@ -232,6 +232,23 @@ public final class Lexicon {
         return points(word, jokers);
     }
 
+    /** Word of the day: deterministic for a given key (Paris date + list),
+     *  5–8 letters and worth at least 9 points so there is something to read. */
+    public String dailyWord(String key) {
+        ArrayList<String> pool = new ArrayList<>();
+        for (int len = 5; len <= 8 && len < byLen.length; len++) {
+            for (String w : byLen[len]) if (scoreWord(w, null) >= 9) pool.add(w);
+        }
+        if (pool.isEmpty()) return null;
+        int h = 0x811c9dc5;
+        for (int i = 0; i < key.length(); i++) {
+            h ^= key.charAt(i);
+            h *= 16777619;
+        }
+        int idx = (int) ((h & 0xffffffffL) % pool.size());
+        return pool.get(idx);
+    }
+
     public static int scoreWord(String word, Set<Integer> jokers) {
         if (instance != null) return instance.points(word, jokers);
         int n = 0;
