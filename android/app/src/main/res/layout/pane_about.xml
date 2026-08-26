@@ -380,13 +380,23 @@
                 android:textColor="@color/gold"
                 android:visibility="gone" />
 
+            <!-- Round "i": opens the "Mes statistiques" dialog -->
             <TextView
                 android:id="@+id/auth_stats"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/muted"
-                android:textSize="12sp"
+                android:background="@drawable/bg_count"
+                android:clickable="true"
+                android:contentDescription="@string/user_stats_title"
+                android:focusable="true"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="i"
+                android:textColor="@color/gold"
+                android:textSize="15sp"
+                android:textStyle="bold|italic"
                 android:visibility="gone" />
         </LinearLayout>
 

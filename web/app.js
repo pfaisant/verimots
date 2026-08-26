@@ -1,8 +1,8 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=111'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=111'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=111'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=111'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=111'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=119'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=119'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=119'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=119'
+import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=119'
 
 const FR_COUNTS = {
   A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
@@ -57,7 +57,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=78', { type: 'module' })
+const worker = new Worker('worker.js?v=80', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -143,7 +143,7 @@ function isCompoundLemma(value) {
   return /[-'’]/.test(String(value || ''))
 }
 
-const DEF_CACHE_KEY = 'verimots-definitions-v5'
+const DEF_CACHE_KEY = 'verimots-definitions-v6'
 const DEF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000
 const DEF_CACHE_MAX = 80
 const defCache = new Map()
@@ -416,7 +416,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=111').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=119').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -425,7 +425,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=111')
+    const { fetchHistory } = await import('./competitive.js?v=119')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -433,7 +433,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=111')
+    const { saveHistoryWord } = await import('./competitive.js?v=119')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -572,7 +572,11 @@ function syncChrome() {
   q.placeholder = placeholders[nav] || placeholders.check
   q.maxLength = nav === 'rack' ? 16 : 15
   if (qJoker) qJoker.hidden = nav !== 'rack'
-  if (hint) hint.textContent = hints[findMode] || hints.exact
+  if (hint) {
+    hint.textContent = hints[findMode] || hints.exact
+    // The exact check speaks for itself — the "Dans la liste ?" line was noise.
+    hint.hidden = findMode === 'exact'
+  }
   if (multiTools) multiTools.hidden = findMode !== 'multi'
   if (multiInfinitives) {
     const supported = getLang() !== 'en'
@@ -711,28 +715,36 @@ function renderCheck(word, result) {
     def: firstDef(result.definition),
   }
   const back = wordStack.length ? backBtn(wordStack[wordStack.length - 1], escapeHtml) : ''
+  // Tiles already spell the word — no duplicate headline. Star sits top-right,
+  // share is a small round WhatsApp icon like in the games.
+  const waMini = `<a class="wa-mini" href="${escapeHtml(waHref(lastShare))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(lastShare.ok ? t('share_wa') : t('share_refuse'))}" title="${escapeHtml(lastShare.ok ? t('share_wa') : t('share_refuse'))}">${WA_ICON}</a>`
   if (result.ok) {
     verdict.className = 'verdict ok'
     verdict.innerHTML = `
       ${back}
-      <div class="status">${t('playable', dictLabel())}</div>
-      <p class="word">${result.word}</p>
+      <div class="verdict-head">
+        <div class="status">${t('playable', dictLabel())}</div>
+        ${favButtonHtml(result.word, result.score, escapeHtml)}
+      </div>
       ${tilesHtml(result.word)}
       <div class="meta-line">
         <span>${t('letters_pts', result.word.length, result.score)}</span>
-        ${favButtonHtml(result.word, result.score, escapeHtml)}
-        <a href="${escapeHtml(result.definition?.url || wikiUrl(result.word, result.definition?.lemma))}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
+        <span class="meta-actions">
+          ${waMini}
+          <a href="${escapeHtml(result.definition?.url || wikiUrl(result.word, result.definition?.lemma))}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
+        </span>
       </div>
-      ${shareHtml(lastShare)}
       ${defsHtml(result.definition)}`
   } else {
     verdict.className = 'verdict no'
     verdict.innerHTML = `
       ${back}
-      <div class="status">${t('not_in_list', dictLabel())}</div>
+      <div class="verdict-head">
+        <div class="status">${t('not_in_list', dictLabel())}</div>
+        ${waMini}
+      </div>
       <p class="word">${word}</p>
-      <p class="empty">${t('not_a_form')}</p>
-      ${shareHtml(lastShare)}`
+      <p class="empty">${t('not_a_form')}</p>`
   }
 }
 
@@ -1026,6 +1038,15 @@ document.getElementById('level-confirmed')?.addEventListener('click', () => setL
 document.getElementById('game-hub-back')?.addEventListener('click', () => setNav('check'))
 document.getElementById('game-menu-back')?.addEventListener('click', () => showGameView('menu'))
 document.getElementById('study-back')?.addEventListener('click', () => showGameView('menu'))
+// Petits Mots → "Mode défi": the Combinaisons game restricted to 2–3 letter words.
+document.getElementById('study-challenge')?.addEventListener('click', async () => {
+  setGameMode('training')
+  showGameView('play')
+  await game.setTrainingPreset('small', { silent: true })
+  await game.switchMode('training', { force: true })
+  syncChrome()
+  showPanel(nav)
+})
 
 let dictsInfo = null
 
@@ -1318,7 +1339,7 @@ feedbackForm?.addEventListener('submit', async (e) => {
 histBtn?.addEventListener('click', () => setHistOpen(histSheet.hidden))
 
 const trainingHelp = document.getElementById('training-help')
-const TRAINING_RULE_KEYS = ['training_rules_all', 'training_rules_seven', 'training_rules_eight', 'training_rules_plus_one', 'training_rules_joker', 'training_rules_hard']
+const TRAINING_RULE_KEYS = ['training_rules_all', 'training_rules_seven', 'training_rules_eight', 'training_rules_plus_one', 'training_rules_joker', 'training_rules_hard', 'training_rules_small']
 function openTrainingHelp() {
   const body = document.getElementById('training-help-body')
   const title = document.getElementById('training-help-title')
@@ -1326,7 +1347,8 @@ function openTrainingHelp() {
   if (title) title.textContent = t('training_rules_title')
   body.innerHTML = `<p>${escapeHtml(t('training_rules_goal'))}</p>
     <ul>${TRAINING_RULE_KEYS.map((k) => `<li>${escapeHtml(t(k))}</li>`).join('')}</ul>
-    <p>${escapeHtml(t('training_rules_timer'))} ${escapeHtml(t('training_rules_reveal'))}</p>
+    <p>${escapeHtml(t('training_rules_help'))}</p>
+    <p>${escapeHtml(t('training_rules_reveal'))}</p>
     <p class="fine">${escapeHtml(t('training_rules_unranked'))}</p>`
   trainingHelp.hidden = false
 }
@@ -1356,7 +1378,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=111')
+      const { clearCloudHistory } = await import('./competitive.js?v=119')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1689,7 +1711,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=111').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=119').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
@@ -1702,7 +1724,9 @@ window.addEventListener('resize', () => {
 
 document.getElementById('logout-btn')?.addEventListener('click', async () => {
   await logout()
-  await game.switchMode(isKids() ? 'kids' : isCompetitive() ? 'competitive' : 'defi')
+  // Same mode + same rack would short-circuit switchMode and leave the user
+  // card on screen — force the ranked view to rebuild (sign-in button back).
+  await game.switchMode(isKids() ? 'kids' : isCompetitive() ? 'competitive' : 'defi', { force: true })
   if (histSheet && !histSheet.hidden) renderHistory()
 })
 

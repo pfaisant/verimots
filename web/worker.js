@@ -182,14 +182,36 @@ function dealChallenge(excludeSeed = '', excludeRack = '') {
   return { category: 'bingo', rack, groups: anagrams(rack, 2, rack.length), seed }
 }
 
+// "Petits mots": a short rack (3–5 tiles), usually seeded with a hard letter
+// (W, K, Y, J, X, Z, Q…) that at least one answer uses. Only the 2- and
+// 3-letter words count; 2–12 answers per rack so the round stays crisp.
+function dealSmallTraining(blockedRack, rackKey) {
+  const hardPool = [...HARD].filter((ch) => TILE_COUNTS[ch])
+  for (let attempt = 0; attempt < 120; attempt++) {
+    const roll = Math.random()
+    const n = roll < 0.35 ? 3 : roll < 0.8 ? 4 : 5
+    const hard = hardPool.length && Math.random() < 0.7 ? pickWord(hardPool) : ''
+    const rack = shuffleWord(hard + fillTiles(hard, n - hard.length))
+    if (rack.length < n) break
+    if (blockedRack && rackKey(rack) === blockedRack) continue
+    const groups = anagrams(rack, 2, 3)
+    const total = groups.reduce((sum, group) => sum + group.words.length, 0)
+    if (total < 2 || total > 12) continue
+    if (hard && !groups.some((group) => group.words.some((entry) => entry.word.includes(hard)))) continue
+    return { category: 'training', rack, groups, seed: rack, preset: 'small', targetLength: 3, total, bonusIndex: -1 }
+  }
+  return { category: 'training', rack: '', groups: [], seed: '', preset: 'small', targetLength: 3, total: 0 }
+}
+
 function dealTraining(preset = 'all', excludeSeed = '', excludeRack = '') {
-  const mode = ['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(preset)
+  const mode = ['all', 'seven', 'eight', 'plusOne', 'joker', 'hard', 'small'].includes(preset)
     ? preset
     : 'all'
   const targetLength = mode === 'eight' || mode === 'plusOne' ? 8 : 7
   const blockedSeed = String(excludeSeed || '').toUpperCase()
   const rackKey = (value) => String(value || '').toUpperCase().replace(/[^A-ZÑ?]/g, '').split('').sort().join('')
   const blockedRack = rackKey(excludeRack)
+  if (mode === 'small') return dealSmallTraining(blockedRack, rackKey)
   const base = byLen[targetLength] || []
   const source = mode === 'hard' ? base.filter((word) => usesHard(word)) : base
   const pool = source.length ? source : base

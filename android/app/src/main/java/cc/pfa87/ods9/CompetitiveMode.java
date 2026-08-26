@@ -282,8 +282,10 @@ final class CompetitiveMode {
         }
     }
 
-    private TextView boardRow(JSONObject entry, boolean mine) {
-        TextView row = new TextView(activity);
+    /** One leaderboard line: round rank badge, name + word, gold score.
+     *  The player's own row gets a subtle gold tint and border (no side bar). */
+    private android.view.View boardRow(JSONObject entry, boolean mine) {
+        float d = activity.getResources().getDisplayMetrics().density;
         String word = entry.optString("word", "");
         double pct = entry.has("percent") ? entry.optDouble("percent") : 0;
         String pctLabel = String.format(new java.util.Locale(Lang.get(activity)), "%.1f%%", pct);
@@ -291,32 +293,62 @@ final class CompetitiveMode {
         String words = activity.getString(R.string.word_count_n, plays, plays > 1 ? "s" : "");
         String score = activity.getString(R.string.board_score, pctLabel, words);
         int rank = entry.optInt("rank");
-        String rankTxt = rank + " ";
         String name = entry.optString("pseudo", "?");
-        String wordTxt = word.isEmpty() ? "" : "  " + word;
-        String text = rankTxt + " " + name + wordTxt + "  " + score;
-        android.text.SpannableString sp = new android.text.SpannableString(text);
-        // Medal-tinted rank for the podium, dim otherwise.
+
+        android.widget.LinearLayout row = new android.widget.LinearLayout(activity);
+        row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        int ph = (int) (8 * d);
+        int pv = (int) (5 * d);
+        row.setPadding(ph, pv, ph, pv);
+        if (mine) row.setBackgroundResource(R.drawable.bg_board_me);
+        android.widget.LinearLayout.LayoutParams rlp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        rlp.topMargin = (int) (2 * d);
+        row.setLayoutParams(rlp);
+
+        // Medal-tinted rank for the podium, dim otherwise — in a round badge.
         int rankColor = rank == 1 ? 0xFFE8C56B : rank == 2 ? 0xFFB9C6BA : rank == 3 ? 0xFFCE9668 : 0xFF7D9183;
-        int at = 0;
-        sp.setSpan(new android.text.style.ForegroundColorSpan(rankColor), at, rankTxt.length(),
-                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        sp.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), at, rankTxt.length(),
-                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        TextView badge = new TextView(activity);
+        badge.setText(String.valueOf(rank));
+        badge.setGravity(android.view.Gravity.CENTER);
+        badge.setTextColor(rankColor);
+        badge.setTextSize(11);
+        badge.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        badge.setIncludeFontPadding(false);
+        badge.setBackgroundResource(R.drawable.bg_rank_badge);
+        int bs = (int) (24 * d);
+        android.widget.LinearLayout.LayoutParams blp = new android.widget.LinearLayout.LayoutParams(bs, bs);
+        blp.setMarginEnd((int) (8 * d));
+        row.addView(badge, blp);
+
+        TextView label = new TextView(activity);
+        String text = word.isEmpty() ? name : name + "  " + word;
+        android.text.SpannableString sp = new android.text.SpannableString(text);
         if (!word.isEmpty()) {
-            int ws = rankTxt.length() + 1 + name.length() + 2;
+            int ws = name.length() + 2;
             sp.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), ws, ws + word.length(),
                     android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        int ss = text.length() - score.length();
-        sp.setSpan(new android.text.style.ForegroundColorSpan(0xFFE8C56B), ss, text.length(),
-                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        row.setText(sp);
-        row.setTextColor(mine ? 0xFFE8C56B : 0xFFF7F2E8);
-        row.setTextSize(12);
-        row.setSingleLine(true);
-        row.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        row.setPadding(8, 6, 8, 6);
+        label.setText(sp);
+        label.setTextColor(mine ? 0xFFE8C56B : 0xFFF7F2E8);
+        label.setTextSize(12);
+        label.setSingleLine(true);
+        label.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        row.addView(label, new android.widget.LinearLayout.LayoutParams(
+                0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView pts = new TextView(activity);
+        pts.setText(score);
+        pts.setTextColor(0xFFE8C56B);
+        pts.setTextSize(12);
+        pts.setSingleLine(true);
+        android.widget.LinearLayout.LayoutParams plp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        plp.setMarginStart((int) (8 * d));
+        row.addView(pts, plp);
         return row;
     }
 
@@ -329,11 +361,15 @@ final class CompetitiveMode {
     }
 
     void submitScore(int percent, String word, boolean kids, String rack, SubmitCallback onDone) {
+        submitScore(percent, word, kids, rack, false, onDone);
+    }
+
+    void submitScore(int percent, String word, boolean kids, String rack, boolean pass, SubmitCallback onDone) {
         if (!loggedIn()) {
             if (onDone != null) onDone.done(false);
             return;
         }
-        RemoteApi.compete(percent, word, Lang.get(activity), kids, rack, new RemoteApi.CompeteCb() {
+        RemoteApi.compete(percent, word, Lang.get(activity), kids, rack, pass, new RemoteApi.CompeteCb() {
             @Override
             public void ok() {
                 Toast.makeText(activity, activity.getString(R.string.score_ranked), Toast.LENGTH_SHORT).show();

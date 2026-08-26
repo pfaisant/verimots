@@ -19,4 +19,6 @@
     <color name="no_bg">#1af07171</color>
     <color name="line">#24f4efe4</color>
     <color name="wa">#1f6b46</color>
+    <color name="orange">#f0a04a</color>
+    <color name="scroll_thumb">#2f5b40</color>
 </resources>

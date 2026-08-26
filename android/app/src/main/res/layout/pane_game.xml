@@ -175,62 +175,66 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Compact segmented level pill: dark inset track, gold gradient on the
+         selected segment, small uppercase label to the left, no card. -->
     <LinearLayout
         android:id="@+id/level_row"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="6dp"
-        android:background="@drawable/bg_card"
+        android:layout_marginBottom="8dp"
         android:gravity="center_vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
             android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
-            android:letterSpacing="0.06"
+            android:letterSpacing="0.14"
             android:maxLines="1"
             android:text="@string/level_title"
             android:textAllCaps="true"
-            android:textColor="@color/muted"
-            android:textSize="11sp" />
+            android:textColor="@color/dim"
+            android:textSize="10sp" />
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_count"
+            android:background="@drawable/bg_seg_track"
             android:orientation="horizontal"
-            android:padding="2dp">
+            android:padding="3dp">
 
             <TextView
                 android:id="@+id/level_beginner"
-                android:layout_width="0dp"
-                android:layout_height="32dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:paddingHorizontal="6dp"
+                android:maxWidth="110dp"
+                android:minWidth="96dp"
+                android:paddingHorizontal="14dp"
                 android:text="@string/level_beginner"
                 android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/level_confirmed"
-                android:layout_width="0dp"
-                android:layout_height="32dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:paddingHorizontal="6dp"
+                android:maxWidth="110dp"
+                android:minWidth="96dp"
+                android:paddingHorizontal="14dp"
                 android:text="@string/level_confirmed"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -323,69 +327,58 @@
         android:paddingVertical="10dp"
         android:visibility="gone">
 
+        <!-- "Mode de jeu" label · preset dropdown · min chip · i · progress (far right) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.08"
+                android:maxLines="1"
+                android:text="@string/training_mode_label"
+                android:textAllCaps="true"
+                android:textColor="@color/dim"
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/training_preset_btn"
                 android:layout_width="wrap_content"
-                android:layout_height="34dp"
+                android:layout_height="32dp"
                 android:background="@drawable/bg_pill"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:maxLines="1"
-                android:paddingHorizontal="12dp"
+                android:paddingHorizontal="10dp"
                 android:textColor="@color/gold"
                 android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/training_min_btn"
                 android:layout_width="wrap_content"
-                android:layout_height="34dp"
+                android:layout_height="32dp"
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_pill"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:maxLines="1"
-                android:paddingHorizontal="12dp"
+                android:paddingHorizontal="10dp"
                 android:textColor="@color/gold"
                 android:textSize="12sp" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/training_timer"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_count"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingHorizontal="10dp"
-                android:text="@string/training_no_timer"
-                android:textColor="@color/muted"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/training_info"
                 android:layout_width="26dp"
                 android:layout_height="26dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/bg_count"
                 android:contentDescription="@string/training_rules_title"
                 android:fontFamily="serif"
@@ -399,34 +392,40 @@
                 android:id="@+id/training_progress"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_marginStart="6dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
+                android:gravity="end"
                 android:maxLines="1"
                 android:textColor="@color/gold"
                 android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/training_reveal"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:background="@drawable/bg_pill"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingHorizontal="12dp"
-                android:text="@string/training_reveal"
-                android:textColor="@color/gold"
-                android:textSize="11sp" />
         </LinearLayout>
+
     </LinearLayout>
+
+    <!-- Combinaisons hint: the definition of a remaining word, word masked -->
+    <TextView
+        android:id="@+id/training_hint_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_hint_box"
+        android:lineSpacingMultiplier="1.2"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:textColor="@color/ink"
+        android:textSize="13sp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/game_rack_tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <View
             android:layout_width="0dp"
@@ -436,15 +435,19 @@
         <TextView
             android:id="@+id/game_alpha"
             android:layout_width="wrap_content"
-            android:layout_height="26dp"
+            android:layout_height="30dp"
             android:background="@drawable/bg_count"
+            android:clickable="true"
+            android:contentDescription="@string/rack_alpha"
+            android:focusable="true"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:letterSpacing="0.04"
-            android:paddingHorizontal="10dp"
+            android:letterSpacing="0.06"
+            android:minWidth="52dp"
+            android:paddingHorizontal="12dp"
             android:text="@string/rack_alpha"
             android:textColor="@color/dim"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -539,6 +542,60 @@
             android:src="@drawable/ic_check" />
     </LinearLayout>
 
+    <!-- Combinaisons actions, inside the play table under the word input -->
+    <LinearLayout
+        android:id="@+id/training_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/training_hint_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_pill"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="10dp"
+            android:text="@string/training_hint"
+            android:textColor="@color/gold"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/training_reveal_word"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_pill"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="10dp"
+            android:text="@string/training_reveal_word"
+            android:textColor="@color/gold"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/training_reveal"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_pill"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="10dp"
+            android:text="@string/training_reveal"
+            android:textColor="@color/gold"
+            android:textSize="11sp" />
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -570,6 +627,46 @@
             android:textSize="14sp" />
     </LinearLayout>
 
+    <!-- Trouver un mot / Bingo: peek at the best score (or a hint) · give up / pass -->
+    <LinearLayout
+        android:id="@+id/find_tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/find_best_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_pill"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="12dp"
+            android:text="@string/find_best_btn"
+            android:textColor="@color/gold"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/find_giveup_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="12dp"
+            android:text="@string/find_giveup"
+            android:textColor="@color/gold"
+            android:textSize="12sp" />
+    </LinearLayout>
+
     <!-- Combinaisons: words found this round, newest first, tappable -->
     <cc.pfa87.ods9.FlowLayout
         android:id="@+id/training_found_row"
@@ -577,6 +674,81 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:visibility="gone" />
+
+    <!-- Combinaisons: definition of a tapped found/revealed chip -->
+    <LinearLayout
+        android:id="@+id/training_def_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/training_def_pos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06"
+                android:maxLines="1"
+                android:textAllCaps="true"
+                android:textColor="@color/gold"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/training_def_fav"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/fav_add"
+                android:gravity="center"
+                android:text="☆"
+                android:textColor="@color/gold"
+                android:textSize="19sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/training_def_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:lineSpacingMultiplier="1.2"
+            android:textColor="@color/ink"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/training_def_lemma"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_pill"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:textColor="@color/gold"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/training_def_wiki"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/wiki"
+            android:textColor="@color/gold"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <ScrollView
         android:id="@+id/game_result"
@@ -648,6 +820,7 @@
                 android:orientation="vertical" />
 
             <LinearLayout
+                android:id="@+id/game_def_panel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -1043,6 +1216,22 @@
                     android:layout_height="0dp"
                     android:visibility="gone" />
             </LinearLayout>
+
+            <!-- Petits Mots → Combinaisons restricted to 2–3 letter words -->
+            <TextView
+                android:id="@+id/study_challenge"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_gold_btn"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:minWidth="180dp"
+                android:paddingHorizontal="24dp"
+                android:text="@string/study_challenge"
+                android:textColor="@color/tile_ink"
+                android:textSize="14sp" />
         </LinearLayout>
     </ScrollView>
 </FrameLayout>

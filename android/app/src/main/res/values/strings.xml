@@ -83,11 +83,10 @@
     <string name="training_hard">Difficiles</string>
     <string name="training_progress">%1$d sur %2$d%3$s</string>
     <string name="training_reveal">Voir les réponses</string>
-    <string name="training_no_timer">Sans limite</string>
     <string name="training_complete">Tous trouvés !</string>
     <string name="training_blurb">Trouve tous les mots du tirage.</string>
     <string name="training_rules_title">Combinaisons — les règles</string>
-    <string name="training_rules_body">Trouve tous les mots du tirage. Tape un mot puis valide ; les tuiles utilisées se grisent.\n\n• Tous — tous les mots de 2 à 7 lettres comptent.\n• 7 lettres — seuls les mots qui utilisent les 7 lettres comptent.\n• 8 lettres — pareil, avec un tirage de 8.\n• 7 + 1 — un mot de 7 lettres mélangé plus une lettre bonus (encadrée d’or) : cherche les mots de 8 lettres.\n• Joker — le ? remplace n’importe quelle lettre (0 point).\n• Difficiles — le tirage contient J, K, Q, W, X, Y ou Z.\n\nMinuteur en option : 30 s, 60 s ou 2 min. « Voir les réponses » termine la manche et révèle la liste.\n\nCe mode n’est pas classé : tes statistiques restent sur cet appareil.</string>
+    <string name="training_rules_body">Trouve tous les mots du tirage. Tape un mot puis valide ; les tuiles utilisées se grisent.\n\n• Tous — tous les mots de 2 à 7 lettres comptent.\n• 7 lettres — seuls les mots qui utilisent les 7 lettres comptent.\n• 8 lettres — pareil, avec un tirage de 8.\n• 7 + 1 — un mot de 7 lettres mélangé plus une lettre bonus (encadrée d’or) : cherche les mots de 8 lettres.\n• Joker — le ? remplace n’importe quelle lettre (0 point).\n• Difficiles — le tirage contient J, K, Q, W, X, Y ou Z.\n• Petits mots — un tirage court de 3 à 5 lettres : seuls les mots de 2 et 3 lettres comptent.\n\n« Indice » montre la définition d’un mot restant (il passe en orange une fois trouvé). « Dévoiler un mot » l’affiche en rouge.\n\n« Voir les réponses » termine la manche et révèle la liste.\n\nCe mode n’est pas classé : tes statistiques restent sur cet appareil.</string>
     <string name="training_revealed">Réponses affichées</string>
     <string name="training_found">%1$s · %2$d points</string>
     <string name="training_found_left">%1$s · %2$d points · encore %3$d</string>
@@ -217,4 +216,30 @@
     <string name="find_better">%1$d pts — on peut faire mieux</string>
     <string name="training_too_short">À partir de %1$d lettres.</string>
     <string name="training_need_len">Il faut un mot de %1$d lettres.</string>
+    <string name="training_small">Petits mots</string>
+    <string name="training_mode_label">Mode de jeu</string>
+    <string name="training_hint">Indice</string>
+    <string name="training_reveal_word">Dévoiler un mot</string>
+    <string name="training_too_long">Jusqu’à %1$d lettres seulement.</string>
+    <string name="training_hint_title">Indice</string>
+    <string name="training_hint_none">Pas de définition disponible pour ce mot.</string>
+    <string name="training_hint_len">%1$d lettres · %2$d pts</string>
+    <string name="bingo_hint">Indice</string>
+    <string name="bingo_best_is">Meilleur : %1$d lettres · %2$d pts</string>
+    <string name="bingo_pass" formatted="false">Passer · 0 %</string>
+    <string name="passed">Passé</string>
+    <string name="find_best_btn">Voir le meilleur score</string>
+    <string name="find_best_is">Meilleur score : %1$d pts</string>
+    <string name="find_giveup">Abandonner · voir le mot</string>
+    <string name="user_stats_title">Mes statistiques</string>
+    <string name="stat_streak">Série</string>
+    <string name="stat_streak_one">1 jour</string>
+    <string name="stat_streak_n">%1$d jours</string>
+    <string name="stat_best">Meilleur score</string>
+    <string name="stat_words">Mots joués</string>
+    <string name="stat_empty">Joue une partie pour voir tes statistiques.</string>
+    <string name="study_challenge">Mode défi</string>
+    <string name="wiki_short">Wiktionnaire</string>
+    <string name="training_same_rack_one">Même tirage — encore 1 mot</string>
+    <string name="training_same_rack_n">Même tirage — encore %1$d mots</string>
 </resources>

@@ -273,7 +273,15 @@ export function extractSenses(wikitext, lang = 'fr') {
   }
   const kept = keepLexicalSenses(senses)
   const lexical = kept.filter((s) => senseKind([s]) === 'lexical')
-  return lexical.length ? lexical : kept
+  if (!lexical.length) return kept
+  // ÉCHAUDÉ is both a pastry and "participe passé de échauder": keep the
+  // verb-form senses after the lexical ones so the reader sees the verb too
+  // (the client renders them as a "Forme de …" line with a root link).
+  const verbForms = kept.filter((s) => {
+    const kind = senseKind([s])
+    return kind === 'participle' || kind === 'finite' || (kind === 'inflection' && /verbe/i.test(String(s.pos || '')))
+  })
+  return verbForms.length ? [...lexical, ...verbForms] : lexical
 }
 
 const FINITE_VERB_RE = /personne du|imp[eé]ratif de/i

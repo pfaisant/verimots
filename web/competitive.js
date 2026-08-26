@@ -136,14 +136,15 @@ export async function fetchLeaderboard(trailId, lang, opts = {}) {
     if (trailId) p.set('trailId', trailId)
     p.set('lang', language(lang))
     if (opts.kids) p.set('kids', '1')
+    if (opts.scope === 'all') p.set('scope', 'all')
     const res = await fetch(`/api/game/board?${p}`, { credentials: 'include' })
     const data = await res.json()
     if (data?.ok) {
-      return { ok: true, top: data.top || [], me: data.me || null, kids: !!data.kids, trailId: data.trailId }
+      return { ok: true, top: data.top || [], me: data.me || null, kids: !!data.kids, trailId: data.trailId, scope: data.scope || 'week', weeks: data.weeks || 0 }
     }
-    return { ok: false, top: [], me: null, kids: !!opts.kids }
+    return { ok: false, top: [], me: null, kids: !!opts.kids, scope: opts.scope || 'week' }
   } catch {
-    return { ok: false, top: [], me: null, kids: !!opts.kids }
+    return { ok: false, top: [], me: null, kids: !!opts.kids, scope: opts.scope || 'week' }
   }
 }
 
@@ -196,6 +197,8 @@ export async function submitCompete(percent, word, lang, opts = {}) {
         lang: language(lang),
         kids: !!opts.kids,
         rack: opts.rack ? String(opts.rack).toUpperCase() : undefined,
+        // Passing counts as a 0 % play — it lowers the weekly average.
+        pass: !!opts.pass,
       }),
     })
     const data = await res.json()

@@ -399,6 +399,11 @@ final class RemoteApi {
     }
 
     static void compete(int percent, String word, String lang, boolean kids, String rack, CompeteCb cb) {
+        compete(percent, word, lang, kids, rack, false, cb);
+    }
+
+    /** pass=true records a Bingo "Passer" as a 0 % play (word empty). */
+    static void compete(int percent, String word, String lang, boolean kids, String rack, boolean pass, CompeteCb cb) {
         IO.execute(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/compete").openConnection();
@@ -411,9 +416,12 @@ final class RemoteApi {
                 JSONObject payload = new JSONObject();
                 payload.put("percent", percent);
                 if (word != null && !word.isEmpty()) payload.put("word", word);
+                else if (pass) payload.put("word", "");
                 payload.put("lang", language(lang));
                 if (kids) payload.put("kids", true);
+                else if (pass) payload.put("kids", false);
                 if (rack != null && !rack.isEmpty()) payload.put("rack", rack);
+                if (pass) payload.put("pass", true);
                 byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
                 try (OutputStream os = c.getOutputStream()) {
                     os.write(body);

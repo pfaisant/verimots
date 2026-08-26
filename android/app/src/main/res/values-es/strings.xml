@@ -83,7 +83,6 @@
     <string name="training_hard">Difíciles</string>
     <string name="training_progress">%1$d de %2$d%3$s</string>
     <string name="training_reveal">Ver respuestas</string>
-    <string name="training_no_timer">Sin límite</string>
     <string name="training_complete">¡Todas encontradas!</string>
     <string name="training_blurb">Encuentra todas las palabras del atril.</string>
     <string name="training_found_left">%1$s · %2$d puntos · quedan %3$d</string>
@@ -199,7 +198,7 @@
     <string name="feedback_err">No se pudo enviar. Inténtalo de nuevo.</string>
     <string name="feedback_need">Escribe un mensaje corto.</string>
     <string name="training_rules_title">Combinaciones — las reglas</string>
-    <string name="training_rules_body">Encuentra todas las palabras del atril. Escribe una palabra y valida; las fichas usadas se apagan.\n\n• Todas — cuentan todas las palabras de 2 a 7 letras.\n• 7 letras — solo cuentan las palabras que usan las 7 letras.\n• 8 letras — igual, con un atril de 8.\n• 7 + 1 — una palabra de 7 letras mezclada más una ficha extra (borde dorado): busca las palabras de 8 letras.\n• Comodín — el ? vale por cualquier letra (0 puntos).\n• Difíciles — el atril contiene J, K, Ñ, Q, W, X, Y o Z.\n\nTemporizador opcional: 30 s, 60 s o 2 min. «Ver las respuestas» termina la ronda y muestra la lista.\n\nEste modo no puntúa: tus estadísticas se quedan en este dispositivo.</string>
+    <string name="training_rules_body">Encuentra todas las palabras del atril. Escribe una palabra y valida; las fichas usadas se apagan.\n\n• Todas — cuentan todas las palabras de 2 a 7 letras.\n• 7 letras — solo cuentan las palabras que usan las 7 letras.\n• 8 letras — igual, con un atril de 8.\n• 7 + 1 — una palabra de 7 letras mezclada más una ficha extra (borde dorado): busca las palabras de 8 letras.\n• Comodín — el ? vale por cualquier letra (0 puntos).\n• Difíciles — el atril contiene J, K, Ñ, Q, W, X, Y o Z.\n• Palabras cortas — un atril corto de 3 a 5 fichas: solo cuentan las palabras de 2 y 3 letras.\n\n«Pista» muestra la definición de una palabra pendiente (pasa a naranja al encontrarla). «Revelar una palabra» la muestra en rojo.\n\n«Ver las respuestas» termina la ronda y muestra la lista.\n\nEste modo no puntúa: tus estadísticas se quedan en este dispositivo.</string>
     <string name="play_skip">Pasar</string>
     <string name="skip_done">Atril pasado</string>
     <string name="skip_best">La mejor palabra era:</string>
@@ -217,4 +216,30 @@
     <string name="find_better">%1$d pts — se puede mejorar</string>
     <string name="training_too_short">A partir de %1$d letras.</string>
     <string name="training_need_len">Hace falta una palabra de %1$d letras.</string>
+    <string name="training_small">Palabras cortas</string>
+    <string name="training_mode_label">Modo de juego</string>
+    <string name="training_hint">Pista</string>
+    <string name="training_reveal_word">Revelar una palabra</string>
+    <string name="training_too_long">Hasta %1$d letras como máximo.</string>
+    <string name="training_hint_title">Pista</string>
+    <string name="training_hint_none">No hay definición disponible para esta palabra.</string>
+    <string name="training_hint_len">%1$d letras · %2$d ptos</string>
+    <string name="bingo_hint">Pista</string>
+    <string name="bingo_best_is">Mejor: %1$d letras · %2$d ptos</string>
+    <string name="bingo_pass" formatted="false">Pasar · 0 %</string>
+    <string name="passed">Pasado</string>
+    <string name="find_best_btn">Ver la mejor puntuación</string>
+    <string name="find_best_is">Mejor puntuación: %1$d ptos</string>
+    <string name="find_giveup">Rendirse · ver la palabra</string>
+    <string name="user_stats_title">Mis estadísticas</string>
+    <string name="stat_streak">Racha</string>
+    <string name="stat_streak_one">1 día</string>
+    <string name="stat_streak_n">%1$d días</string>
+    <string name="stat_best">Mejor puntuación</string>
+    <string name="stat_words">Palabras jugadas</string>
+    <string name="stat_empty">Juega una ronda para ver tus estadísticas.</string>
+    <string name="study_challenge">Modo reto</string>
+    <string name="wiki_short">Wikcionario</string>
+    <string name="training_same_rack_one">Mismo atril — 1 palabra</string>
+    <string name="training_same_rack_n">Mismo atril — %1$d palabras</string>
 </resources>

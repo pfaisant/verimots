@@ -62,6 +62,8 @@ let SIGNUP_FILE =
   join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-signup.jsonl')
 const FEEDBACK_TO = process.env.ODS9_FEEDBACK_TO || 'pfanokif@gmail.com'
 const MAIL_RELAY_URL = process.env.MAIL_RELAY_URL || 'http://127.0.0.1:8790/send'
+export const PLAY_TESTING_URL = 'https://play.google.com/apps/testing/cc.pfa87.verimots'
+export const PLAY_WEB_URL = 'https://s.pfa87.cc/'
 let skipFeedbackMail = false
 const feedbackRate = new Map()
 
@@ -727,11 +729,67 @@ export function formatSignupMail(row) {
     `Email: ${row.email}`,
     `Play beta: ${row.beta ? 'yes' : 'no'}`,
     `Newsletter: ${row.newsletter ? 'yes' : 'no'}`,
+    row.beta ? `Play opt-in: ${PLAY_TESTING_URL}` : '',
     `When: ${formatWhen(row.at)}`,
     `Lang: ${row.lang || 'fr'}`,
     `Source: ${row.source || 'landing'}`,
     ...geoMetaLines(row),
-  ].join('\n')
+  ].filter(Boolean).join('\n')
+}
+
+export function formatTesterInviteMail(row) {
+  const email = String(row.email || '').trim()
+  const packs = {
+    fr: {
+      subject: 'Verimots — lien d’opt-in Google Play',
+      text: [
+        'Tu es inscrit pour le test fermé Verimots.',
+        '',
+        `1. On ajoute ${email} à la liste des testeurs Play.`,
+        '2. Ensuite ouvre ce lien (même compte Google) :',
+        PLAY_TESTING_URL,
+        '3. Accepte de devenir testeur, puis installe Verimots depuis Play.',
+        '',
+        'En attendant, joue tout de suite dans le navigateur :',
+        PLAY_WEB_URL,
+        '',
+        'Email seulement pour l’invitation. Pas de pub.',
+      ].join('\n'),
+    },
+    en: {
+      subject: 'Verimots — Google Play opt-in link',
+      text: [
+        'You signed up for the Verimots closed test.',
+        '',
+        `1. We add ${email} to the Play tester list.`,
+        '2. Then open this link (same Google account):',
+        PLAY_TESTING_URL,
+        '3. Become a tester, then install Verimots from Play.',
+        '',
+        'Meanwhile, play in the browser now:',
+        PLAY_WEB_URL,
+        '',
+        'Email only for the invite. No ads.',
+      ].join('\n'),
+    },
+    es: {
+      subject: 'Verimots — enlace de acceso de Google Play',
+      text: [
+        'Te has apuntado a la prueba cerrada de Verimots.',
+        '',
+        `1. Añadimos ${email} a la lista de testers de Play.`,
+        '2. Luego abre este enlace (la misma cuenta de Google):',
+        PLAY_TESTING_URL,
+        '3. Acepta ser tester e instala Verimots desde Play.',
+        '',
+        'Mientras tanto, juega ya en el navegador:',
+        PLAY_WEB_URL,
+        '',
+        'Email solo para la invitación. Sin publicidad.',
+      ].join('\n'),
+    },
+  }
+  return packs[parseLang(row.lang)] || packs.fr
 }
 
 function feedbackSubject(row) {
@@ -780,6 +838,34 @@ async function mailSignup(row) {
   if (!res.ok) {
     const err = await res.text().catch(() => '')
     throw new Error(`mail ${res.status} ${err.slice(0, 180)}`)
+  }
+  return { mailed: true }
+}
+
+async function mailTesterInvite(row) {
+  if (skipFeedbackMail || !row?.beta) return { mailed: false, skipped: true }
+  const email = validEmail(row.email)
+  if (!email || email === FEEDBACK_TO) return { mailed: false, skipped: true }
+  const secret = mailRelaySecret()
+  if (!secret) return { mailed: false, skipped: true }
+  const invite = formatTesterInviteMail({ ...row, email })
+  const res = await fetch(MAIL_RELAY_URL, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${secret}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: [email],
+      subject: invite.subject,
+      text: invite.text,
+      fromName: 'Verimots',
+    }),
+    signal: AbortSignal.timeout(12_000),
+  })
+  if (!res.ok) {
+    const err = await res.text().catch(() => '')
+    throw new Error(`tester mail ${res.status} ${err.slice(0, 180)}`)
   }
   return { mailed: true }
 }
@@ -942,8 +1028,9 @@ async function recordCompete(trailId, sub, pseudo, scored) {
       plays,
       sumPercent,
       percent,
-      word: scored.word,
-      pts: scored.pts,
+      // A pass lowers the average but keeps the last real word on the board.
+      word: scored.pass ? prev.word : scored.word,
+      pts: scored.pass ? prev.pts : scored.pts,
       timestamp: stamp,
     }
   } else {
@@ -989,6 +1076,49 @@ async function getLeaderboard(trailId, sessionSub = null) {
       if (idx !== -1) me = publicEntry(board.entries[idx], idx + 1)
     }
     return { ok: true, trailId, lang: trailLang(trailId), top, me }
+  })
+}
+
+// "Général": every weekly board of the same language / level folded into one
+// all-time standing per player — nobody drops off when the ISO week rolls over.
+async function getGeneralBoard(lang, kids, sessionSub = null) {
+  return withBoardLock(async () => {
+    await loadLeaderboards()
+    const agg = new Map()
+    let weeks = 0
+    for (const [id, board] of Object.entries(leaderboards)) {
+      if (trailLang(id) !== lang || trailKids(id) !== !!kids) continue
+      if (!board?.entries?.length) continue
+      weeks++
+      for (const e of board.entries) {
+        if (!e?.sub) continue
+        const plays = Math.max(1, Number(e.plays) || 1)
+        const sum = Number.isFinite(Number(e.sumPercent)) ? Number(e.sumPercent) : (Number(e.percent) || 0) * plays
+        const row = agg.get(e.sub) || { sub: e.sub, pseudo: e.pseudo, plays: 0, sumPercent: 0, word: null, pts: 0, timestamp: null, weeks: 0 }
+        row.plays += plays
+        row.sumPercent += sum
+        row.weeks += 1
+        if (e.word && (Number(e.pts) || 0) >= (row.pts || 0)) {
+          row.word = e.word
+          row.pts = Number(e.pts) || 0
+        }
+        if (!row.timestamp || new Date(e.timestamp || 0) > new Date(row.timestamp)) {
+          row.timestamp = e.timestamp
+          if (e.pseudo) row.pseudo = e.pseudo
+        }
+        agg.set(e.sub, row)
+      }
+    }
+    const board = { entries: [...agg.values()] }
+    sortBoard(board)
+    const pub = (e, i) => ({ ...publicEntry(e, i + 1), weeks: e.weeks })
+    const top = board.entries.slice(0, 100).map(pub)
+    let me = null
+    if (sessionSub) {
+      const idx = board.entries.findIndex((e) => e.sub === sessionSub)
+      if (idx !== -1) me = pub(board.entries[idx], idx)
+    }
+    return { ok: true, trailId: 'all', scope: 'all', lang, top, me, weeks }
   })
 }
 
@@ -1285,8 +1415,14 @@ export async function handleOdsGame(req, res, url, helpers) {
     }
     const lang = parseLang(url.searchParams.get('lang'))
     const kids = url.searchParams.get('kids') === '1'
-    const trailId = normalizeTrailId(url.searchParams.get('trailId'), lang, kids)
     const sessionSub = getSessionFromRequest(req)
+    if (url.searchParams.get('scope') === 'all') {
+      const general = await getGeneralBoard(lang, kids, sessionSub)
+      general.kids = kids
+      json(res, 200, general, { 'Cache-Control': 'no-store' }, req.method)
+      return true
+    }
+    const trailId = normalizeTrailId(url.searchParams.get('trailId'), lang, kids)
     const board = await getLeaderboard(trailId, sessionSub)
     board.kids = kids || trailKids(trailId)
     json(res, 200, board, { 'Cache-Control': 'no-store' }, req.method)
@@ -1307,7 +1443,9 @@ export async function handleOdsGame(req, res, url, helpers) {
     try {
       const body = await readJson(req)
       const word = body.word ? String(body.word).toUpperCase().slice(0, 15) : ''
-      if (!word) {
+      // A pass is an explicit 0 % play: it counts in the weekly average.
+      const pass = body.pass === true || body.pass === 1 || body.pass === '1'
+      if (!word && !pass) {
         json(res, 400, { ok: false, error: 'word_required' }, {}, req.method)
         return true
       }
@@ -1323,7 +1461,9 @@ export async function handleOdsGame(req, res, url, helpers) {
         .toUpperCase()
         .replace(/[^A-ZÑ?]/g, '')
         .slice(0, 7)
-      const scored = await scoreCompetePlay(trailId, word, { lang, kids, rack })
+      const scored = pass
+        ? { ok: true, pass: true, word: '', pts: 0, percent: 0 }
+        : await scoreCompetePlay(trailId, word, { lang, kids, rack })
       if (!scored.ok) {
         json(res, 400, scored, { 'Cache-Control': 'no-store' }, req.method)
         return true
@@ -1556,7 +1696,12 @@ export async function handleOdsGame(req, res, url, helpers) {
         json(res, 502, { ok: false, error: 'mail_failed' }, { 'Cache-Control': 'no-store' }, req.method)
         return true
       }
-      json(res, 200, { ok: true, beta, newsletter }, { 'Cache-Control': 'no-store' }, req.method)
+      try {
+        await mailTesterInvite(row)
+      } catch (err) {
+        console.error('tester invite mail failed:', err?.message || err)
+      }
+      json(res, 200, { ok: true, beta, newsletter, optin: beta ? PLAY_TESTING_URL : '' }, { 'Cache-Control': 'no-store' }, req.method)
     } catch {
       json(res, 400, { ok: false, error: 'invalid' }, {}, req.method)
     }

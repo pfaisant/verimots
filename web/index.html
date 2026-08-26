@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=111" />
+  <link rel="stylesheet" href="app.css?v=119" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -193,7 +193,7 @@
           <button type="button" class="info-action info-action-ghost" id="adv-toggle" data-i18n="advanced">Mode avancé</button>
         </div>
         <p class="fine info-legal">
-          <a class="apk-link" href="verimots-3.39.apk" download="verimots-3.39.apk" title="Télécharger verimots-3.39.apk">verimots-3.39.apk</a>
+          <a class="apk-link" href="verimots-3.40.apk" download="verimots-3.40.apk" title="Télécharger verimots-3.40.apk">verimots-3.40.apk</a>
           ·
           <a class="legal-link" href="/dictionnaires.html" data-i18n="dictionaries">Dictionnaires</a>
           ·
@@ -255,6 +255,7 @@
       <div class="play-main">
        <div class="training-tools" id="training-tools" hidden>
         <div class="training-pick">
+          <label class="training-mode-label" for="training-preset-select" data-i18n="training_mode_label">Mode de jeu</label>
           <span class="training-select-wrap">
             <select id="training-preset-select" data-i18n-aria="menu_training" aria-label="Combinaisons">
               <option value="all" data-training-label="training_all">Tous</option>
@@ -263,20 +264,12 @@
               <option value="plusOne" data-training-label="training_plus_one">7 + 1</option>
               <option value="joker" data-training-label="training_joker">Joker</option>
               <option value="hard" data-training-label="training_hard">Difficiles</option>
+              <option value="small" data-training-label="training_small">Petits mots</option>
             </select>
           </span>
-          <button type="button" id="training-min" class="training-min" hidden>5+</button>
-        </div>
-        <div class="training-status">
+          <button type="button" id="training-min" class="training-min" hidden>6+</button>
           <button type="button" id="training-info" class="training-info" aria-haspopup="dialog" data-i18n-aria="training_rules_title" aria-label="Combinaisons — les règles">i</button>
-          <span id="training-progress">0 sur 0</span>
-          <select id="training-timer" data-i18n-aria="training_timer" aria-label="Temps">
-            <option value="0" data-i18n="training_no_timer">Sans limite</option>
-            <option value="30">30 s</option>
-            <option value="60">60 s</option>
-            <option value="120">2 min</option>
-          </select>
-          <button type="button" id="training-reveal" data-i18n="training_reveal">Voir les réponses</button>
+          <span id="training-progress" class="training-progress">0 sur 0</span>
         </div>
       </div>
       <div class="play-table" id="play-table">
@@ -287,7 +280,10 @@
         </div>
         <form id="game-form" class="game-form">
           <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
-          <input id="game-q" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Votre mot" data-i18n-placeholder="play_hint" />
+          <span class="game-field">
+            <input id="game-q" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Votre mot" data-i18n-placeholder="play_hint" />
+            <button type="button" class="game-clear" id="game-clear" hidden data-i18n-aria="clear" aria-label="Effacer">×</button>
+          </span>
           <button type="submit" aria-label="Valider">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.2 16.6 4.8 12.2l1.4-1.4 3 3 8.6-8.6 1.4 1.4z"/></svg>
           </button>
@@ -296,7 +292,18 @@
           <button type="button" class="game-hint" id="game-hint" hidden data-i18n="kids_hint">Indice</button>
           <p class="game-live" id="game-live" aria-live="polite"></p>
         </div>
+        <div class="find-tools-row" id="find-tools-row" hidden>
+          <button type="button" class="find-tool" id="find-best" data-i18n="find_best_btn">Voir le meilleur score</button>
+          <button type="button" class="find-tool find-tool-quiet" id="find-giveup" data-i18n="find_giveup">Abandonner · voir le mot</button>
+        </div>
+        <div class="training-status" id="training-status" hidden>
+          <button type="button" id="training-hint" class="training-tool" data-i18n="training_hint">Indice</button>
+          <button type="button" id="training-reveal-word" class="training-tool" data-i18n="training_reveal_word">Dévoiler un mot</button>
+          <button type="button" id="training-reveal" class="training-tool" data-i18n="training_reveal">Voir les réponses</button>
+        </div>
+        <div id="training-hint-box" class="training-hint-box" hidden></div>
         <div id="training-found" class="training-answers training-found" hidden></div>
+        <div id="training-def-box" class="training-def-box" hidden></div>
         <button type="button" id="game-next" class="game-next" hidden data-i18n-aria="again" aria-label="Suivant">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 11h10.2l-3.6-3.6L13 6l6 6-6 6-1.4-1.4 3.6-3.6H5z"/></svg>
         </button>
@@ -313,8 +320,8 @@
             <img id="user-pic" class="user-pic" alt="" width="32" height="32" referrerpolicy="no-referrer" hidden />
             <span class="user-who">
               <span id="user-name" class="user-name"></span>
-              <span id="user-stats" class="user-stats"></span>
             </span>
+            <button type="button" id="user-info" class="user-info" aria-haspopup="dialog" data-i18n-aria="user_stats_title" aria-label="Mes statistiques">i</button>
             <button type="button" id="logout-btn" class="logout-btn" data-i18n="sign_out">Se déconnecter</button>
           </div>
         </div>
@@ -356,6 +363,12 @@
           <div class="study-words" id="study-twos"></div>
           <p class="study-label" id="study-threes-label">Mots de 3 lettres</p>
           <div class="study-words" id="study-threes"></div>
+          <div class="study-challenge-row">
+            <button type="button" class="study-challenge" id="study-challenge">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a1 1 0 0 1 .7.3l3 3-1.4 1.4L13 7.4V14h-2V7.4L9.7 8.7 8.3 7.3l3-3A1 1 0 0 1 12 4zM5 16h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>
+              <span data-i18n="study_challenge">Mode défi</span>
+            </button>
+          </div>
           <div class="study-def" id="study-def" hidden>
             <div class="study-def-head">
               <p class="study-def-word" id="study-def-word"></p>
@@ -392,6 +405,19 @@
         <button type="button" class="hist-close" id="fav-close" aria-label="Fermer">×</button>
       </div>
       <div id="fav-out" class="hist-out"></div>
+    </div>
+  </div>
+
+  <div id="user-sheet" class="hist-sheet" hidden>
+    <div class="hist-card user-sheet-card" role="dialog" aria-labelledby="user-sheet-title">
+      <div class="hist-bar">
+        <div class="hist-heading">
+          <h2 id="user-sheet-title" data-i18n="user_stats_title">Mes statistiques</h2>
+          <p class="hist-sub" id="user-sheet-sub"></p>
+        </div>
+        <button type="button" class="hist-close" id="user-sheet-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="user-sheet-body" id="user-sheet-body"></div>
     </div>
   </div>
 
@@ -461,7 +487,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=111" type="module"></script>
+  <script src="app.js?v=119" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

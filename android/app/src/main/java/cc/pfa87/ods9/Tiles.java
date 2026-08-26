@@ -146,13 +146,19 @@ final class Tiles {
     }
 
     static TextView chip(Context ctx, String word, int pts, boolean on, boolean mine) {
+        return chip(ctx, word, pts, on, mine, 0);
+    }
+
+    /** inkColor overrides the word colour (0 = default) — Combinaisons paints
+     *  revealed words red and hinted words orange. */
+    static TextView chip(Context ctx, String word, int pts, boolean on, boolean mine, int inkColor) {
         float d = ctx.getResources().getDisplayMetrics().density;
         TextView t = new TextView(ctx);
         t.setMinWidth((int) (72 * d));
         t.setGravity(Gravity.CENTER);
         t.setPadding((int) (6 * d), (int) (8 * d), (int) (6 * d), (int) (8 * d));
         t.setBackgroundResource(on ? R.drawable.bg_chip_on : mine ? R.drawable.bg_chip_mine : R.drawable.bg_chip);
-        t.setTextColor(ctx.getColor(on ? R.color.ink : mine ? R.color.ok : R.color.muted));
+        t.setTextColor(inkColor != 0 ? inkColor : ctx.getColor(on ? R.color.ink : mine ? R.color.ok : R.color.muted));
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         t.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         t.setLetterSpacing(0.04f);
@@ -194,6 +200,10 @@ final class Tiles {
     }
 
     static TextView resultChip(Context ctx, String word, int pts, int[] jokers) {
+        return resultChip(ctx, word, pts, jokers, 0);
+    }
+
+    static TextView resultChip(Context ctx, String word, int pts, int[] jokers, int inkColor) {
         float d = ctx.getResources().getDisplayMetrics().density;
         TextView t = new TextView(ctx);
         String shown = word;
@@ -203,7 +213,7 @@ final class Tiles {
             shown = new String(a);
         }
         t.setText(shown + "  " + pts);
-        t.setTextColor(ctx.getColor(R.color.ink));
+        t.setTextColor(inkColor != 0 ? inkColor : ctx.getColor(R.color.ink));
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         t.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         t.setLetterSpacing(0.04f);

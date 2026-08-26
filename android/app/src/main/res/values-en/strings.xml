@@ -83,7 +83,6 @@
     <string name="training_hard">Hard letters</string>
     <string name="training_progress">%1$d of %2$d%3$s</string>
     <string name="training_reveal">Show answers</string>
-    <string name="training_no_timer">No limit</string>
     <string name="training_complete">All found!</string>
     <string name="training_blurb">Find every word on the rack.</string>
     <string name="training_found_left">%1$s · %2$d points · %3$d left</string>
@@ -199,7 +198,7 @@
     <string name="feedback_err">Could not send. Try again.</string>
     <string name="feedback_need">Write a short message.</string>
     <string name="training_rules_title">Combinations — the rules</string>
-    <string name="training_rules_body">Find every word in the rack. Type a word and submit; used tiles grey out.\n\n• All — every word from 2 to 7 letters counts.\n• 7 letters — only words using all 7 letters count.\n• 8 letters — same, with an 8-tile rack.\n• 7 + 1 — a shuffled 7-letter word plus one bonus tile (gold outline): find the 8-letter words.\n• Joker — the ? stands for any letter (0 points).\n• Hard — the rack contains J, K, Q, W, X, Y or Z.\n\nOptional timer: 30 s, 60 s or 2 min. “Reveal answers” ends the round and shows the list.\n\nThis mode is unranked: your stats stay on this device.</string>
+    <string name="training_rules_body">Find every word in the rack. Type a word and submit; used tiles grey out.\n\n• All — every word from 2 to 7 letters counts.\n• 7 letters — only words using all 7 letters count.\n• 8 letters — same, with an 8-tile rack.\n• 7 + 1 — a shuffled 7-letter word plus one bonus tile (gold outline): find the 8-letter words.\n• Joker — the ? stands for any letter (0 points).\n• Hard — the rack contains J, K, Q, W, X, Y or Z.\n• Short words — a short 3–5 tile rack: only the 2- and 3-letter words count.\n\n“Hint” shows the definition of a remaining word (it turns orange once found). “Reveal a word” shows it in red.\n\n“Reveal answers” ends the round and shows the list.\n\nThis mode is unranked: your stats stay on this device.</string>
     <string name="play_skip">Skip</string>
     <string name="skip_done">Rack skipped</string>
     <string name="skip_best">The best word was:</string>
@@ -217,4 +216,30 @@
     <string name="find_better">%1$d pts — there’s better</string>
     <string name="training_too_short">Words start at %1$d letters.</string>
     <string name="training_need_len">You need a %1$d-letter word.</string>
+    <string name="training_small">Short words</string>
+    <string name="training_mode_label">Game mode</string>
+    <string name="training_hint">Hint</string>
+    <string name="training_reveal_word">Reveal a word</string>
+    <string name="training_too_long">Up to %1$d letters only.</string>
+    <string name="training_hint_title">Hint</string>
+    <string name="training_hint_none">No definition available for this word.</string>
+    <string name="training_hint_len">%1$d letters · %2$d pts</string>
+    <string name="bingo_hint">Hint</string>
+    <string name="bingo_best_is">Best: %1$d letters · %2$d pts</string>
+    <string name="bingo_pass" formatted="false">Pass · 0 %</string>
+    <string name="passed">Passed</string>
+    <string name="find_best_btn">Show best score</string>
+    <string name="find_best_is">Best score: %1$d pts</string>
+    <string name="find_giveup">Give up · see the word</string>
+    <string name="user_stats_title">My stats</string>
+    <string name="stat_streak">Streak</string>
+    <string name="stat_streak_one">1 day</string>
+    <string name="stat_streak_n">%1$d days</string>
+    <string name="stat_best">Best score</string>
+    <string name="stat_words">Words played</string>
+    <string name="stat_empty">Play a round to see your stats.</string>
+    <string name="study_challenge">Challenge mode</string>
+    <string name="wiki_short">Wiktionary</string>
+    <string name="training_same_rack_one">Same rack — 1 word left</string>
+    <string name="training_same_rack_n">Same rack — %1$d words left</string>
 </resources>

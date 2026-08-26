@@ -58,8 +58,13 @@
         android:layout_marginTop="10dp"
         android:layout_weight="1"
         android:clipToPadding="false"
+        android:fadeScrollbars="false"
         android:fillViewport="true"
-        android:paddingHorizontal="12dp">
+        android:paddingHorizontal="12dp"
+        android:scrollbarSize="6dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+        android:scrollbars="vertical">
 
         <LinearLayout
             android:id="@+id/hist_list"

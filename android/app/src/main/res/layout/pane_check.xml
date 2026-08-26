@@ -183,7 +183,8 @@
             android:layout_marginStart="4dp"
             android:text="@string/hint_check"
             android:textColor="@color/dim"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/check_matches"
@@ -203,38 +204,31 @@
             android:padding="14dp"
             android:visibility="gone">
 
-            <TextView
-                android:id="@+id/check_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_status_ok"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.08"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:textAllCaps="true"
-                android:textSize="11sp" />
-
+            <!-- Status pill on the left, favourite star in the top-right corner -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/check_word"
-                    style="@style/Display"
+                    android:id="@+id/check_status"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:letterSpacing="0.1"
-                    android:textSize="26sp"
-                    android:textStyle="bold" />
+                    android:background="@drawable/bg_status_ok"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.08"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textAllCaps="true"
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/check_fav"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/fav_add"
                     android:gravity="center"
@@ -243,6 +237,18 @@
                     android:textSize="22sp"
                     android:visibility="gone" />
             </LinearLayout>
+
+            <!-- Headline only when the tiles are not shown (word refused) -->
+            <TextView
+                android:id="@+id/check_word"
+                style="@style/Display"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:letterSpacing="0.1"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -258,14 +264,46 @@
                     android:orientation="horizontal" />
             </HorizontalScrollView>
 
-            <TextView
-                android:id="@+id/check_meta"
+            <!-- Meta line: "N lettres · P pts" … [WA icon] Wiktionnaire -->
+            <LinearLayout
+                android:id="@+id/check_meta_row"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="@color/muted"
-                android:textSize="13sp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/check_meta"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp" />
+
+                <ImageButton
+                    android:id="@+id/check_share"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_wa"
+                    android:contentDescription="@string/share"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_wa"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/check_wiki"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/wiki_short"
+                    android:textColor="@color/gold"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -306,28 +344,6 @@
                 android:textSize="14sp"
                 android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/check_wiki"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="@string/wiki"
-                android:textColor="@color/gold"
-                android:textSize="13sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/check_share"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_pill"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="@string/share"
-                android:textColor="@color/gold"
-                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

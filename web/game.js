@@ -1,5 +1,5 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=111'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=111'
+import { t, getLang, getDict, dictLabel } from './i18n.js?v=119'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=119'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -574,6 +574,16 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   const alphaBtn = document.getElementById('game-alpha')
   const trainingFoundEl = document.getElementById('training-found')
   const skipBtn = document.getElementById('game-skip')
+  const trainingHintBtn = document.getElementById('training-hint')
+  const trainingRevealWordBtn = document.getElementById('training-reveal-word')
+  const trainingHintBox = document.getElementById('training-hint-box')
+  const findToolsRow = document.getElementById('find-tools-row')
+  const findBestBtn = document.getElementById('find-best')
+  const findGiveupBtn = document.getElementById('find-giveup')
+  const clearInputBtn = document.getElementById('game-clear')
+  const userInfoBtn = document.getElementById('user-info')
+  const userSheet = document.getElementById('user-sheet')
+  let lastUser = null
 
   let rack = ''
   let rackAlpha = false
@@ -601,11 +611,18 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   let trainingRoundReady = false
   let probeSeq = 0
   const submitPromises = new Map()
+  // Words handed to the player (red) and words whose definition was shown
+  // as a hint (orange once found).
+  let trainingRevealed = new Set()
+  let trainingHinted = new Set()
+  let trainingHintSeq = 0
+  let findBestShown = false
 
-  let trainingMinLen = 5
+  const TRAINING_PRESETS = ['all', 'seven', 'eight', 'plusOne', 'joker', 'hard', 'small']
+  let trainingMinLen = 6
   try {
     const saved = localStorage.getItem('verimots-training-preset')
-    if (['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(saved)) trainingPreset = saved
+    if (TRAINING_PRESETS.includes(saved)) trainingPreset = saved
     const savedMin = Number(localStorage.getItem('verimots-training-min'))
     if (Number.isInteger(savedMin) && savedMin >= 2 && savedMin <= 7) trainingMinLen = savedMin
   } catch {
@@ -634,16 +651,276 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     trainingEndsAt = 0
   }
 
+  const trainingDefBox = document.getElementById('training-def-box')
+  let trainingDefWord = ''
+  let trainingDefSeq = 0
+
+  function trainingAnswerHtml(entry, found) {
+    return `<button type="button" class="${trainingAnswerClass(entry.word, found)}${trainingDefWord === entry.word ? ' is-open' : ''}" data-training-def="${escapeHtml(entry.word)}" data-training-pts="${entry.pts}">${escapeHtml(entry.word)}<small>${entry.pts}</small></button>`
+  }
+
+  function hideTrainingDef() {
+    trainingDefSeq++
+    trainingDefWord = ''
+    for (const box of document.querySelectorAll('.training-def-box')) {
+      box.hidden = true
+      box.innerHTML = ''
+    }
+    document.querySelectorAll('.training-answer.is-open').forEach((el) => el.classList.remove('is-open'))
+  }
+
+  // Tap a found/revealed chip → its definition, in the box nearest the list.
+  async function showTrainingDef(word, pts, box) {
+    if (!box || !define) return
+    if (trainingDefWord === word) {
+      hideTrainingDef()
+      return
+    }
+    hideTrainingDef()
+    trainingDefWord = word
+    document.querySelectorAll(`.training-answer[data-training-def="${word}"]`).forEach((el) => el.classList.add('is-open'))
+    const seq = ++trainingDefSeq
+    box.hidden = false
+    box.innerHTML = `<div class="game-def-panel">${favButtonHtml(word, pts, escapeHtml, 'game-def-fav')}<div class="game-def-body">${defBody(null, escapeHtml)}</div></div>`
+    const fav = box.querySelector('.game-def-fav')
+    if (fav) paintFavStar(fav)
+    const resolved = await resolvedDef(word)
+    if (seq !== trainingDefSeq) return
+    const body = box.querySelector('.game-def-body')
+    if (body) {
+      body._home = { ...resolved, word }
+      body.innerHTML = defBody(resolved.payload, escapeHtml, { formOf: resolved.formOf, root: resolved.root, word })
+    }
+  }
+
+  function trainingAnswerClass(word, found) {
+    if (trainingRevealed.has(word)) return 'training-answer is-revealed'
+    if (found && trainingHinted.has(word)) return 'training-answer is-found is-hinted'
+    return found ? 'training-answer is-found' : 'training-answer'
+  }
+
   /** Live list of this round's found words, newest first. */
   function paintTrainingFound() {
     if (!trainingFoundEl) return
     const show = trainingOn() && !closed && trainingFoundPlays.length > 0
     trainingFoundEl.hidden = !show
     trainingFoundEl.innerHTML = show
-      ? trainingFoundPlays
-          .map((p) => `<span class="training-answer is-found">${escapeHtml(p.word)}<small>${p.pts}</small></span>`)
-          .join('')
+      ? trainingFoundPlays.map((p) => trainingAnswerHtml(p, true)).join('')
       : ''
+  }
+
+  function hideTrainingHint() {
+    trainingHintSeq++
+    if (!trainingHintBox) return
+    trainingHintBox.hidden = true
+    trainingHintBox.innerHTML = ''
+  }
+
+  function trainingRemaining() {
+    return catalog.filter((entry) => !trainingFound.has(entry.word))
+  }
+
+  // Hands over one remaining word: it counts as found so the round can end,
+  // but stays red in every list so the player knows it wasn't theirs.
+  function revealTrainingWord() {
+    if (!trainingOn() || closed || dealPending || !trainingRoundReady) return
+    const left = trainingRemaining()
+    if (!left.length) return
+    const pick = left[Math.floor(Math.random() * left.length)]
+    trainingRevealed.add(pick.word)
+    trainingFound.add(pick.word)
+    trainingFoundPlays.unshift(pick)
+    hideTrainingHint()
+    setLive('')
+    paintTrainingFound()
+    paintTrainingProgress()
+    paintTrainingControls()
+    paintRack()
+    if (trainingRoundSolved(trainingFound, trainingNeeded)) finishTraining(false)
+  }
+
+  // Shows the definition of a remaining word without the word itself. The
+  // word turns orange once found. Prefers words not yet hinted.
+  async function giveTrainingHint() {
+    if (!trainingOn() || closed || dealPending || !trainingRoundReady || !trainingHintBox) return
+    const left = trainingRemaining()
+    if (!left.length) return
+    const fresh = left.filter((entry) => !trainingHinted.has(entry.word))
+    const pool = fresh.length ? fresh : left
+    const pick = pool[Math.floor(Math.random() * pool.length)]
+    trainingHinted.add(pick.word)
+    const seq = ++trainingHintSeq
+    const dealId = dealSeq
+    const head = `<span class="training-hint-head"><strong>${escapeHtml(t('training_hint_title'))}</strong><span>${escapeHtml(t('training_hint_len', pick.word.length))} · ${pick.pts} pts</span></span>`
+    trainingHintBox.hidden = false
+    trainingHintBox.innerHTML = `${head}<p class="pending">${escapeHtml(t('def_pending'))}</p>`
+    paintTrainingControls()
+    let text = ''
+    try {
+      const { payload, root } = await resolvedDef(pick.word)
+      const source = root?.found ? root : payload
+      const senses = (lexicalDefinition(source)?.senses || [])
+      text = senses.flatMap((s) => s.defs || []).find((d) => /\p{L}/u.test(String(d || ''))) || ''
+    } catch {
+      text = ''
+    }
+    if (seq !== trainingHintSeq || dealId !== dealSeq || closed) return
+    // Never leak the word itself through its own definition.
+    const masked = text.replace(new RegExp(pick.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '…')
+    trainingHintBox.innerHTML = `${head}<p>${masked ? escapeHtml(masked) : escapeHtml(t('training_hint_none'))}</p>`
+  }
+
+  function findModeOn() {
+    return category !== 'kids' && category !== 'training'
+      && !(typeof isCompetitive === 'function' && isCompetitive())
+  }
+
+  function bingoOn() {
+    return category !== 'kids' && category !== 'training'
+      && !!(typeof isCompetitive === 'function' && isCompetitive())
+  }
+
+  // "Find a word": peek at the best score, or give up to see the word.
+  // Bingo: a hint (length + points of the top word) and "Passer" (scored 0 %).
+  function paintFindTools() {
+    if (!findToolsRow) return
+    const bingo = bingoOn()
+    const show = !!rack && !closed && !dealPending && (findModeOn() || bingo)
+    findToolsRow.hidden = !show
+    if (!show) return
+    if (findBestBtn) {
+      findBestBtn.textContent = bingo
+        ? (findBestShown && best ? t('bingo_best_is', best.word.length, best.pts) : t('bingo_hint'))
+        : (findBestShown && best ? t('find_best_is', best.pts) : t('find_best_btn'))
+      findBestBtn.classList.toggle('is-shown', findBestShown)
+      findBestBtn.disabled = !best
+    }
+    if (findGiveupBtn) {
+      findGiveupBtn.textContent = bingo ? t('bingo_pass') : t('find_giveup')
+      findGiveupBtn.classList.toggle('is-pass', bingo)
+    }
+  }
+
+  // Bingo "Passer": the round ends with 0 % — recorded locally and on the
+  // ranked board, so passing is never free.
+  async function passRound() {
+    if (closed || dealPending || trainingOn() || kidsOn() || !rack) return
+    const playContext = {
+      dealId: dealSeq,
+      mode: activeMode,
+      lang: getLang(),
+      kids: false,
+      ranked: !!(isCompetitive && isCompetitive()),
+      official: officialPlay,
+      rack,
+    }
+    setClosed(true)
+    input.disabled = true
+    form.hidden = true
+    if (hintBtn) hintBtn.hidden = true
+    paintRack()
+    setLive('')
+    const tops = topWords(catalog, null, 5)
+    resultEl.hidden = false
+    resultEl.className = 'game-result'
+    resultEl.innerHTML = `
+      <div class="game-score">
+        <div class="game-pct">0<small>%</small></div>
+        <div class="game-score-words">
+          <p class="game-break"><strong>${escapeHtml(t('passed'))}</strong></p>
+          <p class="game-vs">${best ? t('top_word', escapeHtml(best.word), best.pts) : ''}</p>
+        </div>
+      </div>
+      ${resultPanelHtml(tops, 0, '')}`
+    paintShare(0)
+    paintChart(rememberScore(0))
+    nextAction = async () => {
+      if (!isPlayContextCurrent(playContext)) return
+      if (playContext.official && officialPlay && !(await syncRankedScore(0, '', playContext))) return
+      if (!isPlayContextCurrent(playContext)) return
+      await deal()
+    }
+    if (nextBtn) {
+      nextBtn.hidden = false
+      nextBtn.setAttribute('aria-label', t('again'))
+    }
+    const showTop = wireResultTabs(new Map(), () => closed && isPlayContextCurrent(playContext))
+    const rankedPromise = playContext.ranked ? syncRankedScore(0, '', playContext) : null
+    await showTop(tops[0]?.word, tops[0]?.pts)
+    if (!isPlayContextCurrent(playContext)) return
+    if (rankedPromise) {
+      await rankedPromise
+    } else {
+      try {
+        await fetch('/api/game/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ percent: 0 }),
+        })
+      } catch {
+        /* offline */
+      }
+    }
+  }
+
+  function paintClearBtn() {
+    if (!clearInputBtn) return
+    clearInputBtn.hidden = closed || dealPending || !input.value
+    clearInputBtn.setAttribute('aria-label', t('clear'))
+  }
+
+  function statTile(label, value, extra = '') {
+    return `<div class="user-stat${extra ? ` ${extra}` : ''}"><span class="user-stat-label">${escapeHtml(label)}</span><strong class="user-stat-value">${value}</strong></div>`
+  }
+
+  // "Mes statistiques": this week's standing (from the live board) on top,
+  // all-time streak / record / words below. Avatar + name as the header.
+  function paintUserSheet() {
+    const body = document.getElementById('user-sheet-body')
+    const title = document.getElementById('user-sheet-title')
+    const sub = document.getElementById('user-sheet-sub')
+    if (!body) return
+    if (title) title.textContent = t('user_stats_title')
+    if (sub) sub.hidden = true
+    const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+    const s = lastUser?.stats || {}
+    const streak = Number(s.streak) || 0
+    const bestPct = Number(s.best) || 0
+    const wordsN = Number(s.words) || 0
+    const me = (kidsOn() ? lastKidsBoard : lastBoard)?.me || null
+    const pic = String(lastUser?.picture || '')
+    const head = `<div class="user-sheet-head">
+      ${pic ? `<img class="user-sheet-pic" src="${escapeHtml(pic)}" alt="" width="44" height="44" referrerpolicy="no-referrer" />` : `<span class="user-sheet-pic user-sheet-pic-fallback">${escapeHtml((lastUser?.name || '?').trim().charAt(0).toUpperCase())}</span>`}
+      <span class="user-sheet-who"><strong>${escapeHtml(lastUser?.name || t('user_fallback'))}</strong><small>${escapeHtml(t('stat_account'))}</small></span>
+    </div>`
+    if (!streak && !bestPct && !wordsN && !me) {
+      body.innerHTML = `${head}<p class="empty">${escapeHtml(t('stat_empty'))}</p>`
+      return
+    }
+    const pct = (n) => `${Number(n).toLocaleString(loc, { maximumFractionDigits: 1 })}<small>%</small>`
+    const week = me
+      ? `<p class="user-sheet-section">${escapeHtml(t('stat_week_title'))}</p>
+        <div class="user-stats-grid">
+          ${statTile(t('stat_rank'), `<small>#</small>${Number(me.rank) || '—'}`, 'is-rank')}
+          ${statTile(t('stat_avg'), pct(me.percent || 0))}
+          ${statTile(t('stat_plays'), Number(me.plays) || 1)}
+        </div>
+        ${me.word ? `<p class="user-sheet-line">${escapeHtml(t('stat_last_word'))} <strong>${escapeHtml(me.word)}</strong>${me.pts ? ` <span>${me.pts} pts</span>` : ''}</p>` : ''}`
+      : ''
+    body.innerHTML = `${head}${week}
+      <p class="user-sheet-section">${escapeHtml(t('stat_alltime_title'))}</p>
+      <div class="user-stats-grid">
+        ${statTile(t('stat_streak'), `${streak}<small> ${escapeHtml(t(streak === 1 ? 'stat_day' : 'stat_days'))}</small>`)}
+        ${statTile(t('stat_best'), pct(bestPct))}
+        ${statTile(t('stat_words'), wordsN.toLocaleString(loc))}
+      </div>`
+  }
+
+  function setUserSheetOpen(on) {
+    if (!userSheet) return
+    userSheet.hidden = !on
+    userInfoBtn?.setAttribute('aria-expanded', on ? 'true' : 'false')
+    if (on) paintUserSheet()
   }
 
   function paintTrainingProgress(extra = '') {
@@ -679,6 +956,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     document.body.classList.toggle('game-closed', on)
     paintTrainingControls()
     paintRackTools()
+    paintFindTools()
+    paintClearBtn()
   }
 
   function challengeUrl() {
@@ -805,7 +1084,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     if (skipBtn) {
       skipBtn.textContent = t('play_skip')
-      skipBtn.hidden = closed || dealPending || trainingOn() || !rack
+      // Bingo has its own "Passer" (scored 0 %) in the tools row.
+      skipBtn.hidden = closed || dealPending || trainingOn() || bingoOn() || !rack
     }
   }
 
@@ -876,6 +1156,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       hintBtn.textContent = t('kids_hint')
     }
     paintRack()
+    trainingRevealed = new Set()
+    trainingHinted = new Set()
+    hideTrainingHint()
+    hideTrainingDef()
+    findBestShown = false
     if (category === 'training') {
       trainingRoundReady = true
       trainingFound = new Set()
@@ -896,6 +1181,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       paintShare()
     }
     paintTrainingControls()
+    paintFindTools()
+    paintClearBtn()
     onDeal?.(rack, category)
   }
 
@@ -920,6 +1207,9 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     resultEl.className = 'game-result'
     input.disabled = true
     input.value = ''
+    hideTrainingHint()
+    paintClearBtn()
+    paintFindTools()
     setLive('')
     if (!ready()) {
       dealPending = false
@@ -1011,9 +1301,17 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return `${pts} pts`
   }
 
+  // Valid-but-beatable words glow amber rather than green: a nudge, not a win.
+  function liveScoreKind(pts) {
+    const findLike = category !== 'training'
+      && !(typeof isCompetitive === 'function' && isCompetitive())
+    return findLike && best && pts < best.pts ? 'meh' : 'ok'
+  }
+
   function preview() {
     if (closed) return
     paintRack()
+    paintClearBtn()
     const word = normalize(input.value)
     if (!word) {
       setLive('')
@@ -1021,7 +1319,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     const hit = catalog.find((w) => w.word === word)
     if (hit) {
-      setLive(liveScoreText(hit.pts), 'ok')
+      setLive(liveScoreText(hit.pts), liveScoreKind(hit.pts))
       return
     }
     if (word.length < 2 || trainingOn()) {
@@ -1035,8 +1333,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         if (!probe || seq !== probeSeq || normalize(input.value) !== word) return
         // While typing, only celebrate valid words — the negative verdicts
         // stay for the actual submit (validate) so the table isn't nagging.
-        if (probe.formable && probe.valid) setLive(liveScoreText(playPoints(word, probe.score)), 'ok')
-        else setLive('')
+        if (probe.formable && probe.valid) {
+          const pts = playPoints(word, probe.score)
+          setLive(liveScoreText(pts), liveScoreKind(pts))
+        } else setLive('')
       })
       .catch(() => {})
   }
@@ -1079,14 +1379,17 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     paintTrainingStats(stats)
     resultEl.hidden = false
     resultEl.className = `game-result training-result${solved ? ' hot' : ''}`
+    hideTrainingHint()
+    hideTrainingDef()
     const answers = catalog
-      .map((entry) => `<span class="training-answer${trainingFound.has(entry.word) ? ' is-found' : ''}">${escapeHtml(entry.word)}<small>${entry.pts}</small></span>`)
+      .map((entry) => trainingAnswerHtml(entry, trainingFound.has(entry.word)))
       .join('')
     resultEl.innerHTML = `
       <div class="training-summary">
         <strong>${escapeHtml(solved ? t('training_complete') : t('training_progress', trainingNeededFound(trainingFound, trainingNeeded), trainingTotal))}</strong>
       </div>
-      <div class="training-answers">${answers}</div>`
+      <div class="training-answers">${answers}</div>
+      <div class="training-def-box" hidden></div>`
     nextAction = () => deal()
     if (nextBtn) {
       nextBtn.hidden = false
@@ -1108,11 +1411,25 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       trainingMinBtn.setAttribute('aria-label', t('training_min_cd', trainingMinLen))
       trainingMinBtn.title = t('training_min_cd', trainingMinLen)
     }
+    const idle = dealPending || closed || !trainingRoundReady
+    const left = idle ? 0 : trainingRemaining().length
     if (trainingRevealBtn) {
       trainingRevealBtn.textContent = t('training_reveal')
-      trainingRevealBtn.disabled = dealPending || closed || !trainingRoundReady
+      trainingRevealBtn.disabled = idle
     }
-    if (trainingTimerEl) trainingTimerEl.disabled = dealPending || closed || !trainingRoundReady
+    if (trainingHintBtn) {
+      trainingHintBtn.textContent = t('training_hint')
+      trainingHintBtn.disabled = idle || !left || !define
+    }
+    if (trainingRevealWordBtn) {
+      trainingRevealWordBtn.textContent = t('training_reveal_word')
+      trainingRevealWordBtn.disabled = idle || !left
+    }
+    const modeLabel = trainingEl.querySelector('.training-mode-label')
+    if (modeLabel) modeLabel.textContent = t('training_mode_label')
+    if (trainingTimerEl) trainingTimerEl.disabled = idle
+    const statusEl = document.getElementById('training-status')
+    if (statusEl) statusEl.hidden = !trainingOn() || closed || dealPending
     trainingEl.querySelectorAll('[data-training-label]').forEach((element) => {
       element.textContent = t(element.dataset.trainingLabel)
     })
@@ -1239,13 +1556,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=111')
+        await import('./competitive.js?v=119')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
           officialPlay = false
         } else {
-          const result = await submitCompete(percent, word, context.lang, { kids: context.kids, rack: context.rack })
+          const result = await submitCompete(percent, word, context.lang, { kids: context.kids, rack: context.rack, pass: !word })
           if (!isPlayContextCurrent(context)) return false
           if (competeAccepted(result)) officialPlay = false
         }
@@ -1256,6 +1573,11 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         const trail = getTrailData()
         const board = await fetchLeaderboard(trail?.trailId, context.lang, { kids: context.kids })
         if (isPlayContextCurrent(context)) paintLeaderboard(board)
+        // The all-time standing moved too.
+        const all = await fetchLeaderboard(null, context.lang, { kids: context.kids, scope: 'all' })
+        if (context.kids) lastAllKidsBoard = all
+        else lastAllBoard = all
+        if (isPlayContextCurrent(context) && boardScope === 'all') paintLeaderboard()
       })().catch(() => {})
       return accepted
     })()
@@ -1280,11 +1602,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         probe = await ask('probe', { word, rack })
       } catch {}
       if (closed || normalize(input.value) !== word) return
-      const minLen = trainingPreset === 'all' ? trainingMinLen : (trainingTargetLength || rack.length)
-      const exact = trainingPreset !== 'all'
+      const small = trainingPreset === 'small'
+      const minLen = trainingPreset === 'all' || small ? (small ? 2 : trainingMinLen) : (trainingTargetLength || rack.length)
+      const exact = trainingPreset !== 'all' && !small
       if (word.length < 2) setLive(t('need_best'), 'bad')
       else if (probe && !probe.formable) setLive(t('not_on_rack'), 'bad')
       else if (probe && !probe.valid) setLive(t('not_in_dict', dictLabel()), 'bad')
+      else if (small && word.length > 3) setLive(t('training_too_long', 3), 'bad')
       else if (exact && word.length !== minLen) setLive(t('training_need_len', minLen), 'bad')
       else if (word.length < minLen) setLive(t('training_too_short', minLen), 'bad')
       else setLive(t('not_playable'), 'bad')
@@ -1331,13 +1655,14 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       input.value = ''
       const needed = trainingNeededFound(trainingFound, trainingNeeded)
       const left = Math.max(0, trainingTotal - needed)
-      setLive(left
-        ? `${hit.word} · ${hit.pts} pts · ${t('training_same_rack', left)}`
-        : `${hit.word} · ${hit.pts} pts`, 'ok')
+      setLive(left ? t('training_same_rack', left) : '', 'ok')
       trainingFoundPlays.unshift(hit)
+      if (trainingHinted.has(hit.word)) hideTrainingHint()
       paintTrainingFound()
       paintTrainingProgress()
+      paintTrainingControls()
       paintRack()
+      paintClearBtn()
       onPlayed?.({ word: hit.word, pts: hit.pts, best: '', bestPts: 0 })
       if (trainingRoundSolved(trainingFound, trainingNeeded)) finishTraining(true)
       return
@@ -1440,9 +1765,9 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   hintBtn?.addEventListener('click', () => giveHint())
   trainingRevealBtn?.addEventListener('click', () => finishTraining(false))
   trainingTimerEl?.addEventListener('change', () => startTrainingTimer())
-  trainingPresetSelect?.addEventListener('change', async () => {
-    const preset = trainingPresetSelect.value
-    if (!['all', 'seven', 'eight', 'plusOne', 'joker', 'hard'].includes(preset)) return
+  async function setTrainingPreset(preset, opts = {}) {
+    if (!TRAINING_PRESETS.includes(preset)) return
+    const changed = trainingPreset !== preset
     trainingPreset = preset
     try {
       localStorage.setItem('verimots-training-preset', preset)
@@ -1450,7 +1775,28 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       /* private mode */
     }
     paintTrainingControls()
-    if (trainingOn()) await deal()
+    if (!opts.silent && trainingOn() && (changed || opts.redeal)) await deal()
+  }
+  trainingPresetSelect?.addEventListener('change', () => setTrainingPreset(trainingPresetSelect.value, { redeal: true }))
+  trainingHintBtn?.addEventListener('click', () => giveTrainingHint())
+  trainingRevealWordBtn?.addEventListener('click', () => revealTrainingWord())
+  findBestBtn?.addEventListener('click', () => {
+    findBestShown = !findBestShown
+    paintFindTools()
+  })
+  findGiveupBtn?.addEventListener('click', () => (bingoOn() ? passRound() : skipRound()))
+  clearInputBtn?.addEventListener('click', () => {
+    input.value = ''
+    preview()
+    input.focus()
+  })
+  userInfoBtn?.addEventListener('click', () => setUserSheetOpen(userSheet?.hidden))
+  document.getElementById('user-sheet-close')?.addEventListener('click', () => setUserSheetOpen(false))
+  userSheet?.addEventListener('click', (e) => {
+    if (e.target === userSheet) setUserSheetOpen(false)
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && userSheet && !userSheet.hidden) setUserSheetOpen(false)
   })
   trainingMinBtn?.addEventListener('click', async () => {
     trainingMinLen = trainingMinLen >= 7 ? 2 : trainingMinLen + 1
@@ -1495,7 +1841,26 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     preview()
     input.focus()
   })
+  function onTrainingChip(e, box) {
+    const chip = e.target.closest('[data-training-def]')
+    if (!chip) return false
+    showTrainingDef(chip.dataset.trainingDef, Number(chip.dataset.trainingPts) || 0, box)
+    return true
+  }
+  trainingFoundEl?.addEventListener('click', (e) => onTrainingChip(e, trainingDefBox))
+  boardEl?.addEventListener('click', (e) => {
+    const scopeBtn = e.target.closest('[data-board-scope]')
+    if (scopeBtn) {
+      setBoardScope(scopeBtn.dataset.boardScope)
+      return
+    }
+    if (e.target.closest('[data-board-more]')) {
+      boardExpanded = !boardExpanded
+      paintLeaderboard()
+    }
+  })
   resultEl.addEventListener('click', async (e) => {
+    if (onTrainingChip(e, resultEl.querySelector('.training-def-box'))) return
     const back = e.target.closest('[data-def-back]')
     if (back) {
       const box = back.closest('.game-def-body')
@@ -1557,7 +1922,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=111')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=119')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -1577,15 +1942,9 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
           else pic.removeAttribute('src')
         }
         if (name) name.textContent = user.name || t('user_fallback')
-        const statsEl = document.getElementById('user-stats')
-        if (statsEl) {
-          const s = user.stats || {}
-          const bits = []
-          if (s.streak) bits.push(t('streak_d', s.streak))
-          if (s.best) bits.push('best ' + s.best + ' %')
-          if (s.words) bits.push(t('words_n', s.words))
-          statsEl.textContent = bits.join(' · ')
-        }
+        lastUser = user
+        if (userInfoBtn) userInfoBtn.setAttribute('aria-label', t('user_stats_title'))
+        if (userSheet && !userSheet.hidden) paintUserSheet()
         document.dispatchEvent(new CustomEvent('verimots-auth', { detail: user }))
       }
     } else {
@@ -1620,14 +1979,17 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       }
     }
 
-    const [trail, adultBoard, kidsBoard] = await Promise.all([
+    const [trail, adultBoard, kidsBoard, allBoard] = await Promise.all([
       fetchDailyTrail(getLang(), { kids }),
       fetchLeaderboard(null, getLang()),
       fetchLeaderboard(null, getLang(), { kids: true }),
+      fetchLeaderboard(null, getLang(), { kids, scope: 'all' }),
     ])
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     lastBoard = adultBoard
     lastKidsBoard = kidsBoard
+    if (kids) lastAllKidsBoard = allBoard
+    else lastAllBoard = allBoard
     paintLeaderboard()
     const mine = kids ? lastKidsBoard : lastBoard
     if (kids) paintKidsMeta()
@@ -1642,6 +2004,38 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   let lastBoard = null
   let lastKidsBoard = null
+  let lastAllBoard = null
+  let lastAllKidsBoard = null
+  let boardExpanded = false
+  let boardScope = 'week'
+  try {
+    if (localStorage.getItem('verimots-board-scope') === 'all') boardScope = 'all'
+  } catch {
+    /* private mode */
+  }
+
+  async function loadGeneralBoard(kids) {
+    const { fetchLeaderboard } = await import('./competitive.js?v=119')
+    const data = await fetchLeaderboard(null, getLang(), { kids, scope: 'all' })
+    if (kids) lastAllKidsBoard = data
+    else lastAllBoard = data
+    return data
+  }
+
+  async function setBoardScope(next) {
+    boardScope = next === 'all' ? 'all' : 'week'
+    boardExpanded = false
+    try {
+      localStorage.setItem('verimots-board-scope', boardScope)
+    } catch {
+      /* private mode */
+    }
+    paintLeaderboard()
+    if (boardScope === 'all' && !(kidsOn() ? lastAllKidsBoard : lastAllBoard)) {
+      await loadGeneralBoard(kidsOn())
+      paintLeaderboard()
+    }
+  }
 
   function boardBlock(empty, data) {
     if (!data) {
@@ -1650,11 +2044,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (!data.ok) {
       return `<p class="board-empty">${escapeHtml(t('board_unavailable'))}</p>`
     }
-    const top = Array.isArray(data.top) ? data.top.slice(0, 10) : []
-    if (!top.length) {
+    const all = Array.isArray(data.top) ? data.top : []
+    if (!all.length) {
       return `<p class="board-empty">${escapeHtml(empty)}</p>`
     }
     const me = data.me
+    const limit = 10
+    const top = boardExpanded ? all : all.slice(0, limit)
     const rows = top.map((entry) => {
       const isMeRow = me && entry.rank === me.rank
       return `<div class="board-row${isMeRow ? ' is-me' : ''}">
@@ -1664,7 +2060,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         <span class="board-percent">${boardPercentHtml(entry)}</span>
       </div>`
     })
-    if (me && me.rank > 10) {
+    if (all.length > limit) {
+      rows.push(`<button type="button" class="board-more" data-board-more>${escapeHtml(boardExpanded ? t('board_less') : t('board_more', all.length))}</button>`)
+    }
+    if (me && me.rank > top.length) {
       rows.push(`<div class="board-row is-me">
         <span class="board-rank">${me.rank}</span>
         <span class="board-name">${escapeHtml(me.pseudo)}</span>
@@ -1688,12 +2087,17 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       return
     }
     const kidsTab = kidsOn()
-    const data = kidsTab ? lastKidsBoard : lastBoard
+    const general = boardScope === 'all'
+    const data = general ? (kidsTab ? lastAllKidsBoard : lastAllBoard) : (kidsTab ? lastKidsBoard : lastBoard)
     const empty = kidsTab ? t('kids_board_empty') : t('board_empty')
     boardEl.hidden = false
+    const tab = (scope, label) => `<button type="button" data-board-scope="${scope}" aria-pressed="${boardScope === scope ? 'true' : 'false'}">${escapeHtml(label)}</button>`
     boardEl.innerHTML = `
-      <p class="board-title">${escapeHtml(t('board_title'))}</p>
-      ${boardBlock(empty, data)}`
+      <div class="board-head">
+        <p class="board-title">${escapeHtml(general ? t('board_general_title') : t('board_title'))}</p>
+        <div class="board-tabs" role="group">${tab('week', t('board_week'))}${tab('all', t('board_general'))}</div>
+      </div>
+      ${general && !data ? `<p class="board-empty">${escapeHtml(t('loading'))}</p>` : boardBlock(empty, data)}`
     if (waEl) waEl.classList.add('is-off')
     paintChart(loadScores(null, kidsTab), kidsTab)
   }
@@ -1723,6 +2127,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     }
     paintTrainingControls()
     paintRackTools()
+    paintFindTools()
+    paintClearBtn()
+    if (userInfoBtn) userInfoBtn.setAttribute('aria-label', t('user_stats_title'))
+    if (userSheet && !userSheet.hidden) paintUserSheet()
     if (lastBoard || lastKidsBoard) paintLeaderboard()
     if (closed) {
       if (nextBtn && !nextBtn.hidden) {
@@ -1783,13 +2191,17 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (!closed) input.focus()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=111')
+      const { fetchLeaderboard } = await import('./competitive.js?v=119')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
+      lastAllBoard = null
+      lastAllKidsBoard = null
+      if (boardScope === 'all') await loadGeneralBoard(kidsOn())
       paintLeaderboard()
     },
     refresh,
     deal,
     switchMode,
+    setTrainingPreset,
   }
 }

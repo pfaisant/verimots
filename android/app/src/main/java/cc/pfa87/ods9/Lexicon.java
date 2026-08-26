@@ -478,6 +478,7 @@ public final class Lexicon {
      *  their inherent word length. Keeps "all" from drowning in 47 tiny words. */
     public Deal training(String rawPreset, int minLen) {
         String preset = rawPreset == null ? "all" : rawPreset;
+        if ("small".equals(preset)) return smallTraining();
         int target = "eight".equals(preset) || "plusOne".equals(preset) ? 8 : 7;
         List<String> base = byLen[target];
         if (base == null || base.isEmpty()) return challenge();
@@ -511,6 +512,36 @@ public final class Lexicon {
             }
         }
         return challenge();
+    }
+
+    /**
+     * "Petits mots": a short rack (3–5 tiles), usually seeded with a hard
+     * letter (J, K, Q, W, X, Y, Z — Ñ in Spanish) that at least one answer
+     * uses. Only the 2- and 3-letter words count; 2–12 answers per rack.
+     */
+    public Deal smallTraining() {
+        StringBuilder hardPool = new StringBuilder();
+        for (int i = 0; i < ALPHABET.length(); i++) {
+            if (HARD[i] && bag[i] > 0) hardPool.append(ALPHABET.charAt(i));
+        }
+        for (int attempt = 0; attempt < 120; attempt++) {
+            double roll = rng.nextDouble();
+            int n = roll < 0.35 ? 3 : roll < 0.8 ? 4 : 5;
+            String hard = hardPool.length() > 0 && rng.nextDouble() < 0.7
+                    ? String.valueOf(hardPool.charAt(rng.nextInt(hardPool.length()))) : "";
+            String rack = shuffle(hard + fillTiles(hard, n - hard.length()));
+            if (rack.length() < n) break;
+            List<Play> catalog = anagrams(rack, 2, 3);
+            int total = catalog.size();
+            if (total < 2 || total > 12) continue;
+            if (!hard.isEmpty()) {
+                boolean uses = false;
+                for (Play p : catalog) if (p.word.indexOf(hard.charAt(0)) >= 0) { uses = true; break; }
+                if (!uses) continue;
+            }
+            return new Deal("training-small", rack, catalog, rack, -1);
+        }
+        return training("all", 2);
     }
 
     public Deal kidsDeal() {
