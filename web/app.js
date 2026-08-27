@@ -1,9 +1,9 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=129'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=128'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=128'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=129'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=128'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=128'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=130'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=130'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=130'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=130'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=130'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=130'
 
 function letterValues() {
   return tileValues(getLang())
@@ -429,7 +429,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=129').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=130').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -438,7 +438,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=129')
+    const { fetchHistory } = await import('./competitive.js?v=130')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -446,7 +446,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=129')
+    const { saveHistoryWord } = await import('./competitive.js?v=130')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -1490,7 +1490,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=129')
+      const { clearCloudHistory } = await import('./competitive.js?v=130')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1846,7 +1846,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=129').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=130').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

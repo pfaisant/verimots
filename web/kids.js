@@ -1,4 +1,4 @@
-import { encodeTiles, decodeRack } from './tiles.js?v=128'
+import { encodeTiles, decodeRack } from './tiles.js?v=130'
 
 const HARD = /[JKÑQWXYZ]/
 
