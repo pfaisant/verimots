@@ -3573,3 +3573,6 @@ body.game-closed .game-rack .tile.tile-digraph { font-size: clamp(10px, 2.8vw, 1
 .es-edition { margin-top: 12px; }
 .es-edition-opts { display: flex; gap: 8px; margin: 6px 0 8px; }
 .es-edition-opt { flex: 1; min-width: 0; }
+
+/* Edition rows in the quick dict menu stay on one line. */
+.dict-pop-item { white-space: nowrap; }

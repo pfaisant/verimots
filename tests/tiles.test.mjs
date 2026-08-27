@@ -10,7 +10,7 @@ import {
   scoreTiles,
   unplayableWord,
 } from '../web/tiles.js'
-import { setLang, t } from '../web/i18n.js?v=130'
+import { setLang, t } from '../web/i18n.js?v=131'
 import { letterScore, playPoints, playScore, parseRack, usedTiles } from '../web/game.js'
 import { kidsAnagrams, dealKids } from '../web/kids.js'
 import { scorePlayOnRack } from '../scripts/ods-game.mjs'

@@ -1,6 +1,6 @@
-import { t, getLang, getDict, getEsEdition, dictLabel } from './i18n.js?v=130'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=130'
-import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles } from './tiles.js?v=130'
+import { t, getLang, getDict, getEsEdition, dictLabel } from './i18n.js?v=131'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=131'
+import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles } from './tiles.js?v=131'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -1560,7 +1560,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=130')
+        await import('./competitive.js?v=131')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1956,7 +1956,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=130')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=131')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -2035,7 +2035,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadGeneralBoard(kids) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=130')
+    const { fetchLeaderboard } = await import('./competitive.js?v=131')
     const requestedLang = getLang()
     const data = await fetchLeaderboard(null, requestedLang, { kids, scope: 'all' })
     if (getLang() !== requestedLang || data.lang !== requestedLang) return null
@@ -2228,7 +2228,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         return
       }
       paintLeaderboard()
-      const { fetchLeaderboard } = await import('./competitive.js?v=130')
+      const { fetchLeaderboard } = await import('./competitive.js?v=131')
       const requestedLang = getLang()
       const [week, kidsWeek] = await Promise.all([
         fetchLeaderboard(null, requestedLang),
@@ -2241,7 +2241,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (boardPage) paintLeaderboard()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=130')
+      const { fetchLeaderboard } = await import('./competitive.js?v=131')
       const requestedLang = getLang()
       const [week, kidsWeek] = await Promise.all([
         fetchLeaderboard(null, requestedLang),

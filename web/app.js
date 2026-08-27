@@ -1,9 +1,9 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=130'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=130'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=130'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=130'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=130'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=130'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=131'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=131'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=131'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=131'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=131'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=131'
 
 function letterValues() {
   return tileValues(getLang())
@@ -429,7 +429,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=130').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=131').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -438,7 +438,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=130')
+    const { fetchHistory } = await import('./competitive.js?v=131')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -446,7 +446,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=130')
+    const { saveHistoryWord } = await import('./competitive.js?v=131')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -901,13 +901,24 @@ function setDictOpen(on) {
 function paintDictPop() {
   if (!dictPop) return
   const current = getDict()
-  dictPop.innerHTML = DICTS.map((item) => {
-    const on = item.id === current
+  dictPop.innerHTML = DICTS.flatMap((item) => {
     const lang = item.lang === 'fr' ? 'FR' : item.lang === 'en' ? 'EN' : 'ES'
-    return `<button type="button" role="option" class="dict-pop-item${on ? ' is-on' : ''}" data-dict="${item.id}" aria-selected="${on ? 'true' : 'false'}">
+    if (item.id === 'rla') {
+      // Spanish has two official tile sets — the quick switcher shows both.
+      return ['fise', 'na'].map((edition) => {
+        const on = item.id === current && getEsEdition() === edition
+        const label = t(edition === 'na' ? 'es_edition_na_short' : 'es_edition_fise_short')
+        return `<button type="button" role="option" class="dict-pop-item${on ? ' is-on' : ''}" data-dict="${item.id}" data-es-edition="${edition}" aria-selected="${on ? 'true' : 'false'}">
+          <span class="dict-pop-lang">${lang}</span>
+          <span>${escapeHtml(dictLabel(item.id))} · ${escapeHtml(label)}</span>
+        </button>`
+      })
+    }
+    const on = item.id === current
+    return [`<button type="button" role="option" class="dict-pop-item${on ? ' is-on' : ''}" data-dict="${item.id}" aria-selected="${on ? 'true' : 'false'}">
       <span class="dict-pop-lang">${lang}</span>
       <span>${escapeHtml(dictLabel(item.id))}</span>
-    </button>`
+    </button>`]
   }).join('')
 }
 
@@ -1490,7 +1501,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=130')
+      const { clearCloudHistory } = await import('./competitive.js?v=131')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1544,7 +1555,14 @@ dictPop?.addEventListener('click', (e) => {
   if (!btn) return
   const next = btn.dataset.dict
   setDictOpen(false)
-  if (dictSpec(next).id === next) switchDict(next)
+  if (dictSpec(next).id !== next) return
+  const edition = btn.dataset.esEdition
+  if (edition && next === getDict()) {
+    switchEsEdition(edition)
+    return
+  }
+  if (edition) setEsEdition(edition)
+  switchDict(next)
 })
 
 advToggle?.addEventListener('click', () => setAdvanced(!advanced))
@@ -1846,7 +1864,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=130').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=131').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

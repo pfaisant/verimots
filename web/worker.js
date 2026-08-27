@@ -14,7 +14,7 @@ import {
   usesHardTiles,
   unplayableWord,
   normalizeEsEdition,
-} from './tiles.js?v=130'
+} from './tiles.js?v=131'
 
 let SPEC = tileSpec('fr')
 let VALUES = SPEC.values
