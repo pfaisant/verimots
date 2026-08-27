@@ -1,22 +1,17 @@
-import { t, getLang, getDict, dictLabel } from './i18n.js?v=127'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=127'
+import { t, getLang, getDict, getEsEdition, dictLabel } from './i18n.js?v=128'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=128'
+import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles } from './tiles.js?v=128'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
-const FR_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 2, N: 1, O: 1, P: 3, Q: 8, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10,
+/** Display string → tile-encoded string with the current language/edition. */
+function encW(value) {
+  return encodeTiles(String(value || '').toUpperCase(), getLang(), getEsEdition())
 }
-const EN_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
-}
-const ES_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 3, N: 1, Ñ: 8, O: 1, P: 3, Q: 5,
-  R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 8, Y: 4, Z: 10,
+
+/** Tile length of a display string (CH/LL/RR count as one in Spanish). */
+function tlen(value) {
+  return encW(value).length
 }
 
 function catLabel(cat) {
@@ -24,15 +19,15 @@ function catLabel(cat) {
   return t(key)
 }
 
-export function tileValues(lang = getLang()) {
-  return lang === 'en' ? EN_VALUES : lang === 'es' ? ES_VALUES : FR_VALUES
+export function tileValues(lang = getLang(), edition = getEsEdition()) {
+  return tileSpec(lang, edition).values
 }
 
 export function letterScore(word, lang = getLang(), jokers = []) {
   const values = tileValues(lang)
   const jk = jokers instanceof Set ? jokers : new Set(jokers)
   let n = 0
-  const letters = String(word || '')
+  const letters = encodeTiles(String(word || '').toUpperCase(), lang, getEsEdition())
   for (let i = 0; i < letters.length; i++) {
     if (jk.has(i)) continue
     n += values[letters[i]] || 0
@@ -40,8 +35,8 @@ export function letterScore(word, lang = getLang(), jokers = []) {
   return n
 }
 
-export function playPoints(word, baseScore) {
-  return (baseScore || 0) + (String(word || '').length === 7 ? 50 : 0)
+export function playPoints(word, baseScore, lang = getLang()) {
+  return (baseScore || 0) + (tileCount(String(word || '').toUpperCase(), lang, getEsEdition()) === 7 ? 50 : 0)
 }
 
 export function playScore(word, lang = getLang(), jokers = []) {
@@ -241,14 +236,21 @@ export function scoreChartSvg(scores, opts = {}) {
 }
 
 export function parseRack(raw) {
-  return String(raw || '')
+  const sentinel = '\ue000'
+  const up = String(raw || '')
+    .normalize('NFC')
+    .replace(/ñ/gi, sentinel)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
-    .replace(/[^A-ZÑ]/g, '')
-    .slice(0, 7)
+    .replaceAll(sentinel, 'Ñ')
+    .replace(/[^A-ZÑ123·\-\s]/g, '')
+  const enc = encodeTiles(up, getLang(), getEsEdition()).slice(0, 7)
+  return decodeRack(enc, getLang(), getEsEdition())
 }
 
 export function defiShareText(rack, percent) {
-  const tiles = [...rack].join(' ')
+  const tiles = tileTokens(rack, getLang(), getEsEdition()).join(' ')
   const score = percent != null ? `\n${t('share_game_score', percent)}` : '\n'
   return `${t('share_game_title')}\n\n${t('share_game_body')}\n${tiles}\n${score}`
 }
@@ -417,19 +419,21 @@ export function linkifyDef(text, escapeHtml) {
 }
 
 function tileAssignments(tiles, word) {
+  const rackCodes = [...encW(tiles)]
+  const wordCodes = [...encW(word)]
   const assigned = new Map()
   const unmatched = []
-  for (let wordIndex = 0; wordIndex < word.length; wordIndex++) {
-    const ch = word[wordIndex]
-    const rackIndex = [...tiles].findIndex((tile, index) =>
+  for (let wordIndex = 0; wordIndex < wordCodes.length; wordIndex++) {
+    const ch = wordCodes[wordIndex]
+    const rackIndex = rackCodes.findIndex((tile, index) =>
       tile === ch && !assigned.has(index)
     )
     if (rackIndex >= 0) assigned.set(rackIndex, wordIndex)
     else unmatched.push(wordIndex)
   }
   for (const wordIndex of unmatched) {
-    const rackIndex = [...tiles].findIndex((tile, index) =>
-      tile === '?' && !assigned.has(index)
+    const rackIndex = rackCodes.findIndex((tile, index) =>
+      (tile === '?' || tile === '.' || tile === '*') && !assigned.has(index)
     )
     if (rackIndex < 0) break
     assigned.set(rackIndex, wordIndex)
@@ -443,12 +447,12 @@ export function usedTiles(tiles, word) {
 
 /** Display order for the rack. Official `tiles` string stays in deal order. */
 export function rackDisplayOrder(tiles, alpha) {
-  const rack = String(tiles || '')
-  const idxs = [...rack].map((_, i) => i)
+  const rack = tileTokens(String(tiles || ''), getLang(), getEsEdition())
+  const idxs = rack.map((_, i) => i)
   if (!alpha) return idxs
   const lang = getLang()
   return idxs.sort((a, b) => {
-    const blank = (ch) => ch === '?' || ch === '.' || ch === '*'
+    const blank = (g) => g === '?'
     const ca = rack[a]
     const cb = rack[b]
     if (blank(ca) !== blank(cb)) return blank(ca) ? 1 : -1
@@ -459,9 +463,9 @@ export function rackDisplayOrder(tiles, alpha) {
 function guessCategory(list, tiles) {
   const top = list[0]
   if (!top) return 'bingo'
-  if (top.word.length === 7) return 'bingo'
-  if (tiles.length <= 5) return 'hard'
-  if (top.word.length >= 6) return 'long'
+  if (tlen(top.word) === 7) return 'bingo'
+  if (tlen(tiles) <= 5) return 'hard'
+  if (tlen(top.word) >= 6) return 'long'
   return 'hard'
 }
 
@@ -1097,7 +1101,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const order = rackDisplayOrder(rack, rackAlpha)
     const tap = !closed && !dealPending
     const sig = JSON.stringify([rack, order, tap])
-    rackEl.dataset.n = String(rack.length)
+    rackEl.dataset.n = String(tlen(rack))
     // Only rebuild the tiles when the rack itself changes: typing just retags
     // them, so the used/unused states can animate instead of being replaced.
     if (sig !== rackSig || !rackEl.firstElementChild) {
@@ -1131,7 +1135,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     // The free "all" combinations mode drowns in 2-letter words — the
     // min-length chip narrows the round to words worth hunting.
     if ((cat === 'training' || trainingOn()) && trainingPreset === 'all' && trainingMinLen > 2) {
-      const narrowed = catalog.filter((entry) => entry.word.length >= trainingMinLen)
+      const narrowed = catalog.filter((entry) => tlen(entry.word) >= trainingMinLen)
       if (narrowed.length) catalog = narrowed
     }
     best = catalog[0] || null
@@ -1168,7 +1172,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       paintTrainingFound()
       trainingNeeded = trainingNeededWords(catalog)
       trainingTotal = trainingNeeded.size
-      trainingTargetLength = Number(trainingMeta?.targetLength) || rack.length
+      trainingTargetLength = Number(trainingMeta?.targetLength) || tlen(rack)
       trainingRoundRecorded = false
       paintTrainingProgress()
       startTrainingTimer()
@@ -1322,7 +1326,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       setLive(liveScoreText(hit.pts), liveScoreKind(hit.pts))
       return
     }
-    if (word.length < 2 || trainingOn()) {
+    if (tlen(word) < 2 || trainingOn()) {
       // Training: only catalog words glow — no dictionary fallback.
       setLive('')
       return
@@ -1346,7 +1350,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const target = catalog.find((w) => w.word === dealSeed) || best || catalog[0]
     if (!target) return
     hintLevel = Math.min(2, hintLevel + 1)
-    if (hintLevel === 1) setLive(t('kids_hint_letter', target.word[0]), 'ok')
+    if (hintLevel === 1) setLive(t('kids_hint_letter', tileTokens(target.word, getLang(), getEsEdition())[0]), 'ok')
     else {
       setLive(t('kids_hint_word', target.word), 'ok')
       hintBtn.disabled = true
@@ -1356,7 +1360,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   function recordTraining(solved) {
     if (trainingRoundRecorded) return loadTrainingStats()
     trainingRoundRecorded = true
-    const hard = [...trainingFound].filter((word) => /[JKÑQWXYZ]/.test(word)).length
+    const hard = [...trainingFound].filter((word) => usesHardTiles(encW(word), tileSpec(getLang(), getEsEdition()).hard)).length
     return rememberTrainingRound({
       preset: trainingPreset,
       length: trainingTargetLength,
@@ -1556,7 +1560,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=127')
+        await import('./competitive.js?v=128')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1603,14 +1607,15 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       } catch {}
       if (closed || normalize(input.value) !== word) return
       const small = trainingPreset === 'small'
-      const minLen = trainingPreset === 'all' || small ? (small ? 2 : trainingMinLen) : (trainingTargetLength || rack.length)
+      const minLen = trainingPreset === 'all' || small ? (small ? 2 : trainingMinLen) : (trainingTargetLength || tlen(rack))
       const exact = trainingPreset !== 'all' && !small
-      if (word.length < 2) setLive(t('need_best'), 'bad')
+      const wordTiles = tlen(word)
+      if (wordTiles < 2) setLive(t('need_best'), 'bad')
       else if (probe && !probe.formable) setLive(t('not_on_rack'), 'bad')
       else if (probe && !probe.valid) setLive(t('not_in_dict', dictLabel()), 'bad')
-      else if (small && word.length > 3) setLive(t('training_too_long', 3), 'bad')
-      else if (exact && word.length !== minLen) setLive(t('training_need_len', minLen), 'bad')
-      else if (word.length < minLen) setLive(t('training_too_short', minLen), 'bad')
+      else if (small && wordTiles > 3) setLive(t('training_too_long', 3), 'bad')
+      else if (exact && wordTiles !== minLen) setLive(t('training_need_len', minLen), 'bad')
+      else if (wordTiles < minLen) setLive(t('training_too_short', minLen), 'bad')
       else setLive(t('not_playable'), 'bad')
       rackEl.classList.remove('shake')
       void rackEl.offsetWidth
@@ -1626,7 +1631,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       } catch {}
       if (!probe || closed || normalize(input.value) !== word || (probe.dict && probe.dict !== getDict())) return
       if (!probe.formable) {
-        setLive(word.length < 2 ? (kidsOn() ? t('kids_need') : t('need_best')) : t('not_on_rack'), 'bad')
+        setLive(tlen(word) < 2 ? (kidsOn() ? t('kids_need') : t('need_best')) : t('not_on_rack'), 'bad')
         rackEl.classList.remove('shake')
         void rackEl.offsetWidth
         rackEl.classList.add('shake')
@@ -1824,19 +1829,22 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const tile = e.target.closest('[data-rack-i]')
     if (!tile) return
     const i = Number(tile.dataset.rackI)
-    const ch = rack[i]
-    if (!ch) return
+    const tokens = tileTokens(rack, getLang(), getEsEdition())
+    const glyph = tokens[i]
+    if (!glyph) return
     const word = normalize(input.value)
     const assignments = tileAssignments(rack, word)
     if (assignments.has(i)) {
       const cut = assignments.get(i)
-      input.value = word.slice(0, cut) + word.slice(cut + 1)
-    } else if (ch === '?') {
+      const wordTokens = tileTokens(word, getLang(), getEsEdition())
+      wordTokens.splice(cut, 1)
+      input.value = wordTokens.join('')
+    } else if (glyph === '?') {
       setLive(t('joker_type_letter'))
       input.focus()
       return
     } else {
-      input.value = word + ch
+      input.value = word + glyph
     }
     preview()
     input.focus()
@@ -1948,7 +1956,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=127')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=128')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -2027,7 +2035,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadGeneralBoard(kids) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=127')
+    const { fetchLeaderboard } = await import('./competitive.js?v=128')
     const data = await fetchLeaderboard(null, getLang(), { kids, scope: 'all' })
     if (kids) lastAllKidsBoard = data
     else lastAllBoard = data
@@ -2210,7 +2218,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         return
       }
       paintLeaderboard()
-      const { fetchLeaderboard } = await import('./competitive.js?v=127')
+      const { fetchLeaderboard } = await import('./competitive.js?v=128')
       const [week, kidsWeek] = await Promise.all([
         fetchLeaderboard(null, getLang()),
         fetchLeaderboard(null, getLang(), { kids: true }),
@@ -2221,7 +2229,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       if (boardPage) paintLeaderboard()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=127')
+      const { fetchLeaderboard } = await import('./competitive.js?v=128')
       lastBoard = await fetchLeaderboard(null, getLang())
       lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
       lastAllBoard = null

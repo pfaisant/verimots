@@ -1,43 +1,52 @@
-/* Verimots lexicon worker — lookup, anagrams, patterns and training deals. */
-import { dealKids, kidsAnagrams } from './kids.js?v=68'
+/* Verimots lexicon worker — lookup, anagrams, patterns and training deals.
+ *
+ * Internally every word and rack is a tile-encoded string (see tiles.js):
+ * Spanish digraphs CH/LL/RR are one char each, so lengths, joker indexes and
+ * shuffles are tile-correct. Messages come in and go out in display form.
+ */
+import { dealKids, kidsAnagrams } from './kids.js?v=69'
+import {
+  tileSpec,
+  encodeTiles,
+  decodeWord,
+  decodeRack,
+  scoreTiles,
+  usesHardTiles,
+  unplayableWord,
+  normalizeEsEdition,
+} from './tiles.js?v=128'
 
-const FR_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 2, N: 1, O: 1, P: 3, Q: 8, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10,
-}
-const EN_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
-}
-const ES_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 3, N: 1, Ñ: 8, O: 1, P: 3, Q: 5,
-  R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 8, Y: 4, Z: 10,
-}
-let VALUES = FR_VALUES
+let SPEC = tileSpec('fr')
+let VALUES = SPEC.values
+let TILE_COUNTS = SPEC.bag
+let HARD = SPEC.hard
 
-let words = []
-let wordSet = null
-let byLen = []
+let words = [] // display form, for pattern/prefix/suffix search
+let wordSet = null // encoded form
+let byLen = [] // encoded form, playable words only
 let ready = false
+let currentLang = ''
+let currentDict = ''
+let currentEdition = 'fise'
+
+function enc(value) {
+  return encodeTiles(String(value || '').toUpperCase(), currentLang || 'fr', currentEdition)
+}
 
 function scoreWord(word, jokerAt) {
-  let n = 0
-  for (let i = 0; i < word.length; i++) {
-    if (jokerAt && jokerAt.has(i)) continue
-    n += VALUES[word[i]] || 0
-  }
-  return n
+  return scoreTiles(word, VALUES, jokerAt)
+}
+
+function isBlank(ch) {
+  return ch === '?' || ch === '.' || ch === '*'
 }
 
 function rackCounts(rack) {
   const counts = Object.create(null)
   let blanks = 0
   for (const ch of rack) {
-    if (ch === '?' || ch === '.' || ch === '*') blanks++
-    else if (/^[A-ZÑ]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
+    if (isBlank(ch)) blanks++
+    else counts[ch] = (counts[ch] || 0) + 1
   }
   return { counts, blanks, tiles: rack.length }
 }
@@ -58,26 +67,6 @@ function formable(word, counts, blanks) {
   return jokers
 }
 
-const HARD = new Set(['J', 'K', 'Ñ', 'Q', 'W', 'X', 'Y', 'Z'])
-const FR_BAG = {
-  A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
-  J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
-  S: 6, T: 6, U: 6, V: 2, W: 1, X: 1, Y: 1, Z: 1,
-}
-const EN_BAG = {
-  A: 9, B: 2, C: 2, D: 4, E: 12, F: 2, G: 3, H: 2, I: 9,
-  J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
-  S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1,
-}
-const ES_BAG = {
-  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
-  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
-  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1,
-}
-let TILE_COUNTS = FR_BAG
-let currentLang = ''
-let currentDict = ''
-
 let pools = null
 
 function shuffleWord(word) {
@@ -94,8 +83,7 @@ function pickWord(list) {
 }
 
 function usesHard(word, jokers = []) {
-  const jk = new Set(jokers)
-  return [...word].some((ch, i) => HARD.has(ch) && !jk.has(i))
+  return usesHardTiles(word, HARD, jokers)
 }
 
 function fillTiles(used, n) {
@@ -129,10 +117,29 @@ function buildPools() {
   return pools
 }
 
+function rackKey(value) {
+  return enc(value).replace(/[.*]/g, '?').split('').sort().join('')
+}
+
+function displayGroups(groups) {
+  return (groups || []).map((g) => ({
+    ...g,
+    words: g.words.map((entry) => ({ ...entry, word: decodeWord(entry.word) })),
+  }))
+}
+
+function dealOut(deal) {
+  return {
+    ...deal,
+    rack: decodeRack(deal.rack, currentLang, currentEdition),
+    seed: deal.seed ? decodeWord(deal.seed) : deal.seed,
+    groups: displayGroups(deal.groups),
+  }
+}
+
 function dealChallenge(excludeSeed = '', excludeRack = '') {
   const p = buildPools()
-  const blockedSeed = String(excludeSeed || '').toUpperCase()
-  const rackKey = (value) => String(value || '').toUpperCase().replace(/[^A-ZÑ?]/g, '').split('').sort().join('')
+  const blockedSeed = enc(excludeSeed)
   const blockedRack = rackKey(excludeRack)
   for (let attempt = 0; attempt < 20; attempt++) {
     const roll = Math.random()
@@ -182,10 +189,10 @@ function dealChallenge(excludeSeed = '', excludeRack = '') {
   return { category: 'bingo', rack, groups: anagrams(rack, 2, rack.length), seed }
 }
 
-// "Petits mots": a short rack (3–5 tiles), usually seeded with a hard letter
-// (W, K, Y, J, X, Z, Q…) that at least one answer uses. Only the 2- and
-// 3-letter words count; 2–12 answers per rack so the round stays crisp.
-function dealSmallTraining(blockedRack, rackKey) {
+// "Petits mots": a short rack (3–5 tiles), usually seeded with a hard tile
+// (W, K, Y, J, X, Z, Q — CH, LL, RR, Ñ in Spanish) that at least one answer
+// uses. Only the 2- and 3-tile words count; 2–12 answers per rack.
+function dealSmallTraining(blockedRack) {
   const hardPool = [...HARD].filter((ch) => TILE_COUNTS[ch])
   for (let attempt = 0; attempt < 120; attempt++) {
     const roll = Math.random()
@@ -208,10 +215,9 @@ function dealTraining(preset = 'all', excludeSeed = '', excludeRack = '') {
     ? preset
     : 'all'
   const targetLength = mode === 'eight' || mode === 'plusOne' ? 8 : 7
-  const blockedSeed = String(excludeSeed || '').toUpperCase()
-  const rackKey = (value) => String(value || '').toUpperCase().replace(/[^A-ZÑ?]/g, '').split('').sort().join('')
+  const blockedSeed = enc(excludeSeed)
   const blockedRack = rackKey(excludeRack)
-  if (mode === 'small') return dealSmallTraining(blockedRack, rackKey)
+  if (mode === 'small') return dealSmallTraining(blockedRack)
   const base = byLen[targetLength] || []
   const source = mode === 'hard' ? base.filter((word) => usesHard(word)) : base
   const pool = source.length ? source : base
@@ -241,7 +247,7 @@ function dealTraining(preset = 'all', excludeSeed = '', excludeRack = '') {
 }
 
 
-// Word of the day: deterministic per (Paris date, language). Picks a 5–8 letter
+// Word of the day: deterministic per (Paris date, language). Picks a 5–8 tile
 // word worth at least 9 points so the definition card has something to say.
 function parisDayKey() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
@@ -257,7 +263,7 @@ function hash32(str) {
 let dailyPool = null
 let dailyPoolKey = ''
 function dailyWord(random = false) {
-  const poolKey = `${currentLang}|${currentDict}`
+  const poolKey = `${currentLang}|${currentDict}|${currentEdition}`
   if (!dailyPool || dailyPoolKey !== poolKey) {
     dailyPool = []
     for (let len = 5; len <= 8; len++) {
@@ -268,7 +274,7 @@ function dailyWord(random = false) {
   if (!dailyPool.length) return null
   const key = `${parisDayKey()}|${poolKey}`
   const word = random ? pickWord(dailyPool) : dailyPool[hash32(key) % dailyPool.length]
-  return { word, score: scoreWord(word), day: parisDayKey(), random }
+  return { word: decodeWord(word), tiles: word.length, score: scoreWord(word), day: parisDayKey(), random }
 }
 
 function anagrams(rack, minLen, maxLen) {
@@ -320,7 +326,7 @@ function matchFind(mode, q, filters = {}) {
   if (mode === 'pattern') {
     const re = new RegExp('^' + q.replace(/[.?]/g, '.') + '$')
     const pool = byLen[q.length] || []
-    for (const w of pool) if (re.test(w)) { out.push(w); if (out.length >= limit) break }
+    for (const w of pool) if (re.test(decodeWord(w))) { out.push(decodeWord(w)); if (out.length >= limit) break }
     return out
   }
   const start = String(filters.start || (mode === 'prefix' ? q : '')).toUpperCase()
@@ -354,10 +360,11 @@ function dictLang(id) {
   return 'fr'
 }
 
-async function load(lang = 'fr', dict = '') {
+async function load(lang = 'fr', dict = '', edition = '') {
   const id = normalizeDict(dict, lang === 'en' || lang === 'es' ? lang : 'fr')
   const next = dictLang(id)
-  if (ready && currentLang === next && currentDict === id) return words.length
+  const ed = next === 'es' ? normalizeEsEdition(edition || currentEdition) : 'fise'
+  if (ready && currentLang === next && currentDict === id && currentEdition === ed) return wordSet.size
   const files = {
     ods: ['data/ods9.txt.gz', 'data/ods9.txt'],
     csw: ['data/yawl.txt.gz', 'data/yawl.txt'],
@@ -375,38 +382,56 @@ async function load(lang = 'fr', dict = '') {
     ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text()
     : new TextDecoder('utf-8').decode(buf)
   words = text.split('\n').filter(Boolean)
-  wordSet = new Set(words)
+  SPEC = tileSpec(next, ed)
+  VALUES = SPEC.values
+  TILE_COUNTS = SPEC.bag
+  HARD = SPEC.hard
+  wordSet = new Set()
   byLen = Array.from({ length: 16 }, () => [])
-  for (const w of words) if (w.length < 16) byLen[w.length].push(w)
-  VALUES = next === 'en' ? EN_VALUES : next === 'es' ? ES_VALUES : FR_VALUES
-  TILE_COUNTS = next === 'en' ? EN_BAG : next === 'es' ? ES_BAG : FR_BAG
+  const encodeAll = next === 'es'
+  for (const w of words) {
+    const e = encodeAll ? encodeTiles(w, 'es', ed) : w
+    if (e.length < 2 || e.length > 15) continue
+    wordSet.add(e)
+    // FISE has no K/W tiles and blanks may not stand for them: those words
+    // stay checkable but never appear in racks, deals or anagram results.
+    if (!unplayableWord(e, next, ed)) byLen[e.length].push(e)
+  }
   pools = null
+  dailyPool = null
   currentLang = next
   currentDict = id
+  currentEdition = ed
   ready = true
-  return words.length
+  return wordSet.size
 }
 
 async function handle(msg) {
   if (msg.type === 'load') {
-    const count = await load(msg.lang || 'fr', msg.dict || '')
-    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang, dict: currentDict })
+    const count = await load(msg.lang || 'fr', msg.dict || '', msg.edition || '')
+    self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang, dict: currentDict, edition: currentEdition })
     return
   }
   const want = ['fr', 'en', 'es'].includes(msg.lang) ? msg.lang : currentLang || 'fr'
   const wantDict = normalizeDict(msg.dict, want)
-  if (!ready || currentLang !== want || currentDict !== wantDict) await load(want, wantDict)
+  const wantEdition = want === 'es' ? normalizeEsEdition(msg.edition || currentEdition) : 'fise'
+  if (!ready || currentLang !== want || currentDict !== wantDict || currentEdition !== wantEdition) {
+    await load(want, wantDict, wantEdition)
+  }
+  const base = { lang: currentLang, dict: currentDict, edition: currentEdition }
   if (msg.type === 'check') {
-    const word = String(msg.word || '').toUpperCase()
+    const word = enc(msg.word)
     const ok = wordSet.has(word)
+    const unplayable = ok && unplayableWord(word, currentLang, currentEdition)
     self.postMessage({
       type: 'check',
       id: msg.id,
-      word,
+      word: decodeWord(word),
+      tiles: word.length,
       ok,
-      score: ok ? scoreWord(word) : 0,
-      lang: currentLang,
-      dict: currentDict,
+      unplayable,
+      score: ok && !unplayable ? scoreWord(word) : 0,
+      ...base,
     })
     return
   }
@@ -414,56 +439,60 @@ async function handle(msg) {
     // Honest pre-check for typed words: formable from the rack (jokers allowed,
     // scored as 0) and present in the loaded dictionary — regardless of whether
     // the dealt catalog happens to list it.
-    const word = String(msg.word || '').toUpperCase().replace(/[^A-ZÑ]/g, '')
-    const rackRaw = String(msg.rack || '').toUpperCase()
-    const { counts, blanks } = rackCounts(rackRaw)
+    const word = enc(msg.word).replace(/[?.*]/g, '')
+    const { counts, blanks } = rackCounts(enc(msg.rack))
     const jokers = word.length >= 2 ? formable(word, counts, blanks) : null
-    const formableOk = jokers !== null
+    const formableOk = jokers !== null && !unplayableWord(word, currentLang, currentEdition)
     const valid = formableOk && wordSet.has(word)
     self.postMessage({
       type: 'probe',
       id: msg.id,
-      word,
+      word: decodeWord(word),
+      tiles: word.length,
       formable: formableOk,
       valid,
       score: formableOk ? scoreWord(word, new Set(jokers)) : 0,
-      lang: currentLang,
-      dict: currentDict,
+      ...base,
     })
     return
   }
   if (msg.type === 'anagram') {
-    const rack = String(msg.rack || '').toUpperCase()
+    const rack = enc(msg.rack)
     const groups = anagrams(rack, Number(msg.min) || 2, Number(msg.max) || rack.length || 15)
-    self.postMessage({ type: 'anagram', id: msg.id, groups, lang: currentLang, dict: currentDict })
+    self.postMessage({ type: 'anagram', id: msg.id, groups: displayGroups(groups), ...base })
     return
   }
   if (msg.type === 'kids') {
-    const rack = String(msg.rack || '').toUpperCase().replace(/[^A-ZÑ]/g, '').slice(0, 7)
+    const rack = enc(msg.rack).replace(/[?.*]/g, '').slice(0, 7)
     const deal = rack.length >= 2
-      ? { category: 'kids', rack, groups: kidsAnagrams(rack, want), seed: String(msg.seed || '') }
-      : dealKids(want, Math.random, msg.excludeSeed)
-    self.postMessage({ type: 'kids', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
+      ? {
+          category: 'kids',
+          rack: decodeRack(rack, currentLang, currentEdition),
+          groups: kidsAnagrams(decodeRack(rack, currentLang, currentEdition), want, currentEdition),
+          seed: String(msg.seed || ''),
+        }
+      : dealKids(want, Math.random, msg.excludeSeed, currentEdition)
+    self.postMessage({ type: 'kids', id: msg.id, ...deal, ...base })
     return
   }
   if (msg.type === 'challenge') {
     const deal = dealChallenge(msg.excludeSeed, msg.excludeRack)
-    self.postMessage({ type: 'challenge', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
+    self.postMessage({ type: 'challenge', id: msg.id, ...dealOut(deal), ...base })
     return
   }
   if (msg.type === 'training') {
     const deal = dealTraining(msg.preset, msg.excludeSeed, msg.excludeRack)
-    self.postMessage({ type: 'training', id: msg.id, ...deal, lang: currentLang, dict: currentDict })
+    self.postMessage({ type: 'training', id: msg.id, ...dealOut(deal), ...base })
     return
   }
   if (msg.type === 'daily') {
-    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord(!!msg.random) || {}), lang: currentLang, dict: currentDict })
+    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord(!!msg.random) || {}), ...base })
     return
   }
   if (msg.type === 'find') {
     const q = String(msg.q || '').toUpperCase()
     const wordsOut = matchFind(msg.mode, q, msg.filters)
-    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, lang: currentLang, dict: currentDict })
+    self.postMessage({ type: 'find', id: msg.id, words: wordsOut, q, mode: msg.mode, ...base })
     return
   }
   self.postMessage({ type: 'error', id: msg.id, error: 'unknown ' + msg.type, lang: currentLang })

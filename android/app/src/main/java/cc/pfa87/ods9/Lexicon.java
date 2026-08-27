@@ -17,33 +17,54 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Word list + tile model. Internally every word and rack is a tile-encoded
+ * string: one char per tile. Spanish digraphs are folded to digits —
+ * '1' = CH, '2' = LL, '3' = RR — so lengths, joker indexes and shuffles stay
+ * tile-correct; {@link #display} turns them back into letters for the UI.
+ *
+ * Two Spanish tile sets exist: international FISE (100 tiles, CH/LL/RR, no
+ * K/W, a blank may not stand for K/W) and North America (103 tiles, K/W,
+ * LL/RR but no CH tile). See {@link Dict#esEdition}.
+ */
 public final class Lexicon {
-    private static final String ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
+    public static final char CH = '1';
+    public static final char LL = '2';
+    public static final char RR = '3';
+    public static final char SEP = '·';
+    private static final String ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ123";
+    //                                      A  B  C  D  E   F  G  H  I  J  K   L  M  N  Ñ  O  P  Q   R  S  T  U  V  W   X   Y   Z   CH LL RR
     public static final int[] VAL = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 0, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 0, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10, 0, 0, 0
     };
     private static final int[] VAL_EN = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 0, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 0, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10, 0, 0, 0
     };
+    /** International (FISE): no K/W tiles; CH 5, LL 8, RR 8. */
     private static final int[] VAL_ES = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 3, 1, 8, 1, 3, 5, 1, 1, 1, 1, 4, 10, 8, 4, 10
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 0, 1, 3, 1, 8, 1, 3, 5, 1, 1, 1, 1, 4, 0, 8, 4, 10, 5, 8, 8
+    };
+    /** North America: K/W 8, J 6, C 2, Q 8; no CH tile. */
+    private static final int[] VAL_ES_NA = {
+        1, 3, 2, 2, 1, 4, 2, 4, 1, 6, 8, 1, 3, 1, 8, 1, 3, 8, 1, 1, 1, 1, 4, 8, 8, 4, 10, 0, 8, 8
     };
     private static final int[] BAG = {
-        9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 0, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1
+        9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 0, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1, 0, 0, 0
     };
     private static final int[] BAG_EN = {
-        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 0, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1
+        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 0, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1, 0, 0, 0
     };
+    /** 98 letter tiles + 2 blanks = 100. */
     private static final int[] BAG_ES = {
-        13, 2, 4, 5, 12, 1, 2, 2, 6, 1, 1, 4, 2, 5, 1, 9, 2, 1, 5, 6, 4, 5, 1, 1, 1, 1, 1
+        12, 2, 4, 5, 12, 1, 2, 2, 6, 1, 0, 4, 2, 5, 1, 9, 2, 1, 5, 6, 4, 5, 1, 0, 1, 1, 1, 1, 1, 1
     };
-    private static final boolean[] HARD = new boolean[ALPHABET.length()];
-
-    static {
-        for (char c : new char[] {'J', 'K', 'Ñ', 'Q', 'W', 'X', 'Y', 'Z'}) {
-            HARD[letterIndex(c)] = true;
-        }
-    }
+    /** 101 letter tiles + 2 blanks = 103. */
+    private static final int[] BAG_ES_NA = {
+        11, 3, 4, 4, 11, 2, 2, 2, 6, 2, 1, 4, 3, 5, 1, 8, 2, 1, 4, 7, 4, 6, 2, 1, 1, 1, 1, 0, 1, 1
+    };
+    private static final String HARD_DEFAULT = "JKÑQWXYZ";
+    private static final String HARD_ES = "JÑQXYZ123";
+    private static final String HARD_ES_NA = "JKÑQWXYZ23";
 
     public static final class Play {
         public final String word;
@@ -89,8 +110,11 @@ public final class Lexicon {
     private static Lexicon instance;
     private final String lang;
     private final String dict;
+    private final String edition;
+    private final boolean chTile;
     private final int[] val;
     private final int[] bag;
+    private final boolean[] hardMask = new boolean[ALPHABET.length()];
     private final HashSet<String> set = new HashSet<>();
     @SuppressWarnings("unchecked")
     private final ArrayList<String>[] byLen = new ArrayList[16];
@@ -107,36 +131,143 @@ public final class Lexicon {
     }
 
     public static synchronized Lexicon get(Context ctx, String dictOrLang) throws IOException {
+        return get(ctx, dictOrLang, null);
+    }
+
+    /** editionOverride forces a Spanish tile set (ranked play is always FISE). */
+    public static synchronized Lexicon get(Context ctx, String dictOrLang, String editionOverride) throws IOException {
         String dict = Dict.normalize(dictOrLang);
         if (dict.isEmpty()) dict = Dict.defaultFor(dictOrLang);
         String wanted = Dict.langOf(dict);
-        if (instance == null || !wanted.equals(instance.lang) || !dict.equals(instance.dict)) {
-            instance = new Lexicon(ctx.getApplicationContext(), wanted, dict);
+        String edition = !Lang.ES.equals(wanted) ? Dict.ES_FISE
+                : editionOverride != null ? editionOverride : Dict.esEdition(ctx);
+        if (instance == null || !wanted.equals(instance.lang) || !dict.equals(instance.dict)
+                || !edition.equals(instance.edition)) {
+            instance = new Lexicon(ctx.getApplicationContext(), wanted, dict, edition);
         }
         return instance;
+    }
+
+    public String edition() {
+        return edition;
     }
 
     public static synchronized boolean ready() {
         return instance != null;
     }
 
-    private Lexicon(Context ctx, String lang, String dict) throws IOException {
+    private Lexicon(Context ctx, String lang, String dict, String edition) throws IOException {
         this.lang = lang;
         this.dict = dict;
-        this.val = "en".equals(lang) ? VAL_EN : "es".equals(lang) ? VAL_ES : VAL;
-        this.bag = "en".equals(lang) ? BAG_EN : "es".equals(lang) ? BAG_ES : BAG;
+        this.edition = edition;
+        boolean es = "es".equals(lang);
+        boolean na = es && Dict.ES_NA.equals(edition);
+        this.chTile = es && !na;
+        this.val = "en".equals(lang) ? VAL_EN : na ? VAL_ES_NA : es ? VAL_ES : VAL;
+        this.bag = "en".equals(lang) ? BAG_EN : na ? BAG_ES_NA : es ? BAG_ES : BAG;
+        String hardSet = na ? HARD_ES_NA : es ? HARD_ES : HARD_DEFAULT;
+        for (int i = 0; i < hardSet.length(); i++) hardMask[letterIndex(hardSet.charAt(i))] = true;
         for (int i = 0; i < byLen.length; i++) byLen[i] = new ArrayList<>();
         InputStream raw = openLexicon(ctx, dict);
         try (BufferedReader r = new BufferedReader(new InputStreamReader(raw, StandardCharsets.UTF_8), 64 * 1024)) {
             String line;
             while ((line = r.readLine()) != null) {
                 if (line.isEmpty()) continue;
-                set.add(line);
-                if (line.length() < 16) byLen[line.length()].add(line);
+                String word = es ? encode(line, chTile) : line;
+                if (word.length() < 2 || word.length() > 15) continue;
+                set.add(word);
                 count++;
+                // FISE has no K/W tiles and a blank may not stand for them: such
+                // words stay checkable but never enter racks, deals or anagrams.
+                if (!unplayable(word)) byLen[word.length()].add(word);
             }
         }
         buildPools();
+    }
+
+    /** True when the tile set cannot place this word at all (K/W under FISE). */
+    public boolean unplayable(String word) {
+        if (!chTile) return false;
+        return word.indexOf('K') >= 0 || word.indexOf('W') >= 0;
+    }
+
+    /**
+     * Display → encoded. Greedy CH/LL/RR folding (LL/RR only without a CH
+     * tile); a separator keeps two single tiles apart (L·L); digits 1/2/3
+     * type a digraph directly.
+     */
+    static String encode(String display, boolean chTile) {
+        StringBuilder out = new StringBuilder(display.length());
+        int n = display.length();
+        for (int i = 0; i < n; i++) {
+            char c = display.charAt(i);
+            if (c == SEP || c == '-' || c == ' ' || c == ',' || c == '/') continue;
+            if (c == '1') {
+                if (chTile) out.append(CH);
+                else out.append("CH");
+                continue;
+            }
+            if (c == '2' || c == '3') {
+                out.append(c);
+                continue;
+            }
+            char next = i + 1 < n ? display.charAt(i + 1) : 0;
+            if (chTile && c == 'C' && next == 'H') {
+                out.append(CH);
+                i++;
+            } else if (c == 'L' && next == 'L') {
+                out.append(LL);
+                i++;
+            } else if (c == 'R' && next == 'R') {
+                out.append(RR);
+                i++;
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
+
+    /** Glyph shown on one tile ('1' → "CH"). */
+    public static String tileGlyph(char code) {
+        if (code == CH) return "CH";
+        if (code == LL) return "LL";
+        if (code == RR) return "RR";
+        return String.valueOf(code);
+    }
+
+    /** Encoded → display word ("1O3O" → "CHORRO"). */
+    public static String display(String encoded) {
+        if (encoded == null) return "";
+        StringBuilder b = new StringBuilder(encoded.length() + 4);
+        for (int i = 0; i < encoded.length(); i++) b.append(tileGlyph(encoded.charAt(i)));
+        return b.toString();
+    }
+
+    /**
+     * Encoded rack → display with a '·' wherever two adjacent single tiles
+     * would otherwise re-merge into a digraph (L,L → "L·L").
+     */
+    public String displayRack(String encoded) {
+        if (encoded == null) return "";
+        StringBuilder b = new StringBuilder(encoded.length() + 6);
+        for (int i = 0; i < encoded.length(); i++) {
+            String glyph = tileGlyph(encoded.charAt(i));
+            if (b.length() > 0) {
+                char prev = b.charAt(b.length() - 1);
+                char first = glyph.charAt(0);
+                boolean merges = (prev == 'L' && first == 'L') || (prev == 'R' && first == 'R')
+                        || (chTile && prev == 'C' && first == 'H');
+                if (merges) b.append(SEP);
+            }
+            b.append(glyph);
+        }
+        return b.toString();
+    }
+
+    /** Static convenience: the loaded lexicon's rack rendering, else plain display. */
+    public static String displayRackOf(String encoded) {
+        return instance != null ? instance.displayRack(encoded) : display(encoded);
     }
 
     private static InputStream openLexicon(Context ctx, String dict) throws IOException {
@@ -179,7 +310,7 @@ public final class Lexicon {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < words.size(); i++) {
             if (i > 0) b.append(" · ");
-            b.append(words.get(i));
+            b.append(display(words.get(i)));
         }
         return b.toString();
     }
@@ -284,6 +415,7 @@ public final class Lexicon {
     }
 
     private static String normalize(String raw, boolean keepBlanks) {
+        boolean es = instance != null && "es".equals(instance.lang);
         String composed = java.text.Normalizer.normalize(
                 String.valueOf(raw == null ? "" : raw),
                 java.text.Normalizer.Form.NFC);
@@ -300,10 +432,12 @@ public final class Lexicon {
                 continue;
             }
             if (c >= 'a' && c <= 'z') c = (char) (c - 32);
-            if (letterIndex(c) >= 0) b.append(c);
+            if (c >= 'A' && c <= 'Z' || c == 'Ñ') b.append(c);
+            else if (es && (c == '1' || c == '2' || c == '3')) b.append(c);
+            else if (es && keepBlanks && (c == SEP || c == '-' || c == ' ' || c == ',')) b.append(SEP);
             else if (keepBlanks && (c == '?' || c == '.' || c == '*')) b.append('?');
         }
-        return b.toString();
+        return es ? encode(b.toString(), instance.chTile) : b.toString();
     }
 
     public Play findPlay(List<Play> catalog, String word) {
@@ -321,7 +455,7 @@ public final class Lexicon {
     public boolean canSpell(String rawWord, String rack) {
         String word = normalize(rawWord, false);
         String r = normalizeRack(rack);
-        if (word.length() < 2) return false;
+        if (word.length() < 2 || unplayable(word)) return false;
         int[] counts = new int[ALPHABET.length()];
         int blanks = 0;
         for (int i = 0; i < r.length(); i++) {
@@ -339,7 +473,7 @@ public final class Lexicon {
     public Play probe(String rawWord, String rack) {
         String word = normalize(rawWord, false);
         String r = normalizeRack(rack);
-        if (word.length() < 2 || !has(word)) return null;
+        if (word.length() < 2 || !has(word) || unplayable(word)) return null;
         int[] counts = new int[ALPHABET.length()];
         int blanks = 0;
         for (int i = 0; i < r.length(); i++) {
@@ -430,14 +564,14 @@ public final class Lexicon {
         }
     }
 
-    private static boolean usesHard(String word, int[] jokers) {
+    private boolean usesHard(String word, int[] jokers) {
         boolean[] jk = new boolean[word.length()];
         if (jokers != null) for (int j : jokers) if (j >= 0 && j < jk.length) jk[j] = true;
         for (int i = 0; i < word.length(); i++) {
             if (jk[i]) continue;
             char ch = word.charAt(i);
             int index = letterIndex(ch);
-            if (index >= 0 && HARD[index]) return true;
+            if (index >= 0 && hardMask[index]) return true;
         }
         return false;
     }
@@ -538,7 +672,7 @@ public final class Lexicon {
     public Deal smallTraining() {
         StringBuilder hardPool = new StringBuilder();
         for (int i = 0; i < ALPHABET.length(); i++) {
-            if (HARD[i] && bag[i] > 0) hardPool.append(ALPHABET.charAt(i));
+            if (hardMask[i] && bag[i] > 0) hardPool.append(ALPHABET.charAt(i));
         }
         for (int attempt = 0; attempt < 120; attempt++) {
             double roll = rng.nextDouble();
@@ -561,9 +695,24 @@ public final class Lexicon {
     }
 
     public Deal kidsDeal() {
-        String seed = Kids.pickLong(lang, rng);
+        String seed = encodeKids(Kids.pickLong(lang, rng));
         String rack = shuffle(seed);
         return new Deal("kids", rack, kidsAnagrams(rack), seed);
+    }
+
+    private String encodeKids(String word) {
+        return "es".equals(lang) ? encode(word, chTile) : word;
+    }
+
+    private String[] kidsEncoded;
+
+    private String[] kidsWords() {
+        if (kidsEncoded == null) {
+            String[] raw = Kids.words(lang);
+            kidsEncoded = new String[raw.length];
+            for (int i = 0; i < raw.length; i++) kidsEncoded[i] = encodeKids(raw[i]);
+        }
+        return kidsEncoded;
     }
 
     public Deal fromRack(String rack) {
@@ -571,14 +720,15 @@ public final class Lexicon {
     }
 
     public Deal fromRack(String rack, String seed) {
-        String tiles = normalize(rack);
+        // Racks arrive in display form; a '·' keeps two single tiles apart.
+        String tiles = normalizeRack(rack).replace("?", "");
         if (tiles.length() < 2) return challenge();
         int max = seed.isEmpty() ? 7 : 8;
         if (tiles.length() > max) tiles = tiles.substring(0, max);
         List<Play> catalog = seed.isEmpty()
                 ? anagrams(tiles, 2, tiles.length())
                 : kidsAnagrams(tiles);
-        return new Deal(seed.isEmpty() ? guessCategory(tiles) : "kids", tiles, catalog, seed);
+        return new Deal(seed.isEmpty() ? guessCategory(tiles) : "kids", tiles, catalog, normalize(seed));
     }
 
     private List<Play> kidsAnagrams(String rack) {
@@ -594,7 +744,7 @@ public final class Lexicon {
         }
         ArrayList<Play> out = new ArrayList<>();
         HashSet<String> seen = new HashSet<>();
-        for (String word : Kids.words(lang)) {
+        for (String word : kidsWords()) {
             if (word.length() < 3 || word.length() > tiles || !seen.add(word)) continue;
             if (formable(word, counts, 0) == null) continue;
             out.add(new Play(word, points(word, null), new int[0]));

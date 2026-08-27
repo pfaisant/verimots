@@ -389,7 +389,7 @@ public class MainActivity extends Activity {
         } else if (w.length() >= 2) {
             welcomeCompetition = false;
             showTab(0);
-            checkQ.setText(w);
+            checkQ.setText(Lexicon.display(w));
             doCheck(true);
         }
     }
@@ -474,6 +474,10 @@ public class MainActivity extends Activity {
             card.setOnClickListener(v -> setDictionary(id));
         }
         layoutDictGrid();
+        View edFise = findViewById(R.id.es_edition_fise);
+        View edNa = findViewById(R.id.es_edition_na);
+        if (edFise != null) edFise.setOnClickListener(v -> setEsEdition(Dict.ES_FISE));
+        if (edNa != null) edNa.setOnClickListener(v -> setEsEdition(Dict.ES_NA));
         loadDictMeta();
         View popOds = findViewById(R.id.pop_dict_ods);
         View popCsw = findViewById(R.id.pop_dict_csw);
@@ -533,7 +537,52 @@ public class MainActivity extends Activity {
             View check = findViewById(DICT_CHECKS[i]);
             if (check != null) check.setVisibility(on ? View.VISIBLE : View.GONE);
         }
+        paintEsEdition();
         paintDictBadge();
+    }
+
+    /** Spanish tile set picker, shown under the RLA-ES card. */
+    private void paintEsEdition() {
+        View box = findViewById(R.id.es_edition);
+        if (box == null) return;
+        box.setVisibility(Dict.RLA.equals(Dict.get(this)) ? View.VISIBLE : View.GONE);
+        String edition = Dict.esEdition(this);
+        View fise = findViewById(R.id.es_edition_fise);
+        View na = findViewById(R.id.es_edition_na);
+        if (fise != null) fise.setBackgroundResource(Dict.ES_FISE.equals(edition) ? R.drawable.bg_dict_on : R.drawable.bg_dict_off);
+        if (na != null) na.setBackgroundResource(Dict.ES_NA.equals(edition) ? R.drawable.bg_dict_on : R.drawable.bg_dict_off);
+    }
+
+    private void setEsEdition(String edition) {
+        if (edition.equals(Dict.esEdition(this))) return;
+        Dict.setEsEdition(this, edition);
+        paintDicts();
+        if (Dict.RLA.equals(Dict.get(this))) reloadLexicon();
+    }
+
+    /**
+     * Ranked Spanish play always uses the international (FISE) tiles, like the
+     * server; everything else follows the chosen edition. Swaps the lexicon
+     * off the UI thread when the tile set differs, then runs the action.
+     */
+    private void withLexEdition(String edition, Runnable then) {
+        if (lex == null || !Lang.isEs(this) || edition.equals(lex.edition())) {
+            then.run();
+            return;
+        }
+        new Thread(() -> {
+            Lexicon next;
+            try {
+                next = Lexicon.get(this, Dict.get(this), edition);
+            } catch (Exception e) {
+                next = null;
+            }
+            final Lexicon swapped = next;
+            runOnUiThread(() -> {
+                if (swapped != null) lex = swapped;
+                then.run();
+            });
+        }).start();
     }
 
     /** Web .dict-list: one column on phones, two columns from 560dp. */
@@ -752,7 +801,7 @@ public class MainActivity extends Activity {
         syncHeaderBack();
         if (which == 0 && lex != null && checkQ != null && checkQ.getText().toString().trim().isEmpty()
                 && checkCard != null && checkCard.getVisibility() != View.VISIBLE) {
-            doCheck(false);
+            withLexEdition(Dict.esEdition(this), () -> doCheck(false));
         }
         if (which == 1) {
             boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
@@ -796,14 +845,14 @@ public class MainActivity extends Activity {
                         public void ok(org.json.JSONArray top, org.json.JSONObject me) {
                             if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
                             officialDeal = competitiveMode.loggedIn();
-                            startDeal(me != null ? lex.kidsDeal() : lex.fromRack(rack, seed));
+                            withLexEdition(Dict.ES_FISE, () -> startDeal(me != null ? lex.kidsDeal() : lex.fromRack(rack, seed)));
                         }
 
                         @Override
                         public void error(String message) {
                             if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
                             officialDeal = true;
-                            startDeal(lex.fromRack(rack, seed));
+                            withLexEdition(Dict.ES_FISE, () -> startDeal(lex.fromRack(rack, seed)));
                         }
                     });
                 }
@@ -812,7 +861,7 @@ public class MainActivity extends Activity {
                 public void onError(String message) {
                     if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
                     officialDeal = false;
-                    startDeal(lex.kidsDeal());
+                    withLexEdition(Dict.esEdition(MainActivity.this), () -> startDeal(lex.kidsDeal()));
                 }
             });
         } else if (requestCompetitive) {
@@ -825,14 +874,14 @@ public class MainActivity extends Activity {
                         public void ok(org.json.JSONArray top, org.json.JSONObject me) {
                             if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
                             officialDeal = competitiveMode.loggedIn();
-                            startDeal(me != null ? lex.challenge() : lex.fromRack(rack));
+                            withLexEdition(Dict.ES_FISE, () -> startDeal(me != null ? lex.challenge() : lex.fromRack(rack)));
                         }
 
                         @Override
                         public void error(String message) {
                             if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
                             officialDeal = true;
-                            startDeal(lex.fromRack(rack));
+                            withLexEdition(Dict.ES_FISE, () -> startDeal(lex.fromRack(rack)));
                         }
                     });
                 }
@@ -842,12 +891,13 @@ public class MainActivity extends Activity {
                     if (!isDealRequestCurrent(request, requestKids, requestCompetitive, requestLang)) return;
                     Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
                     officialDeal = false;
-                    startDeal(lex.challenge());
+                    withLexEdition(Dict.esEdition(MainActivity.this), () -> startDeal(lex.challenge()));
                 }
             });
         } else {
             officialDeal = false;
-            startDeal(isTrainingMode ? lex.training(trainingPreset, trainingMinLen) : lex.challenge());
+            withLexEdition(Dict.esEdition(this),
+                    () -> startDeal(isTrainingMode ? lex.training(trainingPreset, trainingMinLen) : lex.challenge()));
         }
     }
 
@@ -1002,8 +1052,9 @@ public class MainActivity extends Activity {
         if (checkTilesScroll != null) checkTilesScroll.setVisibility(View.VISIBLE);
         Tiles.fill(checkTiles, word, null, null);
         if (checkTiles != null) checkTiles.setOnClickListener(v -> {
-            checkQ.setText(word);
-            checkQ.setSelection(word.length());
+            String shown = Lexicon.display(word);
+            checkQ.setText(shown);
+            checkQ.setSelection(shown.length());
             doCheck(true);
         });
         checkMeta.setText(getString(R.string.letters_pts, word.length(), pts, pts > 1 ? "s" : "")
@@ -1013,7 +1064,7 @@ public class MainActivity extends Activity {
         if (checkLemma != null) checkLemma.setVisibility(View.GONE);
         checkWiki.setVisibility(View.GONE);
         checkShare.setVisibility(View.VISIBLE);
-        lastShare = getString(R.string.share_check_ok, word, word.length(), pts, "", Dict.label(this));
+        lastShare = getString(R.string.share_check_ok, Lexicon.display(word), word.length(), pts, "", Dict.label(this));
         final int seq = ++checkSeq;
         RemoteApi.define(word, new RemoteApi.DefCb() {
             @Override
@@ -1067,7 +1118,8 @@ public class MainActivity extends Activity {
         View dailyNext = findViewById(R.id.check_daily_next);
         if (dailyNext != null) dailyNext.setVisibility(View.GONE);
         boolean ok = lex.has(word);
-        int pts = ok ? lex.score(word, null) : 0;
+        boolean unplayable = ok && lex.unplayable(word);
+        int pts = ok && !unplayable ? lex.score(word, null) : 0;
         checkCard.setVisibility(View.VISIBLE);
         checkStatus.setText(ok
                 ? getString(R.string.playable, Dict.label(this))
@@ -1075,7 +1127,7 @@ public class MainActivity extends Activity {
         checkStatus.setTextColor(getColor(ok ? R.color.ok : R.color.no));
         checkStatus.setBackgroundResource(ok ? R.drawable.bg_status_ok : R.drawable.bg_status_no);
         // Tiles already spell the word — the headline only shows when refused.
-        checkWord.setText(word);
+        checkWord.setText(Lexicon.display(word));
         checkWord.setVisibility(ok ? View.GONE : View.VISIBLE);
         checkWordShown = ok ? word : "";
         if (checkFav != null) {
@@ -1084,15 +1136,17 @@ public class MainActivity extends Activity {
         }
         if (checkTilesScroll != null) checkTilesScroll.setVisibility(ok ? View.VISIBLE : View.GONE);
         Tiles.fill(checkTiles, ok ? word : "", null, null);
-        checkMeta.setText(ok ? getString(R.string.letters_pts, word.length(), pts, pts > 1 ? "s" : "") : "");
+        checkMeta.setText(!ok ? "" : unplayable
+                ? getString(R.string.unplayable_kw)
+                : getString(R.string.letters_pts, word.length(), pts, pts > 1 ? "s" : ""));
         checkPos.setText("");
         checkDef.setText(ok ? R.string.def_pending : R.string.not_a_form);
         if (checkLemma != null) checkLemma.setVisibility(View.GONE);
         checkWiki.setVisibility(View.GONE);
         checkShare.setVisibility(View.VISIBLE);
         lastShare = ok
-                ? getString(R.string.share_check_ok, word, word.length(), pts, "", Dict.label(this))
-                : getString(R.string.share_check_no, word, Dict.label(this));
+                ? getString(R.string.share_check_ok, Lexicon.display(word), word.length(), pts, "", Dict.label(this))
+                : getString(R.string.share_check_no, Lexicon.display(word), Dict.label(this));
         if (!ok) {
             checkHandler.removeCallbacksAndMessages(null);
             return;
@@ -1111,7 +1165,7 @@ public class MainActivity extends Activity {
                 checkWiki.setVisibility(View.VISIBLE);
                 checkWiki.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
                 String def = text == null || text.isEmpty() ? "" : text + "\n";
-                lastShare = getString(R.string.share_check_ok, wanted, wanted.length(), pts, def, Dict.label(MainActivity.this));
+                lastShare = getString(R.string.share_check_ok, Lexicon.display(wanted), wanted.length(), pts, def, Dict.label(MainActivity.this));
             }
 
             @Override
@@ -1439,9 +1493,9 @@ public class MainActivity extends Activity {
         if (target.isEmpty()) return;
         hintLevel = Math.min(2, hintLevel + 1);
         gameLive.setVisibility(View.VISIBLE);
-        if (hintLevel == 1) gameLive.setText(getString(R.string.kids_hint_letter, target.substring(0, 1)));
+        if (hintLevel == 1) gameLive.setText(getString(R.string.kids_hint_letter, Lexicon.tileGlyph(target.charAt(0))));
         else {
-            gameLive.setText(getString(R.string.kids_hint_word, target));
+            gameLive.setText(getString(R.string.kids_hint_word, Lexicon.display(target)));
             setPillEnabled(gameHint, false);
         }
         gameLive.setTextColor(getColor(R.color.ok));
@@ -1966,7 +2020,7 @@ public class MainActivity extends Activity {
         if (checkJoker != null) checkJoker.setVisibility(rack ? View.VISIBLE : View.GONE);
         if (checkQ != null) {
             checkQ.setFilters(new android.text.InputFilter[]{
-                    new android.text.InputFilter.LengthFilter(rack ? 16 : 15)
+                    new android.text.InputFilter.LengthFilter(Lang.isEs(this) ? (rack ? 26 : 17) : (rack ? 16 : 15))
             });
             int padEnd = (int) ((rack ? 100 : 48) * getResources().getDisplayMetrics().density);
             checkQ.setPadding(checkQ.getPaddingLeft(), checkQ.getPaddingTop(), padEnd, checkQ.getPaddingBottom());
@@ -2077,7 +2131,7 @@ public class MainActivity extends Activity {
         Tiles.fill(checkRackRow, rack, null, v -> {
             int i = (Integer) v.getTag();
             if (i < 0 || i >= rack.length() || checkQ == null) return;
-            String next = rack.substring(0, i) + rack.substring(i + 1);
+            String next = Lexicon.displayRackOf(rack.substring(0, i) + rack.substring(i + 1));
             checkQ.setText(next);
             checkQ.setSelection(next.length());
         });
@@ -2176,8 +2230,9 @@ public class MainActivity extends Activity {
     private void openExact(String word) {
         findMode = "exact";
         paintModes();
-        checkQ.setText(word);
-        checkQ.setSelection(word.length());
+        String shown = Lexicon.display(word);
+        checkQ.setText(shown);
+        checkQ.setSelection(shown.length());
         doCheck(true);
     }
 
@@ -2876,8 +2931,9 @@ public class MainActivity extends Activity {
                 word = word + ch;
                 pickedTiles.add(i);
             }
-            gameQ.setText(word);
-            gameQ.setSelection(word.length());
+            String shown = Lexicon.display(word);
+            gameQ.setText(shown);
+            gameQ.setSelection(shown.length());
         }, deal.bonusIndex, rackAlpha);
     }
 
@@ -2949,7 +3005,7 @@ public class MainActivity extends Activity {
         Lexicon.Play best = deal.catalog.isEmpty() ? null : deal.catalog.get(0);
         gamePct.setText("0%");
         gameBreak.setText(getString(R.string.passed));
-        gameVs.setText(best != null ? getString(R.string.top_word, best.word, best.pts()) : "");
+        gameVs.setText(best != null ? getString(R.string.top_word, Lexicon.display(best.word), best.pts()) : "");
         gameResult.setVisibility(View.VISIBLE);
         if (gameAgain != null) gameAgain.setVisibility(View.VISIBLE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.GONE);
@@ -3120,7 +3176,7 @@ public class MainActivity extends Activity {
                 if (seq != trainingHintSeq || current != deal || closed) return;
                 // Never leak the word itself through its own definition.
                 String masked = text == null ? "" : Pattern
-                        .compile(Pattern.quote(pick.word), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
+                        .compile(Pattern.quote(Lexicon.display(pick.word)), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
                         .matcher(text).replaceAll("…").trim();
                 trainingHintBox.setText(trainingHintText(head,
                         masked.isEmpty() ? getString(R.string.training_hint_none) : masked));
@@ -3494,8 +3550,8 @@ public class MainActivity extends Activity {
         int percent = Math.min(100, Math.round(100f * hit.pts() / Math.max(1, best.pts())));
         boolean same = best.word.equals(hit.word);
         String vs = same ? getString(R.string.best_word) : percent >= 100
-                ? getString(R.string.tied, best.word, best.pts())
-                : getString(R.string.top_word, best.word, best.pts());
+                ? getString(R.string.tied, Lexicon.display(best.word), best.pts())
+                : getString(R.string.top_word, Lexicon.display(best.word), best.pts());
         gamePct.setText(percent + "%");
         gameBreak.setText(breakLabel(hit.word, hit.pts()));
         gameVs.setText(vs);
@@ -3535,7 +3591,7 @@ public class MainActivity extends Activity {
 
     /** Word + points on one line, points echoing the gold tile values. */
     private CharSequence breakLabel(String word, int pts) {
-        String label = word + " " + pts;
+        String label = Lexicon.display(word) + " " + pts;
         SpannableString span = new SpannableString(label);
         int at = label.length() - String.valueOf(pts).length();
         span.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.gold)),
@@ -3561,7 +3617,7 @@ public class MainActivity extends Activity {
         gamePct.setText("—");
         gameBreak.setText(getString(R.string.skip_done));
         gameVs.setText(best != null
-                ? getString(R.string.skip_best) + " " + best.word + " " + best.pts()
+                ? getString(R.string.skip_best) + " " + Lexicon.display(best.word) + " " + best.pts()
                 : "");
         gameResult.setVisibility(View.VISIBLE);
         if (gameAgain != null) gameAgain.setVisibility(View.VISIBLE);
@@ -3846,7 +3902,7 @@ public class MainActivity extends Activity {
     /** "RAPEZ · NOM" — the defined word always leads, so a gloss that actually
      *  belongs to an inflection or root is never ambiguous. */
     private String defHeader(String word, String pos) {
-        String w = word == null ? "" : word.toUpperCase(java.util.Locale.ROOT);
+        String w = word == null ? "" : Lexicon.display(word).toUpperCase(java.util.Locale.ROOT);
         if (pos == null || pos.isEmpty()) return w;
         return w.isEmpty() ? pos : w + " · " + pos;
     }
@@ -3894,7 +3950,7 @@ public class MainActivity extends Activity {
         if (isKidsMode) {
             if (closed && lastPlayedWord != null && !lastPlayedWord.isEmpty()) {
                 String def = lastPlayedDef == null || lastPlayedDef.isEmpty() ? "" : lastPlayedDef;
-                waText = getString(R.string.share_study_word_body, lastPlayedWord, lastPlayedWord.length(), lastPlayedPts, def);
+                waText = getString(R.string.share_study_word_body, Lexicon.display(lastPlayedWord), lastPlayedWord.length(), lastPlayedPts, def);
                 gameWa.setVisibility(bubblesOn ? View.VISIBLE : View.INVISIBLE);
             } else {
                 gameWa.setVisibility(View.INVISIBLE);
@@ -3904,10 +3960,10 @@ public class MainActivity extends Activity {
         StringBuilder tiles = new StringBuilder();
         for (int i = 0; i < deal.rack.length(); i++) {
             if (i > 0) tiles.append(' ');
-            tiles.append(deal.rack.charAt(i));
+            tiles.append(Lexicon.tileGlyph(deal.rack.charAt(i)));
         }
         String score = percent != null ? getString(R.string.share_game_score, percent) : "\n";
-        waText = getString(R.string.share_game, tiles.toString(), score, deal.rack, deal.category);
+        waText = getString(R.string.share_game, tiles.toString(), score, lex.displayRack(deal.rack), deal.category);
         gameWa.setVisibility(bubblesOn ? View.VISIBLE : View.INVISIBLE);
     }
 

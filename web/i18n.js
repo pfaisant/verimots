@@ -70,6 +70,12 @@ const STR = {
     dict_blurb_csw: 'Liste publique YAWL (domaine public), proche du jeu international. Ce n’est pas le CSW de Collins / HarperCollins.',
     dict_blurb_wow24: 'Liste publiée par la WGPO (Official Words 2024). Distincte du NWL de la NASPA.',
     dict_blurb_rla: 'Liste libre RLA-ES (licence MPL 1.1). Ce n’est pas le Lexicón officiel FILE / RAE.',
+    es_edition_label: 'Jetons espagnols',
+    es_edition_fise: 'Internationale (FISE) · 100 jetons',
+    es_edition_na: 'Amérique du Nord · 103 jetons',
+    es_edition_help: 'CH, LL et RR sont des jetons uniques. L’édition internationale n’a ni K ni W ; l’édition nord-américaine les ajoute mais n’a pas de jeton CH.',
+    es_edition_ranked: 'Le classement en ligne utilise l’édition internationale.',
+    unplayable_kw: 'Dans la liste, mais injouable avec les jetons internationaux : pas de K ni de W, et le joker ne peut pas les remplacer.',
     advanced: 'Mode avancé',
     simple: 'Mode simple',
     nav_check: 'Vérifier',
@@ -382,6 +388,12 @@ const STR = {
     dict_blurb_csw: 'Public-domain YAWL list, close to international play. Not Collins / HarperCollins CSW.',
     dict_blurb_wow24: 'List published by the WGPO (Official Words 2024). Distinct from NASPA’s NWL.',
     dict_blurb_rla: 'Free RLA-ES list (MPL 1.1). Not the official FILE / RAE Lexicón.',
+    es_edition_label: 'Spanish tile set',
+    es_edition_fise: 'International (FISE) · 100 tiles',
+    es_edition_na: 'North America · 103 tiles',
+    es_edition_help: 'CH, LL and RR are single tiles. The international set has no K or W; the North-American set adds them but has no CH tile.',
+    es_edition_ranked: 'The online leaderboard always uses the international set.',
+    unplayable_kw: 'In the list, but unplayable with the international tiles: there is no K or W, and a blank may not stand for them.',
     advanced: 'Advanced',
     simple: 'Simple mode',
     nav_check: 'Check',
@@ -659,7 +671,7 @@ const STR = {
     find_summary: (n, q) => `${n} palabra${n === 1 ? '' : 's'}${q ? ` · ${q}` : ''}`,
     rack_kicker: 'Atril',
     rack_title: '¿Qué puedes jugar?',
-    rack_help: 'Escribe tus letras. Un comodín se indica con ? — hasta dos. Pulsa ? para añadirlo.',
+    rack_help: 'Escribe tus letras. CH, LL y RR cuentan como una sola ficha; para dos fichas sueltas escribe L·L (o L L). Un comodín se indica con ? — hasta dos.',
     rack_none: 'Ninguna palabra de la lista se forma con estas letras.',
     rack_summary: (n) => `${n} palabra${n === 1 ? '' : 's'} válida${n === 1 ? '' : 's'} · ? = comodín · puntos a la derecha`,
     values_note: 'Distribución de fichas para este idioma. Un comodín vale 0.',
@@ -694,6 +706,12 @@ const STR = {
     dict_blurb_csw: 'Lista pública YAWL (dominio público), cercana al juego internacional. No es el CSW de Collins / HarperCollins.',
     dict_blurb_wow24: 'Lista publicada por la WGPO (Official Words 2024). Distinta del NWL de la NASPA.',
     dict_blurb_rla: 'Lista libre RLA-ES (MPL 1.1). No es el Lexicón oficial de FILE / RAE.',
+    es_edition_label: 'Fichas en español',
+    es_edition_fise: 'Internacional (FISE) · 100 fichas',
+    es_edition_na: 'Norteamérica · 103 fichas',
+    es_edition_help: 'CH, LL y RR son fichas únicas. La edición internacional no tiene K ni W; la norteamericana las añade pero no tiene ficha de CH.',
+    es_edition_ranked: 'La clasificación en línea usa siempre la edición internacional.',
+    unplayable_kw: 'Está en la lista, pero no se puede colocar con las fichas internacionales: no hay K ni W y el comodín no puede representarlas.',
     advanced: 'Modo avanzado',
     simple: 'Modo sencillo',
     nav_check: 'Comprobar',
@@ -712,7 +730,7 @@ const STR = {
     playable: (d) => `Válida · ${d}`,
     not_in_list: (d) => `No está en ${d}`,
     not_a_form: 'No es una forma válida (2 a 15 letras, sin tildes; Ñ se conserva).',
-    letters_pts: (n, pts) => `${n} letras · ${pts} pto${pts === 1 ? '' : 's'}`,
+    letters_pts: (n, pts) => `${n} ficha${n === 1 ? '' : 's'} · ${pts} pto${pts === 1 ? '' : 's'}`,
     wiki: 'Wikcionario',
     loading_lex: 'Cargando la lista de palabras…',
     lex_fail: 'No se pudo cargar el léxico. Vuelve a cargar la página.',
@@ -940,6 +958,7 @@ const STR = {
 let lang = 'fr'
 let dict = 'ods'
 let lastEnDict = 'wow24'
+let esEdition = 'fise'
 
 export const DICTS = [
   { id: 'ods', lang: 'fr' },
@@ -954,6 +973,26 @@ export function getLang() {
 
 export function getDict() {
   return dict
+}
+
+/** Spanish tile set: 'fise' (international, 100 tiles) or 'na' (103 tiles). */
+export function getEsEdition() {
+  return esEdition
+}
+
+export function setEsEdition(next) {
+  esEdition = next === 'na' ? 'na' : 'fise'
+  try {
+    localStorage.setItem('verimots-es-edition', esEdition)
+  } catch {
+    /* ignore */
+  }
+  try {
+    document.dispatchEvent(new CustomEvent('verimots-edition', { detail: esEdition }))
+  } catch {
+    /* ignore */
+  }
+  return esEdition
 }
 
 export function dictSpec(id) {
@@ -1052,6 +1091,7 @@ export function initLang() {
   try {
     savedLang = localStorage.getItem('verimots-lang') || ''
     savedDict = localStorage.getItem('verimots-dict') || ''
+    esEdition = localStorage.getItem('verimots-es-edition') === 'na' ? 'na' : 'fise'
   } catch {
     savedLang = ''
     savedDict = ''

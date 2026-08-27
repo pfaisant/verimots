@@ -29,6 +29,11 @@ const kidsPath = ['../web/kids.js', '../dashboard/s/kids.js']
   .find((p) => existsSync(p))
 if (!kidsPath) throw new Error('kids.js not found next to ods-game.mjs')
 const { kidsAnagrams, kidsLong } = await import(pathToFileURL(kidsPath).href)
+const tilesPath = ['../web/tiles.js', '../dashboard/s/tiles.js']
+  .map((rel) => join(SCRIPT_DIR, rel))
+  .find((p) => existsSync(p))
+if (!tilesPath) throw new Error('tiles.js not found next to ods-game.mjs')
+const { tileSpec, encodeTiles, decodeWord, decodeRack } = await import(pathToFileURL(tilesPath).href)
 const ipPath = join(SCRIPT_DIR, 'ip-lookup.mjs')
 const { flagEmoji, ipInfo, enrichIpInfo } = existsSync(ipPath)
   ? await import(pathToFileURL(ipPath).href)
@@ -93,37 +98,29 @@ let byLenEn = []
 let lexEs = null
 let byLenEs = []
 
-const FR_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 2, N: 1, O: 1, P: 3, Q: 8, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10,
-}
-const EN_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1,
-  S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
-}
-const ES_VALUES = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1,
-  J: 8, K: 10, L: 1, M: 3, N: 1, Ñ: 8, O: 1, P: 3, Q: 5,
-  R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 8, Y: 4, Z: 10,
+// Tile values, bags and hard-tile sets come from web/tiles.js. Ranked Spanish
+// play always uses the international (FISE) 100-tile set: CH, LL and RR are
+// single tiles (encoded '1','2','3'), there is no K or W, and a blank may not
+// stand for them. Words and racks are tile-encoded internally and decoded at
+// the HTTP boundary.
+function specFor(lang) {
+  return tileSpec(lang, 'fise')
 }
 
-const HARD = new Set(['J', 'K', 'Ñ', 'Q', 'W', 'X', 'Y', 'Z'])
-const FR_BAG = {
-  A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
-  J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
-  S: 6, T: 6, U: 6, V: 2, W: 1, X: 1, Y: 1, Z: 1,
+/** Uppercase + tile-encode an incoming word for this language. */
+function tileForm(lang, raw) {
+  const up = String(raw || '').toUpperCase()
+  return lang === 'es'
+    ? encodeTiles(up.replace(/[^A-ZÑ123·\- ]/g, ''), 'es', 'fise')
+    : up.replace(/[^A-ZÑ]/g, '')
 }
-const EN_BAG = {
-  A: 9, B: 2, C: 2, D: 4, E: 12, F: 2, G: 3, H: 2, I: 9,
-  J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
-  S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1,
-}
-const ES_BAG = {
-  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
-  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
-  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1,
+
+/** Uppercase + tile-encode an incoming rack (keeps blanks) for this language. */
+function tileRackForm(lang, raw) {
+  const up = String(raw || '').toUpperCase()
+  return lang === 'es'
+    ? encodeTiles(up.replace(/[^A-ZÑ123?.*·\- ]/g, ''), 'es', 'fise')
+    : up.replace(/[^A-ZÑ?]/g, '')
 }
 
 // ========== Seeded RNG ==========
@@ -242,7 +239,12 @@ async function loadLexicon(lang = 'fr') {
     const words = await readLexiconFile('rla-es.txt.gz')
     lexEs = words
     byLenEs = Array.from({ length: 16 }, () => [])
-    for (const w of words) if (w.length < 16) byLenEs[w.length].push(w)
+    for (const w of words) {
+      const e = encodeTiles(w, 'es', 'fise')
+      // FISE has no K/W tiles and blanks may not stand for them.
+      if (e.length < 2 || e.length > 15 || /[KW]/.test(e)) continue
+      byLenEs[e.length].push(e)
+    }
     console.log(`Loaded ES ${words.length} words, byLen[7]=${byLenEs[7]?.length || 0}`)
     return
   }
@@ -264,14 +266,14 @@ function byLengthFor(lang) {
 }
 
 function valuesFor(lang) {
-  return lang === 'en' ? EN_VALUES : lang === 'es' ? ES_VALUES : FR_VALUES
+  return specFor(lang).values
 }
 
 function bagFor(lang) {
-  return lang === 'en' ? EN_BAG : lang === 'es' ? ES_BAG : FR_BAG
+  return specFor(lang).bag
 }
 
-function scoreWord(word, jokerSet = new Set(), values = FR_VALUES) {
+function scoreWord(word, jokerSet = new Set(), values = specFor('fr').values) {
   let n = 0
   for (let i = 0; i < word.length; i++) {
     if (jokerSet.has(i)) continue
@@ -285,7 +287,7 @@ function rackCounts(rack) {
   let blanks = 0
   for (const ch of rack) {
     if (ch === '?' || ch === '.' || ch === '*') blanks++
-    else if (/^[A-ZÑ]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
+    else if (/^[A-ZÑ123]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
   }
   return { counts, blanks, tiles: rack.length }
 }
@@ -306,9 +308,9 @@ function formable(word, counts, blanks) {
   return jokers
 }
 
-function usesHard(word, jokers = []) {
+function usesHard(word, jokers = [], hard = specFor('fr').hard) {
   const jk = new Set(jokers)
-  return [...word].some((ch, i) => HARD.has(ch) && !jk.has(i))
+  return [...word].some((ch, i) => hard.has(ch) && !jk.has(i))
 }
 
 function anagrams(rack, byLen = byLenFr, values = FR_VALUES) {
@@ -357,6 +359,7 @@ async function generateTrail(trailId) {
     const byLen = byLengthFor(lang)
     const values = valuesFor(lang)
     const bag = bagFor(lang)
+    const hard = specFor(lang).hard
     const salt = await ensureTrailSalt()
     const seedHash = createHash('sha256').update(trailId + salt).digest()
     const seed = seedHash.readUInt32LE(0)
@@ -379,7 +382,7 @@ async function generateTrail(trailId) {
 
     if (trailKids(trailId)) {
       const pool = await loadKidsLong(lang)
-      const hiddenSeed = pickWord(pool)
+      const hiddenSeed = tileForm(lang, pickWord(pool))
       const rack = shuffleWord(hiddenSeed)
       return { trailId, category: 'kids', rack, groups: kidsCatalog(rack, lang, values), seed: hiddenSeed }
     }
@@ -392,10 +395,10 @@ async function generateTrail(trailId) {
     }
     const bingoRich = bingo.filter((w) => scoreWord(w, new Set(), values) >= 12)
     const longRich = long.filter((w) => scoreWord(w, new Set(), values) >= 11)
-    const hard = []
+    const hardPool = []
     for (let len = 3; len <= 5; len++) {
       for (const w of byLen[len] || []) {
-        if (usesHard(w) && scoreWord(w, new Set(), values) >= 11) hard.push(w)
+        if (usesHard(w, [], hard) && scoreWord(w, new Set(), values) >= 11) hardPool.push(w)
       }
     }
     const fillTiles = (used, n) => {
@@ -430,9 +433,9 @@ async function generateTrail(trailId) {
         if (source.length === 0) continue
         hiddenSeed = pickWord(source)
         rack = shuffleWord(hiddenSeed + fillTiles(hiddenSeed, 1))
-      } else if (hard.length > 0) {
+      } else if (hardPool.length > 0) {
         category = 'hard'
-        hiddenSeed = pickWord(hard)
+        hiddenSeed = pickWord(hardPool)
         const extra = hiddenSeed.length === 3 ? fillTiles(hiddenSeed, 1) : ''
         rack = shuffleWord(hiddenSeed + extra)
       } else {
@@ -441,7 +444,7 @@ async function generateTrail(trailId) {
       const groups = anagrams(rack, byLen, values)
       const best = groups[0]?.words[0]
       if (!best) continue
-      const hardBest = usesHard(best.word, best.jokers)
+      const hardBest = usesHard(best.word, best.jokers, hard)
       if (category === 'bingo' && best.word.length !== 7) continue
       if (category === 'long') {
         if (best.word.length === 7) category = 'bingo'
@@ -489,12 +492,13 @@ function catalogFromGroups(groups) {
 }
 
 function kidsCatalog(rack, lang, values) {
-  return kidsAnagrams(rack, lang).map((group) => ({
+  const displayRack = decodeRack(rack, lang, 'fise')
+  return kidsAnagrams(displayRack, lang, 'fise').map((group) => ({
     ...group,
-    words: group.words.map((entry) => ({
-      ...entry,
-      score: scoreWord(entry.word, new Set(), values),
-    })),
+    words: group.words.map((entry) => {
+      const encoded = tileForm(lang, entry.word)
+      return { ...entry, word: encoded, score: scoreWord(encoded, new Set(), values) }
+    }),
   }))
 }
 
@@ -505,7 +509,7 @@ function sortedLetters(word) {
 function isKidsDealRack(lang, rack) {
   const key = sortedLetters(rack)
   if (key.length < 2) return false
-  return kidsLong(lang).some((word) => sortedLetters(word) === key)
+  return kidsLong(lang).some((word) => sortedLetters(tileForm(lang, word)) === key)
 }
 
 export async function officialPlays(trailId) {
@@ -526,9 +530,9 @@ function scoreFromPlays(plays, form, extra = {}) {
   const percent = Math.min(100, Math.round((100 * hit.pts) / Math.max(1, best.pts)))
   return {
     ok: true,
-    word: hit.word,
+    word: decodeWord(hit.word),
     pts: hit.pts,
-    best: best.word,
+    best: decodeWord(best.word),
     bestPts: best.pts,
     percent,
     ...extra,
@@ -536,52 +540,37 @@ function scoreFromPlays(plays, form, extra = {}) {
 }
 
 export async function scoreOfficialPlay(trailId, word) {
-  const form = String(word || '')
-    .toUpperCase()
-    .replace(/[^A-ZÑ]/g, '')
+  const form = tileForm(trailLang(trailId), word)
   if (form.length < 2 || form.length > 15) return { ok: false, error: 'not_playable' }
   const { plays, lang, rack } = await officialPlays(trailId)
-  return scoreFromPlays(plays, form, { trailId, lang, rack })
+  return scoreFromPlays(plays, form, { trailId, lang, rack: decodeRack(rack, lang, 'fise') })
 }
 
 export async function scorePlayOnRack(lang, rackRaw, word) {
   lang = parseLang(lang)
-  const rack = String(rackRaw || '')
-    .toUpperCase()
-    .replace(/[^A-ZÑ?]/g, '')
-    .slice(0, 7)
-  const form = String(word || '')
-    .toUpperCase()
-    .replace(/[^A-ZÑ]/g, '')
+  const rack = tileRackForm(lang, rackRaw).slice(0, 7)
+  const form = tileForm(lang, word)
   if (rack.length < 2 || form.length < 2 || form.length > rack.length) return { ok: false, error: 'not_playable' }
   await loadLexicon(lang)
   const byLen = byLengthFor(lang)
   const values = valuesFor(lang)
   const plays = catalogFromGroups(anagrams(rack, byLen, values))
-  return scoreFromPlays(plays, form, { lang, rack })
+  return scoreFromPlays(plays, form, { lang, rack: decodeRack(rack, lang, 'fise') })
 }
 
 export async function scoreKidsPlayOnRack(lang, rackRaw, word) {
   lang = parseLang(lang)
-  const rack = String(rackRaw || '')
-    .toUpperCase()
-    .replace(/[^A-ZÑ?]/g, '')
-    .slice(0, 7)
-  const form = String(word || '')
-    .toUpperCase()
-    .replace(/[^A-ZÑ]/g, '')
+  const rack = tileRackForm(lang, rackRaw).slice(0, 7)
+  const form = tileForm(lang, word)
   if (rack.length < 2 || form.length < 2 || form.length > rack.length) return { ok: false, error: 'not_playable' }
   if (!isKidsDealRack(lang, rack)) return { ok: false, error: 'not_playable' }
-  return scoreFromPlays(catalogFromGroups(kidsCatalog(rack, lang, valuesFor(lang))), form, { lang, rack })
+  return scoreFromPlays(catalogFromGroups(kidsCatalog(rack, lang, valuesFor(lang))), form, { lang, rack: decodeRack(rack, lang, 'fise') })
 }
 
 async function scoreCompetePlay(trailId, word, opts = {}) {
   const official = await scoreOfficialPlay(trailId, word)
   if (official.ok) return official
-  const rack = String(opts.rack || '')
-    .toUpperCase()
-    .replace(/[^A-ZÑ?]/g, '')
-    .slice(0, 7)
+  const rack = tileRackForm(opts.lang || trailLang(trailId), opts.rack).slice(0, 7)
   if (rack.length < 2) return official
   const lang = opts.lang || trailLang(trailId)
   return trailKids(trailId) || opts.kids
@@ -1393,8 +1382,8 @@ export async function handleOdsGame(req, res, url, helpers) {
           lang,
           kids,
           category: trail.category,
-          rack: trail.rack,
-          seed: kids ? trail.seed || null : null,
+          rack: decodeRack(trail.rack, lang, 'fise'),
+          seed: kids ? (trail.seed ? decodeWord(trail.seed) : null) : null,
         },
         { 'Cache-Control': 'no-store' },
         req.method
@@ -1442,7 +1431,7 @@ export async function handleOdsGame(req, res, url, helpers) {
     }
     try {
       const body = await readJson(req)
-      const word = body.word ? String(body.word).toUpperCase().slice(0, 15) : ''
+      const word = body.word ? String(body.word).toUpperCase().slice(0, 20) : ''
       // A pass is an explicit 0 % play: it counts in the weekly average.
       const pass = body.pass === true || body.pass === 1 || body.pass === '1'
       if (!word && !pass) {
@@ -1457,10 +1446,7 @@ export async function handleOdsGame(req, res, url, helpers) {
         json(res, 401, { ok: false, error: 'user_not_found' }, {}, req.method)
         return true
       }
-      const rack = String(body.rack || '')
-        .toUpperCase()
-        .replace(/[^A-ZÑ?]/g, '')
-        .slice(0, 7)
+      const rack = String(body.rack || '').slice(0, 30)
       const scored = pass
         ? { ok: true, pass: true, word: '', pts: 0, percent: 0 }
         : await scoreCompetePlay(trailId, word, { lang, kids, rack })

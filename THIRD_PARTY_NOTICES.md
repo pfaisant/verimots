@@ -34,5 +34,7 @@ The Spanish lexicon is generated from the generic RLA-ES dictionary version 2.9:
 
 Verimots distributes a transformed word list generated from the dictionary. The
 transformation expands valid Hunspell forms, excludes entries with an uppercase
-stem (proper names, acronyms and toponyms), keeps words of 2–15 single-letter
-tiles, removes stress marks, and preserves Ñ.
+stem (proper names, acronyms and toponyms), keeps words of 2–15 Scrabble tiles
+(CH, LL and RR count as one tile in the editions that carry them), removes
+stress marks, and preserves Ñ. Words containing K or W are kept for the
+North-American tile set and flagged unplayable with the international set.

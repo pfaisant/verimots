@@ -1,3 +1,5 @@
+import { encodeTiles, decodeRack } from './tiles.js?v=128'
+
 const HARD = /[JKÑQWXYZ]/
 
 const FR = `
@@ -102,7 +104,7 @@ function language(lang) {
 function rackCounts(rack) {
   const counts = Object.create(null)
   for (const ch of rack) {
-    if (/^[A-ZÑ]$/.test(ch)) counts[ch] = (counts[ch] || 0) + 1
+    if (ch !== '?' && ch !== '.' && ch !== '*') counts[ch] = (counts[ch] || 0) + 1
   }
   return counts
 }
@@ -110,7 +112,6 @@ function rackCounts(rack) {
 function formable(word, counts) {
   const used = Object.create(null)
   for (const ch of word) {
-    if (!/^[A-ZÑ]$/.test(ch)) return false
     used[ch] = (used[ch] || 0) + 1
     if (used[ch] > (counts[ch] || 0)) return false
   }
@@ -125,16 +126,30 @@ export function kidsLong(lang = 'fr') {
   return LONG[language(lang)]
 }
 
-export function kidsAnagrams(rack, lang = 'fr') {
-  const counts = rackCounts(String(rack || '').toUpperCase())
-  const tiles = String(rack || '').replace(/[^A-ZÑ]/g, '').length
+// Beginner words tile-encoded per language and Spanish edition (LLAVE and
+// CABALLO are 5 tiles, PERRO is 4 — see tiles.js).
+const encodedCache = new Map()
+function encodedWords(lang, edition) {
+  const key = `${lang}|${edition}`
+  let list = encodedCache.get(key)
+  if (!list) {
+    list = kidsWords(lang).map((word) => ({ word, enc: encodeTiles(word, lang, edition) }))
+    encodedCache.set(key, list)
+  }
+  return list
+}
+
+export function kidsAnagrams(rack, lang = 'fr', edition = 'fise') {
+  const encRack = encodeTiles(String(rack || '').toUpperCase(), language(lang), edition)
+  const counts = rackCounts(encRack)
+  const tiles = encRack.replace(/[?.*]/g, '').length
   const groups = []
   for (let len = Math.min(8, tiles); len >= 3; len--) {
     const found = []
-    for (const word of kidsWords(lang)) {
-      if (word.length !== len) continue
-      if (!formable(word, counts)) continue
-      found.push({ word, score: word.length, jokers: [] })
+    for (const { word, enc } of encodedWords(language(lang), edition)) {
+      if (enc.length !== len) continue
+      if (!formable(enc, counts)) continue
+      found.push({ word, score: enc.length, jokers: [] })
     }
     found.sort((a, b) => a.word.localeCompare(b.word))
     if (found.length) groups.push({ len, words: found })
@@ -151,21 +166,24 @@ function shuffleWord(word, rnd) {
   return a.join('')
 }
 
-export function dealKids(lang = 'fr', rnd = Math.random, excludeSeed = '') {
+export function dealKids(lang = 'fr', rnd = Math.random, excludeSeed = '', edition = 'fise') {
   const fullPool = kidsLong(lang)
   const blocked = String(excludeSeed || '').toUpperCase()
   const filtered = fullPool.filter((word) => word !== blocked)
   const pool = filtered.length ? filtered : fullPool
   const fallback = lang === 'en' ? 'HORSES' : lang === 'es' ? 'CABALLO' : 'CHEVAUX'
+  // Shuffle tiles, not characters: LLAVE shuffles as LL·A·V·E.
+  const shuffleTiles = (seed) =>
+    decodeRack(shuffleWord(encodeTiles(seed, language(lang), edition), rnd), language(lang), edition)
   for (let attempt = 0; attempt < 40; attempt++) {
     const seed = pool[Math.floor(rnd() * pool.length)] || fallback
-    const rack = shuffleWord(seed, rnd)
-    const groups = kidsAnagrams(rack, lang)
+    const rack = shuffleTiles(seed)
+    const groups = kidsAnagrams(rack, lang, edition)
     const words = groups.flatMap((g) => g.words.map((w) => w.word))
     if (!words.includes(seed)) continue
     return { category: 'kids', rack, groups, seed }
   }
   const seed = pool[0] || fallback
-  const rack = shuffleWord(seed, rnd)
-  return { category: 'kids', rack, groups: kidsAnagrams(rack, lang), seed }
+  const rack = shuffleTiles(seed)
+  return { category: 'kids', rack, groups: kidsAnagrams(rack, lang, edition), seed }
 }

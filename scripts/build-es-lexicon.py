@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Build Verimots' Spanish game lexicon from the generic RLA-ES dictionary."""
+"""Build Verimots' Spanish game lexicon from the generic RLA-ES dictionary.
+
+Spanish Scrabble uses digraph tiles, and there are two official tile sets:
+
+- International (FISE, 100 tiles): CH, LL and RR are single tiles; K and W do
+  not exist and a blank may not stand for them.
+- North America ("Edición en español", 103 tiles): K and W exist, LL and RR
+  are single tiles, but there is no CH tile (C + H are played separately).
+
+The word list stays in plain orthography (CH/LL/RR written out); the apps
+tokenize per edition at load time. This script filters by *tile* length
+(2–15 tiles in at least one edition) and emits per-edition metadata.
+"""
 
 from __future__ import annotations
 
@@ -12,16 +24,104 @@ import re
 import subprocess
 import tempfile
 import unicodedata
-import zipfile
 from collections import Counter
 from pathlib import Path
-
-from spylls.hunspell.dictionary import Dictionary
 
 RLA_VERSION = "2.9"
 RLA_URL = f"https://github.com/sbosio/rla-es/releases/download/v{RLA_VERSION}/es.oxt"
 RLA_SHA256 = "b08a1a0e3e044697f63a67184f591f7e2c37bbb53bbfbb4780bcbd84929d6e8c"
-WORD_RE = re.compile(r"^[A-ZÑ]{2,15}$")
+# Character bound only — the real 2–15 bound is applied per edition in tiles.
+WORD_RE = re.compile(r"^[A-ZÑ]{2,17}$")
+
+FISE_DIGRAPHS = ("CH", "LL", "RR")
+NA_DIGRAPHS = ("LL", "RR")
+
+
+def tokenize(word: str, digraphs: tuple[str, ...]) -> list[str]:
+    """Greedy left-to-right split into edition tiles."""
+    tiles: list[str] = []
+    i = 0
+    while i < len(word):
+        pair = word[i : i + 2]
+        if pair in digraphs:
+            tiles.append(pair)
+            i += 2
+        else:
+            tiles.append(word[i])
+            i += 1
+    return tiles
+
+
+def edition_block(words: list[str], digraphs: tuple[str, ...], allow_kw: bool) -> dict:
+    playable = []
+    for word in words:
+        if not allow_kw and ("K" in word or "W" in word):
+            continue
+        n = len(tokenize(word, digraphs))
+        if 2 <= n <= 15:
+            playable.append((word, n))
+    by_length = Counter(n for _, n in playable)
+    return {
+        "count": len(playable),
+        "byLength": {str(length): by_length.get(length, 0) for length in range(2, 16)},
+        "letters2": [w for w, n in playable if n == 2],
+        "letters3": [w for w, n in playable if n == 3],
+    }
+
+
+def build_meta(words: list[str]) -> dict:
+    fise = edition_block(words, FISE_DIGRAPHS, allow_kw=False)
+    na = edition_block(words, NA_DIGRAPHS, allow_kw=True)
+    return {
+        "edition": f"RLA-ES {RLA_VERSION}",
+        "name": "RLA-ES Spanish word list",
+        "inForce": None,
+        "until": None,
+        # Legacy top-level fields mirror the international (FISE) edition.
+        "count": len(words),
+        "minLen": 2,
+        "maxLen": 15,
+        "byLength": fise["byLength"],
+        "letters2": fise["letters2"],
+        "letters3": fise["letters3"],
+        "editions": {
+            "fise": {"tiles": 100, **fise},
+            "na": {"tiles": 103, **na},
+        },
+        "source": (
+            "RLA-ES generic Spanish dictionary v2.9, game-filtered to lowercase "
+            "common forms of 2 to 15 tiles (CH, LL and RR count as one tile in "
+            "the editions that carry them). Stress marks are ignored and Ñ is "
+            "preserved. Licensed under MPL 1.1; not affiliated with FILE, FISE, "
+            "Mattel or Hasbro."
+        ),
+        "sourceUrl": RLA_URL,
+        "sourceSha256": RLA_SHA256,
+        "license": "MPL-1.1",
+    }
+
+
+def keep(word: str) -> bool:
+    """Keep a word when it is playable (2–15 tiles) in at least one edition."""
+    if not WORD_RE.fullmatch(word):
+        return False
+    fise_ok = ("K" not in word and "W" not in word) and (
+        2 <= len(tokenize(word, FISE_DIGRAPHS)) <= 15
+    )
+    na_ok = 2 <= len(tokenize(word, NA_DIGRAPHS)) <= 15
+    return fise_ok or na_ok
+
+
+def write_outputs(destination: Path, words: list[str]) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "meta-es.json").write_text(
+        json.dumps(build_meta(words), ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    body = ("\n".join(words) + "\n").encode()
+    with (destination / "rla-es.txt.gz").open("wb") as raw:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, compresslevel=9, mtime=0) as zipped:
+            zipped.write(body)
 
 
 def unmunch(word, aff):
@@ -90,8 +190,8 @@ def unmunch(word, aff):
 
 
 def tile_form(value: str) -> str:
-    """Remove Spanish stress marks while preserving Ñ as a distinct tile."""
-    sentinel = "\ue000"
+    """Remove Spanish stress marks while preserving Ñ as a distinct letter."""
+    sentinel = ""
     folded = value.replace("ñ", sentinel).replace("Ñ", sentinel)
     folded = "".join(
         ch for ch in unicodedata.normalize("NFD", folded) if unicodedata.category(ch) != "Mn"
@@ -113,10 +213,12 @@ def download() -> bytes:
 
 
 def build(destination: Path) -> tuple[int, int]:
+    from spylls.hunspell.dictionary import Dictionary
+
     payload = download()
     with tempfile.TemporaryDirectory(prefix="verimots-es-") as directory:
         root = Path(directory)
-        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        with zipfile_open(payload) as archive:
             for name in ("es.aff", "es.dic"):
                 (root / name).write_bytes(archive.read(name))
         dictionary = Dictionary.from_files(str(root / "es"))
@@ -133,42 +235,29 @@ def build(destination: Path) -> tuple[int, int]:
                     rejected += 1
                     continue
                 normalized = tile_form(form)
-                if WORD_RE.fullmatch(normalized):
+                if keep(normalized):
                     words.add(normalized)
 
     ordered = sorted(words)
-    by_length = Counter(map(len, ordered))
-    metadata = {
-        "edition": f"RLA-ES {RLA_VERSION}",
-        "name": "RLA-ES Spanish word list",
-        "inForce": None,
-        "until": None,
-        "count": len(ordered),
-        "minLen": 2,
-        "maxLen": 15,
-        "byLength": {str(length): by_length[length] for length in range(2, 16)},
-        "letters2": [word for word in ordered if len(word) == 2],
-        "letters3": [word for word in ordered if len(word) == 3],
-        "source": (
-            "RLA-ES generic Spanish dictionary v2.9, game-filtered to lowercase "
-            "common forms of 2 to 15 single-letter tiles. Stress marks are ignored "
-            "and Ñ is preserved. Licensed under MPL 1.1; not affiliated with FILE, "
-            "FISE, Mattel or Hasbro."
-        ),
-        "sourceUrl": RLA_URL,
-        "sourceSha256": RLA_SHA256,
-        "license": "MPL-1.1",
-    }
-    destination.mkdir(parents=True, exist_ok=True)
+    write_outputs(destination, ordered)
+    return len(ordered), rejected
+
+
+def zipfile_open(payload: bytes):
+    import zipfile
+
+    return zipfile.ZipFile(io.BytesIO(payload))
+
+
+def rebuild_meta_only(destination: Path) -> int:
+    """Regenerate meta-es.json from the existing rla-es.txt.gz (no network)."""
+    with gzip.open(destination / "rla-es.txt.gz", "rt", encoding="utf-8") as fh:
+        words = [line.strip() for line in fh if line.strip()]
     (destination / "meta-es.json").write_text(
-        json.dumps(metadata, ensure_ascii=False, separators=(",", ":")),
+        json.dumps(build_meta(words), ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
     )
-    body = ("\n".join(ordered) + "\n").encode()
-    with (destination / "rla-es.txt.gz").open("wb") as raw:
-        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, compresslevel=9, mtime=0) as zipped:
-            zipped.write(body)
-    return len(ordered), rejected
+    return len(words)
 
 
 def main() -> None:
@@ -178,7 +267,16 @@ def main() -> None:
         type=Path,
         default=Path(__file__).resolve().parents[1] / "web" / "data",
     )
+    parser.add_argument(
+        "--meta-only",
+        action="store_true",
+        help="regenerate meta-es.json from the existing word list, no download",
+    )
     args = parser.parse_args()
+    if args.meta_only:
+        count = rebuild_meta_only(args.destination)
+        print(f"rebuilt meta for {count} Spanish forms")
+        return
     count, rejected = build(args.destination)
     print(f"wrote {count} Spanish forms; rejected {rejected} invalid expansions")
 

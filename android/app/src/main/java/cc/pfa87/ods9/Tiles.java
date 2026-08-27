@@ -167,7 +167,7 @@ final class Tiles {
         t.setAutoSizeTextTypeUniformWithConfiguration(8, 11, 1, TypedValue.COMPLEX_UNIT_SP);
         // Word + score on one line, the score echoing the small gold value
         // printed on the letter tiles.
-        String label = word + " " + pts;
+        String label = Lexicon.display(word) + " " + pts;
         android.text.SpannableString span = new android.text.SpannableString(label);
         int at = label.length() - String.valueOf(pts).length();
         span.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(R.color.gold)),

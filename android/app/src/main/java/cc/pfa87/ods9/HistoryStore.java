@@ -47,7 +47,7 @@ final class HistoryStore {
     }
 
     static void remember(Context ctx, String word, int pts, String src) {
-        String w = Lexicon.normalize(word);
+        String w = Lexicon.display(Lexicon.normalize(word));
         if (w.length() < 2) return;
         ArrayList<Row> next = new ArrayList<>();
         next.add(new Row(w, pts, "dico".equals(src) ? "dico" : "defi", System.currentTimeMillis()));
@@ -62,7 +62,7 @@ final class HistoryStore {
         try {
             for (int i = 0; i < remote.length(); i++) {
                 JSONObject o = remote.getJSONObject(i);
-                String word = Lexicon.normalize(o.optString("word"));
+                String word = Lexicon.display(Lexicon.normalize(o.optString("word")));
                 if (word.length() < 2) continue;
                 boolean seen = false;
                 for (int j = 0; j < merged.size(); j++) {

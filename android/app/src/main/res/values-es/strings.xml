@@ -32,7 +32,7 @@
     <string name="def_need_net">La definición está disponible con conexión.</string>
     <string name="def_missing">No hay definición en Wikcionario.</string>
     <string name="not_a_form">No es una forma válida (2 a 15 letras, sin tildes; Ñ se conserva).</string>
-    <string name="letters_pts">%1$d letras · %2$d pto%3$s</string>
+    <string name="letters_pts">%1$d fichas · %2$d pto%3$s</string>
     <string name="encore">Siguiente</string>
     <string name="share">Compartir</string>
     <string name="wiki">Abrir en Wikcionario</string>
@@ -57,12 +57,17 @@
     <string name="dict_blurb_en">Lista pública YAWL (dominio público), cercana al juego internacional. No es el CSW de Collins / HarperCollins.</string>
     <string name="dict_blurb_wow24">Lista publicada por la WGPO (Official Words 2024). Distinta del NWL de la NASPA.</string>
     <string name="dict_blurb_es">Lista libre RLA-ES (MPL 1.1). No es el Lexicón oficial de FILE / RAE.</string>
+    <string name="es_edition_label">Fichas en español</string>
+    <string name="es_edition_fise">Internacional (FISE) · 100 fichas</string>
+    <string name="es_edition_na">Norteamérica · 103 fichas</string>
+    <string name="es_edition_help">CH, LL y RR son fichas únicas. La edición internacional no tiene K ni W; la norteamericana las añade pero no tiene ficha de CH. La clasificación en línea usa siempre la edición internacional.</string>
+    <string name="unplayable_kw">Está en la lista, pero no se puede colocar con las fichas internacionales: no hay K ni W y el comodín no puede representarlas.</string>
     <string name="privacy_title">Privacidad</string>
     <string name="privacy_body">Sin publicidad. El historial, las preferencias, las puntuaciones y la caché de definiciones quedan en el dispositivo. Al iniciar sesión con Google, las palabras también se guardan en tu cuenta.\n\nEn modo anónimo solo se envía el porcentaje para la media pública. La competición opcional usa el identificador, nombre y foto de Google para la clasificación semanal. Las definiciones pasan por s.pfa87.cc hacia Wikcionario.</string>
     <string name="hint_prefix">Palabras de la lista que empiezan así.</string>
     <string name="hint_suffix">Palabras de la lista que terminan así.</string>
     <string name="hint_has">Palabras de la lista que contienen estas letras.</string>
-    <string name="hint_rack">Escribe A–Z o Ñ. Pulsa ? para un comodín.</string>
+    <string name="hint_rack">Escribe A–Z o Ñ. CH, LL y RR = una ficha; L L = dos fichas. Pulsa ? para un comodín.</string>
     <string name="build_stamp">%1$s · %2$d · %3$s</string>
     <string name="lang_fr">FR</string>
     <string name="lang_en">EN</string>
@@ -103,7 +108,7 @@
     <string name="mode_rack">Atril</string>
     <string name="len_all">Todas</string>
     <string name="rack_type_hint">Escribe A–Z o Ñ, o añade un ?</string>
-    <string name="rack_cap">%1$d letra%2$s%3$s</string>
+    <string name="rack_cap">%1$d ficha%2$s%3$s</string>
     <string name="jokers_bit"> · %1$d comodín%2$s</string>
     <string name="playable_count">%1$d palabra%2$s válida%2$s · ? = comodín</string>
     <string name="no_rack_words">Ninguna palabra de la lista con estas letras.</string>
@@ -240,7 +245,7 @@
     <string name="training_same_rack_n">Mismo atril — %1$d palabras</string>
     <string name="rack_help_kicker">Atril</string>
     <string name="rack_help_title">¿Qué puedes jugar?</string>
-    <string name="rack_help_body">Escribe tus letras. Un comodín se anota ? — hasta dos. Toca ? para añadir uno.</string>
+    <string name="rack_help_body">Escribe tus letras. CH, LL y RR cuentan como una sola ficha; para dos fichas sueltas escribe L L. Un comodín se anota ? — hasta dos.</string>
     <string name="rack_help_example">Ejemplo: AERTIN?</string>
     <string name="rack_hint_short">Ej. AERTIN?</string>
     <string name="user_fallback">Jugador</string>

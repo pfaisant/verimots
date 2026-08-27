@@ -3563,3 +3563,13 @@ body.auth-gate .game-dock { display: none !important; }
   .daily-kicker::after { display: none; }
   .daily-kicker { white-space: nowrap; }
 }
+
+/* Spanish digraph tiles (CH, LL, RR): two letters on one tile. */
+.tile.tile-digraph { font-size: 13px; letter-spacing: -0.02em; }
+.game-rack .tile.tile-digraph { font-size: clamp(11px, 3.2vw, 16px); letter-spacing: -0.02em; }
+body.game-closed .game-rack .tile.tile-digraph { font-size: clamp(10px, 2.8vw, 14px); }
+
+/* Spanish tile-set picker (Réglages) */
+.es-edition { margin-top: 12px; }
+.es-edition-opts { display: flex; gap: 8px; margin: 6px 0 8px; }
+.es-edition-opt { flex: 1; min-width: 0; }

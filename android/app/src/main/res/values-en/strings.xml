@@ -57,6 +57,11 @@
     <string name="dict_blurb_en">Public-domain YAWL list, close to international play. Not Collins / HarperCollins CSW.</string>
     <string name="dict_blurb_wow24">List published by the WGPO (Official Words 2024). Distinct from NASPA’s NWL.</string>
     <string name="dict_blurb_es">Free RLA-ES list (MPL 1.1). Not the official FILE / RAE Lexicón.</string>
+    <string name="es_edition_label">Spanish tile set</string>
+    <string name="es_edition_fise">International (FISE) · 100 tiles</string>
+    <string name="es_edition_na">North America · 103 tiles</string>
+    <string name="es_edition_help">CH, LL and RR are single tiles. The international set has no K or W; the North-American set adds them but has no CH tile. The online leaderboard always uses the international set.</string>
+    <string name="unplayable_kw">In the list, but unplayable with the international tiles: there is no K or W, and a blank may not stand for them.</string>
     <string name="privacy_title">Privacy</string>
     <string name="privacy_body">No ads. Local history stays on the device. Signed in with Google, checked and played words are also saved to your account so you can find them on the web and on the phone.\n\nIn anonymous mode only the percent (0 to 100) is sent for the public average. Optional competition: Google ID, name and photo for this week’s board. Definitions go through s.pfa87.cc to Wiktionary.</string>
     <string name="hint_prefix">List words that start with this.</string>

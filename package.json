@@ -1,6 +1,6 @@
 {
   "name": "verimots",
-  "version": "4.0.4",
+  "version": "4.1.0",
   "private": true,
   "type": "module",
   "description": "Verimots — French word checker, rack search and daily challenge. Web + native Android.",

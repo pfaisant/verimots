@@ -42,14 +42,14 @@ final class FavStore {
     }
 
     static boolean has(Context ctx, String word) {
-        String w = Lexicon.normalize(word);
+        String w = Lexicon.display(Lexicon.normalize(word));
         for (Row row : load(ctx)) if (row.word.equals(w)) return true;
         return false;
     }
 
     /** Returns the new favorite state of the word. */
     static boolean toggle(Context ctx, String word, int pts) {
-        String w = Lexicon.normalize(word);
+        String w = Lexicon.display(Lexicon.normalize(word));
         if (w.length() < 2) return false;
         ArrayList<Row> next = new ArrayList<>();
         boolean removed = false;

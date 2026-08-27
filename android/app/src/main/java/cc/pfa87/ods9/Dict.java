@@ -9,9 +9,13 @@ final class Dict {
     static final String YAWL = "yawl";
     static final String WOW24 = "wow24";
     static final String RLA = "rla";
+    /** Spanish tile sets: international FISE (100 tiles) or North America (103). */
+    static final String ES_FISE = "fise";
+    static final String ES_NA = "na";
     private static final String PREFS = "verimots-prefs";
     private static final String KEY = "dict";
     private static final String KEY_EN = "dict-en";
+    private static final String KEY_ES_EDITION = "es-edition";
 
     private Dict() {}
 
@@ -60,6 +64,17 @@ final class Dict {
                 .putString(KEY, selected);
         if (Lang.EN.equals(langOf(selected))) ed.putString(KEY_EN, selected);
         ed.apply();
+    }
+
+    static String esEdition(Context c) {
+        String v = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_ES_EDITION, ES_FISE);
+        return ES_NA.equals(v) ? ES_NA : ES_FISE;
+    }
+
+    static void setEsEdition(Context c, String edition) {
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(KEY_ES_EDITION, ES_NA.equals(edition) ? ES_NA : ES_FISE)
+                .apply();
     }
 
     static void syncFromLang(Context c, String lang) {

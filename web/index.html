@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=127" />
+  <link rel="stylesheet" href="app.css?v=128" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -201,6 +201,19 @@
               <span class="dict-blurb" data-i18n="dict_blurb_rla">Liste communautaire suivant RLA-ES.</span>
               <span class="dict-meta" data-dict-meta="rla"></span>
             </button>
+          </div>
+          <div class="es-edition" id="es-edition" hidden>
+            <p class="settings-label" data-i18n="es_edition_label">Fichas en español</p>
+            <div class="es-edition-opts" role="radiogroup" data-i18n-aria="es_edition_label" aria-label="Fichas en español">
+              <button type="button" class="dict-opt es-edition-opt" data-es-edition="fise" role="radio" aria-checked="true" aria-pressed="true">
+                <strong class="dict-name" data-i18n="es_edition_fise">Internacional (FISE) · 100 fichas</strong>
+              </button>
+              <button type="button" class="dict-opt es-edition-opt" data-es-edition="na" role="radio" aria-checked="false" aria-pressed="false">
+                <strong class="dict-name" data-i18n="es_edition_na">Norteamérica · 103 fichas</strong>
+              </button>
+            </div>
+            <p class="fine" data-i18n="es_edition_help">CH, LL y RR son fichas únicas.</p>
+            <p class="fine" data-i18n="es_edition_ranked">La clasificación en línea usa siempre la edición internacional.</p>
           </div>
           <label class="opt-row">
             <input type="checkbox" id="opt-alpha-btn" />
@@ -509,7 +522,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=127" type="module"></script>
+  <script src="app.js?v=128" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

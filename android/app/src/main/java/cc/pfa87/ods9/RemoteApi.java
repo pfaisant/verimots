@@ -81,7 +81,8 @@ final class RemoteApi {
         define(word, cb, "fr");
     }
 
-    static void define(String word, DefCb cb, String lang) {
+    static void define(String rawWord, DefCb cb, String lang) {
+        final String word = Lexicon.display(rawWord);
         IO.execute(() -> {
             try {
                 String langQ = "&lang=" + language(lang);
@@ -372,7 +373,8 @@ final class RemoteApi {
         });
     }
 
-    static void saveHistory(String word, int pts, String src) {
+    static void saveHistory(String rawWord, int pts, String src) {
+        final String word = Lexicon.display(rawWord);
         IO.execute(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/history").openConnection();
@@ -409,7 +411,9 @@ final class RemoteApi {
     }
 
     /** pass=true records a Bingo "Passer" as a 0 % play (word empty). */
-    static void compete(int percent, String word, String lang, boolean kids, String rack, boolean pass, CompeteCb cb) {
+    static void compete(int percent, String rawWord, String lang, boolean kids, String rawRack, boolean pass, CompeteCb cb) {
+        final String word = Lexicon.display(rawWord);
+        final String rack = rawRack == null ? null : Lexicon.displayRackOf(rawRack);
         IO.execute(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/compete").openConnection();

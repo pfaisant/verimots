@@ -1,29 +1,29 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=127'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=127'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=127'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=127'
-import { initLang, setLang, setDict, getLang, getDict, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=127'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=128'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=128'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=128'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=128'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=128'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=128'
 
-const FR_COUNTS = {
-  A: 9, B: 2, C: 2, D: 3, E: 15, F: 2, G: 2, H: 2, I: 8,
-  J: 1, K: 1, L: 5, M: 3, N: 6, O: 6, P: 2, Q: 1, R: 6,
-  S: 6, T: 6, U: 6, V: 2, W: 1, X: 1, Y: 1, Z: 1, '?': 2,
-}
-const EN_COUNTS = {
-  A: 9, B: 2, C: 2, D: 4, E: 12, F: 2, G: 3, H: 2, I: 9,
-  J: 1, K: 1, L: 4, M: 2, N: 6, O: 8, P: 2, Q: 1, R: 6,
-  S: 4, T: 6, U: 4, V: 2, W: 2, X: 1, Y: 2, Z: 1, '?': 2,
-}
-const ES_COUNTS = {
-  A: 13, B: 2, C: 4, D: 5, E: 12, F: 1, G: 2, H: 2, I: 6,
-  J: 1, K: 1, L: 4, M: 2, N: 5, Ñ: 1, O: 9, P: 2, Q: 1,
-  R: 5, S: 6, T: 4, U: 5, V: 1, W: 1, X: 1, Y: 1, Z: 1, '?': 2,
-}
 function letterValues() {
   return tileValues(getLang())
 }
-function letterCounts() {
-  return getLang() === 'en' ? EN_COUNTS : getLang() === 'es' ? ES_COUNTS : FR_COUNTS
+
+/** Tile length of a display string (Spanish digraphs count once). */
+function tlen(value) {
+  return tileCount(String(value || ''), getLang(), getEsEdition())
+}
+
+/**
+ * Ranked Bingo always plays with the international Spanish tiles — the
+ * server generates and scores the weekly trail with that set.
+ */
+function effectiveEdition() {
+  if (getLang() !== 'es') return 'fise'
+  if (nav === 'game' && typeof isCompetitive === 'function' && isCompetitive() && !isKids() && !isTraining()) {
+    return 'fise'
+  }
+  return getEsEdition()
 }
 
 const q = document.getElementById('q')
@@ -57,7 +57,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=83', { type: 'module' })
+const worker = new Worker('worker.js?v=84', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -85,9 +85,10 @@ function ask(type, payload = {}) {
   const id = ++seq
   const lang = getLang()
   const dict = getDict()
+  const edition = effectiveEdition()
   return new Promise((resolve, reject) => {
     pending.set(id, { resolve, reject, lang, dict })
-    worker.postMessage({ type, id, lang, dict, ...payload })
+    worker.postMessage({ type, id, lang, dict, edition, ...payload })
   })
 }
 
@@ -100,32 +101,44 @@ worker.onmessage = (ev) => {
   else slot.resolve(msg)
 }
 
-function normalize(value) {
+function normalize(value, opts = {}) {
   const sentinel = '\ue000'
-  return String(value || '')
+  let s = String(value || '')
     .normalize('NFC')
     .replace(/ñ/gi, sentinel)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
     .replaceAll(sentinel.toUpperCase(), 'Ñ')
-    .replace(/[^A-ZÑ?.*]/g, '')
+  if (getLang() === 'es') {
+    // 1/2/3 type CH/LL/RR directly; in a rack, a separator (space, dash, ·)
+    // keeps two single tiles apart: L·L is two L tiles, LL is the digraph.
+    if (opts.rack) {
+      s = s.replace(/[-\s,/]/g, '·').replace(/[^A-ZÑ123?.*·]/g, '').replace(/·+/g, '·').replace(/^·+/, '')
+    } else {
+      s = s.replace(/[^A-ZÑ123?.*]/g, '')
+    }
+    return s
+  }
+  return s.replace(/[^A-ZÑ?.*]/g, '')
 }
 
 function tilesHtml(word, jokers = [], opts = {}) {
   const jk = new Set(jokers)
   const tap = opts.tap
-  const rack = String(word || '')
-  const order = Array.isArray(opts.order) ? opts.order : [...rack].map((_, i) => i)
+  const codes = [...encodeTiles(String(word || '').toUpperCase(), getLang(), getEsEdition())]
+  const tokens = tileTokens(String(word || ''), getLang(), getEsEdition())
+  const order = Array.isArray(opts.order) ? opts.order : tokens.map((_, i) => i)
+  const values = letterValues()
   return `<div class="tiles">${order.map((i) => {
-    const ch = rack[i]
-    if (ch == null) return ''
-    const blank = jk.has(i) || ch === '?' || ch === '.' || ch === '*'
-    const pts = blank ? 0 : (letterValues()[ch] || 0)
-    const glyph = blank ? '?' : ch
+    const token = tokens[i]
+    if (token == null) return ''
+    const blank = jk.has(i) || token === '?'
+    const pts = blank ? 0 : (values[codes[i]] || 0)
+    const glyph = blank ? '?' : token
     const tag = tap ? 'button' : 'span'
     const extra = tap ? ` type="button" data-rack-i="${i}"` : ''
-    return `<${tag} class="tile${blank ? ' blank' : ''}"${extra}>${glyph}<small>${pts}</small></${tag}>`
+    return `<${tag} class="tile${blank ? ' blank' : ''}${glyph.length > 1 ? ' tile-digraph' : ''}"${extra}>${glyph}<small>${pts}</small></${tag}>`
   }).join('')}</div>`
 }
 
@@ -205,7 +218,7 @@ function shareMessage(share) {
   const link = wordLink(share.word)
   if (share.ok) {
     const def = share.def ? `\n${share.def}\n` : '\n'
-    return `Verimots · ${dictLabel()}\n\n*${t('share_valid', share.word, dictLabel())}*\n${t('letters_pts', share.word.length, share.score)}\n${def}\n${link}`
+    return `Verimots · ${dictLabel()}\n\n*${t('share_valid', share.word, dictLabel())}*\n${t('letters_pts', tlen(share.word), share.score)}\n${def}\n${link}`
   }
   return `Verimots · ${dictLabel()}\n\n*${t('share_invalid', share.word, dictLabel())}*\n\n${link}`
 }
@@ -416,7 +429,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=127').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=128').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -425,7 +438,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=127')
+    const { fetchHistory } = await import('./competitive.js?v=128')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -433,7 +446,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=127')
+    const { saveHistoryWord } = await import('./competitive.js?v=128')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -573,7 +586,7 @@ function syncChrome() {
   paintDicts()
   qLabel.textContent = nav === 'rack' ? t('q_label_rack') : t('q_label')
   q.placeholder = placeholders[nav] || placeholders.check
-  q.maxLength = nav === 'rack' ? 16 : 15
+  q.maxLength = getLang() === 'es' ? (nav === 'rack' ? 26 : 17) : nav === 'rack' ? 16 : 15
   if (qJoker) qJoker.hidden = nav !== 'rack'
   if (hint) {
     hint.textContent = hints[findMode] || hints.exact
@@ -689,15 +702,15 @@ function hasMultiFilter(filters = multiFilters()) {
 }
 
 function addBlankToRack() {
-  const raw = normalize(q.value)
-  if (blankCount(raw) >= 2 || raw.length >= 16) return
+  const raw = normalize(q.value, { rack: nav === 'rack' })
+  if (blankCount(raw) >= 2 || tlen(raw) >= 16) return
   q.value = raw + '?'
   q.focus()
   run()
 }
 
 function renderRackPreview() {
-  const raw = normalize(q.value)
+  const raw = normalize(q.value, { rack: true })
   if (nav !== 'rack') {
     rackPreview.hidden = true
     rackPreview.innerHTML = ''
@@ -705,13 +718,14 @@ function renderRackPreview() {
   }
   rackPreview.hidden = false
   const blanks = blankCount(raw)
-  const canAdd = blanks < 2 && raw.length < 16
+  const n = tlen(raw)
+  const canAdd = blanks < 2 && n < 16
   const tiles = raw
     ? tilesHtml(raw, [], { tap: true })
     : `<div class="tiles"></div>`
   rackPreview.innerHTML = `${tiles}
     <button type="button" class="tile add-blank" id="rack-add-blank" ${canAdd ? '' : 'disabled'} aria-label="Ajouter un joker">?<small>+</small></button>
-    <p class="preview-cap">${raw ? `${raw.length} lettre${raw.length > 1 ? 's' : ''}` : 'Tapez A–Z ou posez un ?'}${blanks ? ` · ${blanks} joker${blanks > 1 ? 's' : ''}` : ''}</p>`
+    <p class="preview-cap">${raw ? `${n} lettre${n > 1 ? 's' : ''}` : 'Tapez A–Z ou posez un ?'}${blanks ? ` · ${blanks} joker${blanks > 1 ? 's' : ''}` : ''}</p>`
 }
 
 const dailyEl = document.getElementById('daily')
@@ -751,7 +765,7 @@ async function renderDaily(random = dailySeen) {
     </div>
     <button type="button" class="daily-word" data-word="${escapeHtml(daily.word)}">
       ${tilesHtml(daily.word)}
-      <span class="daily-meta">${t('letters_pts', daily.word.length, daily.score)}</span>
+      <span class="daily-meta">${t('letters_pts', daily.tiles ?? tlen(daily.word), daily.score)}</span>
       <span class="daily-tap">${escapeHtml(t('daily_tap'))} →</span>
     </button>
     <div class="game-def-body" id="daily-def">${defBody(null, escapeHtml)}</div>`
@@ -809,7 +823,7 @@ function renderCheck(word, result) {
       </div>
       ${tilesHtml(result.word)}
       <div class="meta-line">
-        <span>${t('letters_pts', result.word.length, result.score)}</span>
+        <span>${result.unplayable ? t('unplayable_kw') : t('letters_pts', result.tiles ?? tlen(result.word), result.score)}</span>
         <span class="meta-actions">
           ${waMini}
           <a href="${escapeHtml(result.definition?.url || wikiUrl(result.word, result.definition?.lemma))}" target="_blank" rel="noopener noreferrer">${t('wiki')}</a>
@@ -824,7 +838,7 @@ function renderCheck(word, result) {
         <div class="status">${t('not_in_list', dictLabel())}</div>
         ${waMini}
       </div>
-      <p class="word">${word}</p>
+      <p class="word">${(result && result.word) || word}</p>
       <p class="empty">${t('not_a_form')}</p>`
   }
 }
@@ -841,9 +855,9 @@ function renderGroups(target, groups, emptyText, summary) {
         <h3>${g.len} lettres · ${g.words.length}</h3>
         <div class="words">${g.words.map((entry) => {
           const w = typeof entry === 'string' ? { word: entry, score: '', jokers: [] } : entry
-          const letters = [...w.word]
-            .map((ch, i) =>
-              (w.jokers || []).includes(i) ? `<span class="jk" title="${ch}">?</span>` : ch
+          const letters = tileTokens(w.word, getLang(), getEsEdition())
+            .map((glyph, i) =>
+              (w.jokers || []).includes(i) ? `<span class="jk" title="${glyph}">?</span>` : glyph
             )
             .join('')
           return `<button type="button" class="chip" data-word="${w.word}" title="${w.word}">${letters}${w.score !== '' ? `<span class="pts">${w.score}</span>` : ''}</button>`
@@ -904,6 +918,15 @@ async function paintDicts() {
     btn.setAttribute('aria-pressed', on ? 'true' : 'false')
     btn.setAttribute('aria-checked', on ? 'true' : 'false')
   })
+  const editionBox = document.getElementById('es-edition')
+  if (editionBox) {
+    editionBox.hidden = current !== 'rla'
+    editionBox.querySelectorAll('[data-es-edition]').forEach((btn) => {
+      const on = btn.dataset.esEdition === getEsEdition()
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false')
+      btn.setAttribute('aria-checked', on ? 'true' : 'false')
+    })
+  }
   paintDictPop()
   const info = await loadDictsInfo()
   const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
@@ -937,8 +960,8 @@ function renderStudy() {
   const studyWa = document.getElementById('study-wa')
   const studyWaTwos = document.getElementById('study-wa-twos')
   if (!twosEl && !threesEl) return
-  const twosAll = meta?.letters2 || []
-  const threesAll = meta?.letters3 || []
+  const twosAll = metaList('letters2')
+  const threesAll = metaList('letters3')
   const twos = dailyStudySlice(twosAll, new Date(), STUDY_TWOS)
   const threes = dailyStudySlice(threesAll, new Date(), STUDY_THREES)
   if (when) when.textContent = t('study_today', studyDateLabel())
@@ -1153,16 +1176,22 @@ function statsDate(iso, locale) {
   })
 }
 
+function metaList(kind) {
+  const block = getLang() === 'es' ? meta?.editions?.[getEsEdition()] : null
+  return (block || meta || {})[kind] || []
+}
+
 function renderLists() {
   if (listKind === 'values') {
-    const vals = letterValues()
-    const counts = letterCounts()
-    const letters = Object.keys(vals)
-    listsOut.innerHTML = `<div class="values">${letters.map((ch) => `
+    const spec = tileSpec(getLang(), getEsEdition())
+    listsOut.innerHTML = `<div class="values">${spec.order.map((ch) => {
+      const glyph = tileGlyph(ch)
+      return `
       <div class="val">
-        <span class="tile">${ch}<small>${vals[ch]}</small></span>
-        ×${counts[ch]}
-      </div>`).join('')}
+        <span class="tile${glyph.length > 1 ? ' tile-digraph' : ''}">${glyph}<small>${spec.values[ch]}</small></span>
+        ×${spec.bag[ch]}
+      </div>`
+    }).join('')}
       <div class="val">
         <span class="tile blank">?<small>0</small></span>
         ×2
@@ -1171,7 +1200,7 @@ function renderLists() {
     <p class="empty">${t('values_note')}</p>`
     return
   }
-  const list = listKind === '2' ? meta?.letters2 || [] : meta?.letters3 || []
+  const list = listKind === '2' ? metaList('letters2') : metaList('letters3')
   const cls = listKind === '2' ? 'grid2' : 'grid3'
   const share = list.length
     ? `<div class="list-share"><a class="wa-share" href="${escapeHtml(waStudyHref(studyListText(list, Number(listKind))))}" target="_blank" rel="noopener noreferrer">${WA_ICON}${t('study_share_list')}</a></div>`
@@ -1187,12 +1216,12 @@ function renderRackEmpty() {
 }
 
 async function run() {
-  const raw = normalize(q.value)
+  const raw = normalize(q.value, { rack: nav === 'rack' })
   q.value = raw
   clearBtn.hidden = raw.length === 0
   renderRackPreview()
-  if (addJoker) addJoker.disabled = blankCount(raw) >= 2 || raw.length >= 16
-  if (qJoker) qJoker.disabled = blankCount(raw) >= 2 || raw.length >= 16
+  if (addJoker) addJoker.disabled = blankCount(raw) >= 2 || tlen(raw) >= 16
+  if (qJoker) qJoker.disabled = blankCount(raw) >= 2 || tlen(raw) >= 16
   writeUrl()
 
   if (nav === 'lists' || nav === 'info' || nav === 'game') return
@@ -1246,7 +1275,7 @@ async function run() {
   }
 
   if (nav === 'rack') {
-    if (raw.length < 2) {
+    if (tlen(raw) < 2) {
       renderRackEmpty()
       return
     }
@@ -1255,7 +1284,7 @@ async function run() {
       rackOut.innerHTML = `<p class="pending">Dictionnaire en cours de chargement…</p>`
       return
     }
-    const max = rackLen === 'all' ? raw.length : Number(rackLen)
+    const max = rackLen === 'all' ? tlen(raw) : Number(rackLen)
     const min = rackLen === 'all' ? 2 : Number(rackLen)
     const result = await ask('anagram', { rack: raw, min, max })
     if (staleResult(result)) return
@@ -1461,7 +1490,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=127')
+      const { clearCloudHistory } = await import('./competitive.js?v=128')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1504,6 +1533,11 @@ document.getElementById('settings-dicts')?.addEventListener('click', (e) => {
   if (!btn) return
   const next = btn.dataset.dict
   if (dictSpec(next).id === next) switchDict(next)
+})
+document.getElementById('es-edition')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-es-edition]')
+  if (!btn) return
+  switchEsEdition(btn.dataset.esEdition)
 })
 dictPop?.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-dict]')
@@ -1596,8 +1630,10 @@ document.body.addEventListener('click', (e) => {
   const tile = e.target.closest('[data-rack-i]')
   if (tile && nav === 'rack') {
     const i = Number(tile.dataset.rackI)
-    const raw = normalize(q.value)
-    q.value = raw.slice(0, i) + raw.slice(i + 1)
+    const raw = normalize(q.value, { rack: true })
+    const codes = [...encodeTiles(raw, getLang(), getEsEdition())]
+    codes.splice(i, 1)
+    q.value = decodeRack(codes.join(''), getLang(), getEsEdition())
     run()
     q.focus()
     return
@@ -1706,6 +1742,19 @@ async function switchDict(id) {
   }
 }
 
+async function switchEsEdition(next) {
+  if (getLang() !== 'es' || next === getEsEdition()) return
+  setEsEdition(next)
+  paintDicts()
+  renderStudy()
+  try {
+    await reloadLexicon()
+  } catch (err) {
+    setLive(t('lex_fail'))
+    console.error(err)
+  }
+}
+
 async function switchLang(next) {
   if (next === getLang()) return
   setLang(next)
@@ -1796,7 +1845,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=127').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=128').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

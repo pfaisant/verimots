@@ -57,6 +57,11 @@
     <string name="dict_blurb_en">Liste publique YAWL (domaine public), proche du jeu international. Ce n’est pas le CSW de Collins / HarperCollins.</string>
     <string name="dict_blurb_wow24">Liste publiée par la WGPO (Official Words 2024). Distincte du NWL de la NASPA.</string>
     <string name="dict_blurb_es">Liste libre RLA-ES (licence MPL 1.1). Ce n’est pas le Lexicón officiel FILE / RAE.</string>
+    <string name="es_edition_label">Jetons espagnols</string>
+    <string name="es_edition_fise">Internationale (FISE) · 100 jetons</string>
+    <string name="es_edition_na">Amérique du Nord · 103 jetons</string>
+    <string name="es_edition_help">CH, LL et RR sont des jetons uniques. L’édition internationale n’a ni K ni W ; l’édition nord-américaine les ajoute mais n’a pas de jeton CH. Le classement en ligne utilise l’édition internationale.</string>
+    <string name="unplayable_kw">Dans la liste, mais injouable avec les jetons internationaux : pas de K ni de W, et le joker ne peut pas les remplacer.</string>
     <string name="privacy_title">Confidentialité</string>
     <string name="privacy_body">Pas de publicité. L’historique local reste sur l’appareil. Connecté avec Google, les mots vérifiés et joués sont aussi enregistrés sur ton compte pour les retrouver sur le web et le téléphone.\n\nEn mode anonyme, seul le pourcentage (0 à 100) est envoyé pour le score moyen public. Mode compétition (optionnel) : identifiant Google, nom et photo pour le classement de la semaine. Les définitions passent par s.pfa87.cc vers le Wiktionnaire.</string>
     <string name="hint_prefix">Mots de la liste qui commencent ainsi.</string>

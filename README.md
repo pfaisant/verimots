@@ -41,12 +41,27 @@ Play package: `cc.pfa87.verimots`. Listing copy and icons are in `android/play/`
 
 ## Spanish lexicon
 
-Spanish uses the MPL-1.1 RLA-ES dictionary, normalized for single-letter word-game
-tiles while preserving Ñ. Rebuild it with:
+Spanish uses the MPL-1.1 RLA-ES dictionary, stress marks removed, Ñ preserved.
+Spanish Scrabble has digraph tiles and two official tile sets, both supported
+(Settings → Spanish tile set):
+
+- **International / FISE** (default, 100 tiles): CH, LL and RR are single tiles;
+  there is no K or W and a blank may not stand for them (K/W words are shown as
+  "in the list, unplayable").
+- **North America** ("Edición en español", 103 tiles): K and W exist, LL and RR
+  are tiles, but there is no CH tile.
+
+Internally every word and rack is tile-encoded (`1` = CH, `2` = LL, `3` = RR — see
+`web/tiles.js` and `android/.../Lexicon.java`), so lengths, joker positions and the
+7-tile bingo bonus are tile-correct. In a rack, `L·L` (or `L L`) means two L tiles,
+`LL` the digraph. The ranked weekly trail always uses the international set.
+
+The word list is stored in plain orthography and filtered to 2–15 *tiles*; rebuild it with:
 
 ```sh
 python3 -m pip install -r scripts/requirements-lexicon.txt
-python3 scripts/build-es-lexicon.py
+python3 scripts/build-es-lexicon.py            # download + rebuild list and meta
+python3 scripts/build-es-lexicon.py --meta-only # per-edition meta from the existing list
 ```
 
 See `THIRD_PARTY_NOTICES.md` for attribution and transformation details.
