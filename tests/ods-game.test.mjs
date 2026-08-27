@@ -42,7 +42,7 @@ import {
 } from '../web/game.js'
 import { loadHistory, rememberWord, historyLabel, historyDayLabel, clearHistory } from '../web/history.js'
 import { kidsWords, kidsLong } from '../web/kids.js'
-import { competeAccepted } from '../web/competitive.js'
+import { competeAccepted, fetchLeaderboard } from '../web/competitive.js'
 import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js'
 
 test('rack tile usage assigns unmatched letters to blanks', () => {
@@ -85,6 +85,27 @@ test('score moyen uses a French decimal comma', () => {
   assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /9 parties/)
   assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /100,0%/)
   assert.doesNotMatch(boardScoreHtml({ percent: 100, plays: 1 }), /partie/)
+})
+
+test('leaderboard client requests and preserves the selected language', async () => {
+  const originalFetch = globalThis.fetch
+  let requested = ''
+  globalThis.fetch = async (url) => {
+    requested = String(url)
+    return {
+      async json() {
+        return { ok: true, lang: 'en', trailId: '2026-W35-en', top: [{ pseudo: 'English player' }] }
+      },
+    }
+  }
+  try {
+    const board = await fetchLeaderboard(null, 'en')
+    assert.equal(new URL(requested, 'https://s.pfa87.cc').searchParams.get('lang'), 'en')
+    assert.equal(board.lang, 'en')
+    assert.equal(board.top[0].pseudo, 'English player')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
 })
 
 test('shared rack is letters only', () => {

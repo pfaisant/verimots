@@ -1560,7 +1560,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getCurrentUser, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=128')
+        await import('./competitive.js?v=129')
       if (!isPlayContextCurrent(context)) return false
       if (context.official && officialPlay) {
         if (!getCurrentUser()) {
@@ -1956,7 +1956,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=128')
+    const { initGoogleSignIn, checkSession, getCurrentUser, handleGoogleCallback, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=129')
     const user = await checkSession()
     if (requestId !== modeSeq || activeMode !== (kids ? 'kids' : 'competitive')) return
     if (user) {
@@ -2035,8 +2035,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadGeneralBoard(kids) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=128')
-    const data = await fetchLeaderboard(null, getLang(), { kids, scope: 'all' })
+    const { fetchLeaderboard } = await import('./competitive.js?v=129')
+    const requestedLang = getLang()
+    const data = await fetchLeaderboard(null, requestedLang, { kids, scope: 'all' })
+    if (getLang() !== requestedLang || data.lang !== requestedLang) return null
     if (kids) lastAllKidsBoard = data
     else lastAllBoard = data
     return data
@@ -2117,7 +2119,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         <p class="board-title">${escapeHtml(general ? t('board_general_title') : t('board_title'))}</p>
         <div class="board-tabs" role="group">${tab('week', t('board_week'))}${tab('all', t('board_general'))}</div>
       </div>
-      ${general && !data ? `<p class="board-empty">${escapeHtml(t('loading'))}</p>` : boardBlock(empty, data)}`
+      ${!data ? `<p class="board-empty">${escapeHtml(t('loading'))}</p>` : boardBlock(empty, data)}`
     if (waEl) waEl.classList.add('is-off')
     paintChart(loadScores(null, kidsTab), kidsTab)
   }
@@ -2192,7 +2194,15 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   document.addEventListener('verimots-lang', () => {
+    // Leaderboards are independent per language. Never leave the previous
+    // language's rows visible while the newly selected board is loading.
+    lastBoard = null
+    lastKidsBoard = null
+    lastAllBoard = null
+    lastAllKidsBoard = null
+    boardExpanded = false
     paintChrome()
+    if (boardPage) paintLeaderboard()
   })
 
   return {
@@ -2218,20 +2228,28 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         return
       }
       paintLeaderboard()
-      const { fetchLeaderboard } = await import('./competitive.js?v=128')
+      const { fetchLeaderboard } = await import('./competitive.js?v=129')
+      const requestedLang = getLang()
       const [week, kidsWeek] = await Promise.all([
-        fetchLeaderboard(null, getLang()),
-        fetchLeaderboard(null, getLang(), { kids: true }),
+        fetchLeaderboard(null, requestedLang),
+        fetchLeaderboard(null, requestedLang, { kids: true }),
       ])
+      if (getLang() !== requestedLang || week.lang !== requestedLang || kidsWeek.lang !== requestedLang) return
       lastBoard = week
       lastKidsBoard = kidsWeek
       if (boardScope === 'all') await loadGeneralBoard(kidsOn())
       if (boardPage) paintLeaderboard()
     },
     async showBoard() {
-      const { fetchLeaderboard } = await import('./competitive.js?v=128')
-      lastBoard = await fetchLeaderboard(null, getLang())
-      lastKidsBoard = await fetchLeaderboard(null, getLang(), { kids: true })
+      const { fetchLeaderboard } = await import('./competitive.js?v=129')
+      const requestedLang = getLang()
+      const [week, kidsWeek] = await Promise.all([
+        fetchLeaderboard(null, requestedLang),
+        fetchLeaderboard(null, requestedLang, { kids: true }),
+      ])
+      if (getLang() !== requestedLang || week.lang !== requestedLang || kidsWeek.lang !== requestedLang) return
+      lastBoard = week
+      lastKidsBoard = kidsWeek
       lastAllBoard = null
       lastAllKidsBoard = null
       if (boardScope === 'all') await loadGeneralBoard(kidsOn())

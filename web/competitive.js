@@ -131,20 +131,21 @@ export function getTrailData() {
 }
 
 export async function fetchLeaderboard(trailId, lang, opts = {}) {
+  const requestedLang = language(lang)
   try {
     const p = new URLSearchParams()
     if (trailId) p.set('trailId', trailId)
-    p.set('lang', language(lang))
+    p.set('lang', requestedLang)
     if (opts.kids) p.set('kids', '1')
     if (opts.scope === 'all') p.set('scope', 'all')
     const res = await fetch(`/api/game/board?${p}`, { credentials: 'include' })
     const data = await res.json()
     if (data?.ok) {
-      return { ok: true, top: data.top || [], me: data.me || null, kids: !!data.kids, trailId: data.trailId, scope: data.scope || 'week', weeks: data.weeks || 0 }
+      return { ok: true, top: data.top || [], me: data.me || null, kids: !!data.kids, lang: language(data.lang || requestedLang), trailId: data.trailId, scope: data.scope || 'week', weeks: data.weeks || 0 }
     }
-    return { ok: false, top: [], me: null, kids: !!opts.kids, scope: opts.scope || 'week' }
+    return { ok: false, top: [], me: null, kids: !!opts.kids, lang: requestedLang, scope: opts.scope || 'week' }
   } catch {
-    return { ok: false, top: [], me: null, kids: !!opts.kids, scope: opts.scope || 'week' }
+    return { ok: false, top: [], me: null, kids: !!opts.kids, lang: requestedLang, scope: opts.scope || 'week' }
   }
 }
 
