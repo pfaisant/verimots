@@ -1,105 +1,54 @@
-// Google Analytics 4 with Consent Mode v2
-// Measurement ID: G-6R0YS8HW30
-// Property: Verimots (550806688)
+// Consent bridge. The Google Analytics tag itself is injected server-side
+// (scripts/ga-inject.mjs, one GA4 property for every pfa87 hostname), so this
+// file no longer carries a measurement ID and never loads gtag.js.
+// It only runs this page's consent banner and records the answer, for the
+// shared tag to read on the next load and to apply straight away on this one.
 
 (function () {
   'use strict';
 
-  const MEASUREMENT_ID = 'G-6R0YS8HW30';
-  const CONSENT_KEY = 'verimots-consent';
-  const WAIT_FOR_UPDATE = 500;
+  var LEGACY_KEY = 'verimots-consent';
+  var SHARED_KEY = 'pfa87-consent';
 
-  // Initialize dataLayer
-  window.dataLayer = window.dataLayer || [];
   function gtag() {
-    dataLayer.push(arguments);
-  }
-  window.gtag = gtag;
-
-  // Queue consent defaults BEFORE loading gtag.js
-  // Consent Mode v2: all identifying storage denied by default
-  // Only analytics_storage will be granted if user accepts
-  // ad_storage, ad_user_data, ad_personalization stay denied
-  gtag('consent', 'default', {
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
-    analytics_storage: 'denied',
-    wait_for_update: WAIT_FOR_UPDATE,
-  });
-
-  // Restore stored consent choice from localStorage
-  const storedConsent = localStorage.getItem(CONSENT_KEY);
-  if (storedConsent === 'granted') {
-    gtag('consent', 'update', {
-      analytics_storage: 'granted',
-    });
-  } else if (storedConsent === 'denied') {
-    gtag('consent', 'update', {
-      analytics_storage: 'denied',
-    });
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(arguments);
   }
 
-  // Load gtag.js
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + MEASUREMENT_ID;
-  document.head.appendChild(script);
-
-  // Configure GA4
-  gtag('js', new Date());
-  gtag('config', MEASUREMENT_ID, {
-    anonymize_ip: true,
-  });
-
-  // Handle consent banner
-  function showBanner() {
-    const banner = document.getElementById('consent');
-    if (banner) {
-      banner.hidden = false;
-      banner.setAttribute('aria-hidden', 'false');
+  function stored() {
+    try {
+      return localStorage.getItem(SHARED_KEY) || localStorage.getItem(LEGACY_KEY);
+    } catch (e) {
+      return null;
     }
   }
 
-  function hideBanner() {
-    const banner = document.getElementById('consent');
-    if (banner) {
-      banner.hidden = true;
-      banner.setAttribute('aria-hidden', 'true');
+  function banner(show) {
+    var el = document.getElementById('consent');
+    if (!el) return;
+    el.hidden = !show;
+    el.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }
+
+  function choose(choice) {
+    try {
+      localStorage.setItem(SHARED_KEY, choice);
+      localStorage.setItem(LEGACY_KEY, choice);
+    } catch (e) {
+      // Private mode: the choice applies to this page view only.
     }
+    gtag('consent', 'update', { analytics_storage: choice });
+    banner(false);
   }
 
-  function handleConsent(choice) {
-    localStorage.setItem(CONSENT_KEY, choice);
-    
-    gtag('consent', 'update', {
-      analytics_storage: choice,
-    });
-    
-    hideBanner();
+  if (!stored()) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { banner(true); });
+    else banner(true);
   }
 
-  // Show banner if no stored choice
-  if (!storedConsent) {
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', showBanner);
-    } else {
-      showBanner();
-    }
-  }
-
-  // Handle consent button clicks
   document.addEventListener('click', function (e) {
-    const target = e.target.closest('[data-consent]');
-    if (target) {
-      const choice = target.getAttribute('data-consent');
-      handleConsent(choice);
-    }
-
-    // Handle cookie settings button
-    if (e.target.closest('[data-cookies]')) {
-      showBanner();
-    }
+    var pick = e.target.closest('[data-consent]');
+    if (pick) choose(pick.getAttribute('data-consent'));
+    if (e.target.closest('[data-cookies]')) banner(true);
   });
 })();
