@@ -4,7 +4,7 @@
  * Spanish digraphs CH/LL/RR are one char each, so lengths, joker indexes and
  * shuffles are tile-correct. Messages come in and go out in display form.
  */
-import { dealKids, kidsAnagrams } from './kids.js?v=69'
+import { dealKids, kidsAnagrams } from './kids.js?v=70'
 import {
   tileSpec,
   encodeTiles,
@@ -14,7 +14,7 @@ import {
   usesHardTiles,
   unplayableWord,
   normalizeEsEdition,
-} from './tiles.js?v=131'
+} from './tiles.js?v=134'
 
 let SPEC = tileSpec('fr')
 let VALUES = SPEC.values

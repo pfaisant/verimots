@@ -228,6 +228,20 @@ public final class Lexicon {
         return out.toString();
     }
 
+    /**
+     * Tile codes a blank may stand for, in alphabet order. A blank can only
+     * become a tile the bag actually holds — that one rule keeps K and W out
+     * under FISE (the international set has neither), keeps CH/LL/RR in, drops
+     * CH under the North-American set, and keeps Ñ out of French and English.
+     */
+    public String blankLetters() {
+        StringBuilder b = new StringBuilder(ALPHABET.length());
+        for (int i = 0; i < ALPHABET.length(); i++) {
+            if (bag[i] > 0) b.append(ALPHABET.charAt(i));
+        }
+        return b.toString();
+    }
+
     /** Glyph shown on one tile ('1' → "CH"). */
     public static String tileGlyph(char code) {
         if (code == CH) return "CH";

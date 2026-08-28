@@ -84,7 +84,6 @@
     <string name="training_eight">8 letters</string>
     <string name="training_plus_one">7 + 1</string>
     <string name="training_joker">Blank</string>
-    <string name="joker_type_letter">Type the letter represented by the blank.</string>
     <string name="training_hard">Hard letters</string>
     <string name="training_progress">%1$d of %2$d%3$s</string>
     <string name="training_reveal">Show answers</string>
@@ -281,4 +280,10 @@
     <string name="daily_next">Another word</string>
     <string name="menu_title">Games</string>
     <string name="options_title">Options</string>
+    <string name="joker_pick_title">The blank stands for…</string>
+    <string name="joker_pick_note">A blank scores 0 whatever letter you choose.</string>
+    <string name="joker_pick_clear">Remove the letter</string>
+    <string name="joker_tile_free">Blank — tap to choose its letter</string>
+    <string name="joker_tile_set">Blank = %1$s · 0 points — tap to change</string>
+    <string name="joker_rack_note">This draw holds a blank: tap it to choose its letter.</string>
 </resources>

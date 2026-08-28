@@ -18,7 +18,7 @@
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=131" />
+  <link rel="stylesheet" href="app.css?v=134" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#q" data-i18n="skip">Aller à la saisie</a>
@@ -323,6 +323,8 @@
           <button type="button" id="game-alpha" class="rack-tool rack-tool-quiet" hidden aria-pressed="false" data-i18n="rack_alpha" data-i18n-aria="rack_alpha_aria">A–Z</button>
           <button type="button" id="game-skip" class="rack-tool" hidden data-i18n="play_skip">Passer</button>
         </div>
+        <p class="joker-note" id="joker-note" hidden></p>
+        <div class="joker-pick" id="joker-pick" role="group" aria-labelledby="joker-pick-title" hidden></div>
         <form id="game-form" class="game-form">
           <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
           <span class="game-field">
@@ -522,7 +524,7 @@
   </aside>
 
   <script src="analytics.js?v=28"></script>
-  <script src="app.js?v=131" type="module"></script>
+  <script src="app.js?v=134" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

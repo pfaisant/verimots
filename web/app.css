@@ -2082,6 +2082,127 @@ body.view-game:has(#game-play[hidden]) {
 @media (prefers-reduced-motion: reduce) {
   .game-rack.dealt .tile { animation: none; }
 }
+/* Joker tiles. A blank has no letter and no points, so it must not read as a
+   plain tile: parchment, a dashed rim, a gold corner nick and a slow breath so
+   the eye lands on it in a 7-tile draw. Once it is standing for a letter it
+   keeps the rim — the letter is on loan, and it is still worth 0. */
+.game-rack .tile.blank {
+  background: linear-gradient(180deg, #fffdf4, #efe2bd);
+  color: #6b5a2c;
+  border: 2px dashed #a98c46;
+  box-shadow: 0 2px 0 var(--tile-deep);
+}
+.game-rack .tile.blank::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 1px rgba(107, 90, 44, 0.5);
+}
+.game-rack .tile.blank.blank-set {
+  color: #1c1408;
+  border-style: solid;
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #fffdf4, #f4e6c0);
+}
+/* Spent, the joker still has to read as the joker: keep the dashed gold rim
+   and most of the colour rather than letting the grey used-tile wash take it. */
+.game-rack .tile.blank.used {
+  filter: saturate(0.55);
+  border-style: dashed;
+  border-color: rgba(232, 197, 107, 0.85);
+}
+.game-rack .tile.blank.is-open {
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 3px rgba(232, 197, 107, 0.35), 0 10px 18px -10px rgba(0, 0, 0, 0.8);
+}
+.game-rack .tile.blank:not(.used):not(.is-open) {
+  animation: joker-breathe 2.6s ease-in-out infinite;
+}
+@keyframes joker-breathe {
+  0%, 100% { box-shadow: 0 2px 0 var(--tile-deep), 0 0 0 0 rgba(232, 197, 107, 0); }
+  50% { box-shadow: 0 2px 0 var(--tile-deep), 0 0 0 4px rgba(232, 197, 107, 0.22); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-rack .tile.blank:not(.used):not(.is-open) { animation: none; }
+}
+.joker-note {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.joker-note[hidden] { display: none !important; }
+.joker-pick {
+  margin: 6px 0 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--rim-gold);
+  border-radius: 14px;
+  background: rgba(9, 15, 11, 0.82);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.9);
+}
+.joker-pick[hidden] { display: none !important; }
+.joker-pick-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.joker-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  gap: 5px;
+}
+.joker-pick .tile.joker-opt {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 11 / 12;
+  font-family: var(--display);
+  font-size: clamp(14px, 4vw, 19px);
+  cursor: pointer;
+}
+/* The face the joker already carries, so re-opening the picker shows the
+   current choice rather than asking the player to remember it. */
+.joker-pick .tile.joker-opt.is-current {
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 3px rgba(232, 197, 107, 0.3);
+}
+.joker-pick .tile.joker-opt:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.joker-pick-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+.joker-pick-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.joker-pick-clear {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--rim-gold);
+  border-radius: 999px;
+  background: rgba(232, 197, 107, 0.12);
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+}
 .game-rack-tools {
   display: flex;
   align-items: center;
