@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A joker: the same parchment tile, but a dashed gold rim so it never reads
+     as a letter tile in a draw. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#8a7340" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#efe2bd"
+                android:startColor="#fffdf4" />
+            <corners android:radius="8dp" />
+            <stroke
+                android:width="2dp"
+                android:color="#a98c46"
+                android:dashGap="3dp"
+                android:dashWidth="4dp" />
+        </shape>
+    </item>
+</layer-list>

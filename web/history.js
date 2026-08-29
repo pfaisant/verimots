@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=131'
+import { t, getLang } from './i18n.js?v=134'
 
 const KEY = 'ods9-session-v1'
 const MAX = 80

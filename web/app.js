@@ -1,9 +1,9 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=131'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=131'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=131'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=131'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=131'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=131'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=134'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=134'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=134'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=134'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=134'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=134'
 
 function letterValues() {
   return tileValues(getLang())
@@ -57,7 +57,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=84', { type: 'module' })
+const worker = new Worker('worker.js?v=85', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -126,6 +126,9 @@ function normalize(value, opts = {}) {
 function tilesHtml(word, jokers = [], opts = {}) {
   const jk = new Set(jokers)
   const tap = opts.tap
+  // Letter each blank currently stands for, by rack index: the joker shows
+  // the letter it is playing rather than a bare '?'.
+  const stands = opts.stands instanceof Map ? opts.stands : new Map()
   const codes = [...encodeTiles(String(word || '').toUpperCase(), getLang(), getEsEdition())]
   const tokens = tileTokens(String(word || ''), getLang(), getEsEdition())
   const order = Array.isArray(opts.order) ? opts.order : tokens.map((_, i) => i)
@@ -135,10 +138,15 @@ function tilesHtml(word, jokers = [], opts = {}) {
     if (token == null) return ''
     const blank = jk.has(i) || token === '?'
     const pts = blank ? 0 : (values[codes[i]] || 0)
-    const glyph = blank ? '?' : token
+    const stood = blank ? stands.get(i) || '' : ''
+    const glyph = blank ? stood || '?' : token
     const tag = tap ? 'button' : 'span'
-    const extra = tap ? ` type="button" data-rack-i="${i}"` : ''
-    return `<${tag} class="tile${blank ? ' blank' : ''}${glyph.length > 1 ? ' tile-digraph' : ''}"${extra}>${glyph}<small>${pts}</small></${tag}>`
+    const label = blank ? (stood ? t('joker_tile_set', stood) : t('joker_tile_free')) : ''
+    const extra = tap
+      ? ` type="button" data-rack-i="${i}"${blank ? ` data-rack-blank="${i}" aria-haspopup="true" aria-expanded="false" aria-label="${escapeHtml(label)}"` : ''}`
+      : blank ? ` aria-label="${escapeHtml(label)}"` : ''
+    const cls = `tile${blank ? ' blank' : ''}${blank && stood ? ' blank-set' : ''}${glyph.length > 1 ? ' tile-digraph' : ''}`
+    return `<${tag} class="${cls}"${extra}>${glyph}<small>${pts}</small></${tag}>`
   }).join('')}</div>`
 }
 
@@ -429,7 +437,7 @@ function recordWords(entries) {
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
   if (getCurrentUser()) {
-    import('./competitive.js?v=131').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=134').then(({ saveHistoryWord }) => {
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
     }).catch(() => {})
   }
@@ -438,7 +446,7 @@ function recordWords(entries) {
 async function syncCloudHistory() {
   if (!getCurrentUser()) return
   try {
-    const { fetchHistory } = await import('./competitive.js?v=131')
+    const { fetchHistory } = await import('./competitive.js?v=134')
     const remote = await fetchHistory()
     if (!remote.ok) return
     mergeHistory(remote.history)
@@ -446,7 +454,7 @@ async function syncCloudHistory() {
     if (histSheet && !histSheet.hidden) renderHistory()
     const local = loadHistory()
     const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=131')
+    const { saveHistoryWord } = await import('./competitive.js?v=134')
     for (const row of local) {
       if (!remoteWords.has(row.word)) await saveHistoryWord(row)
     }
@@ -1501,7 +1509,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   renderHistory()
   if (getCurrentUser()) {
     try {
-      const { clearCloudHistory } = await import('./competitive.js?v=131')
+      const { clearCloudHistory } = await import('./competitive.js?v=134')
       await clearCloudHistory()
     } catch {
       /* offline */
@@ -1864,7 +1872,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=131').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=134').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

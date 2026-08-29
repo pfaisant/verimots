@@ -84,7 +84,6 @@
     <string name="training_eight">8 letras</string>
     <string name="training_plus_one">7 + 1</string>
     <string name="training_joker">Comodín</string>
-    <string name="joker_type_letter">Escribe la letra que representa el comodín.</string>
     <string name="training_hard">Difíciles</string>
     <string name="training_progress">%1$d de %2$d%3$s</string>
     <string name="training_reveal">Ver respuestas</string>
@@ -281,4 +280,10 @@
     <string name="daily_next">Otra palabra</string>
     <string name="menu_title">Juegos</string>
     <string name="options_title">Opciones</string>
+    <string name="joker_pick_title">El comodín vale por…</string>
+    <string name="joker_pick_note">El comodín vale 0 puntos, sea cual sea la letra.</string>
+    <string name="joker_pick_clear">Quitar la letra</string>
+    <string name="joker_tile_free">Comodín — toca para elegir su letra</string>
+    <string name="joker_tile_set">Comodín = %1$s · 0 puntos — toca para cambiar</string>
+    <string name="joker_rack_note">Esta tirada tiene un comodín: tócalo para elegir su letra.</string>
 </resources>

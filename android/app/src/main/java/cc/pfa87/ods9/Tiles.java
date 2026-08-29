@@ -12,6 +12,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.Collator;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
@@ -48,6 +50,20 @@ final class Tiles {
     }
 
     static void fill(LinearLayout row, String word, Set<Integer> used, View.OnClickListener tap, int bonusIndex, boolean alpha) {
+        fill(row, word, used, tap, bonusIndex, alpha, Collections.emptyMap());
+    }
+
+    static boolean isBlank(char ch) {
+        return ch == '?' || ch == '.' || ch == '*';
+    }
+
+    /**
+     * `blankFaces` gives the tile each joker is currently standing for, by rack
+     * index. A joker keeps its own face either way — dashed rim, a gold nick
+     * and 0 points — so it never passes for a letter tile.
+     */
+    static void fill(LinearLayout row, String word, Set<Integer> used, View.OnClickListener tap, int bonusIndex,
+                     boolean alpha, Map<Integer, Character> blankFaces) {
         Context ctx = row.getContext();
         float d = ctx.getResources().getDisplayMetrics().density;
         row.removeAllViews();
@@ -106,16 +122,27 @@ final class Tiles {
             if (slot > 0) lp.setMarginStart(gapPx);
             cell.setLayoutParams(lp);
             boolean spent = used != null && used.contains(i);
-            cell.setBackgroundResource(
-                    i == bonusIndex ? R.drawable.bg_tile_bonus
-                            : spent ? R.drawable.bg_tile_used
-                                    : R.drawable.bg_tile);
-            if (i == bonusIndex) cell.setContentDescription("+1 " + ch);
+            boolean blank = isBlank(ch);
+            Character face = blank && blankFaces != null ? blankFaces.get(i) : null;
+            if (blank) {
+                cell.setBackgroundResource(spent ? R.drawable.bg_tile_blank_used
+                        : face != null ? R.drawable.bg_tile_blank_set : R.drawable.bg_tile_blank);
+                // A dashed stroke on a rounded shape needs the software path.
+                cell.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+                cell.setContentDescription(face != null
+                        ? ctx.getString(R.string.joker_tile_set, Lexicon.tileGlyph(face))
+                        : ctx.getString(R.string.joker_tile_free));
+            } else {
+                cell.setBackgroundResource(
+                        i == bonusIndex ? R.drawable.bg_tile_bonus
+                                : spent ? R.drawable.bg_tile_used
+                                        : R.drawable.bg_tile);
+                if (i == bonusIndex) cell.setContentDescription("+1 " + Lexicon.tileGlyph(ch));
+            }
 
-            boolean blank = ch == '?' || ch == '.' || ch == '*';
             TextView letter = new TextView(ctx);
             letter.setGravity(Gravity.CENTER);
-            letter.setText(blank ? "?" : String.valueOf(ch));
+            letter.setText(blank ? (face != null ? Lexicon.tileGlyph(face) : "?") : Lexicon.tileGlyph(ch));
             letter.setTextColor(ctx.getColor(spent ? R.color.tile_used_ink : R.color.tile_ink));
             letter.setTextSize(TypedValue.COMPLEX_UNIT_PX, letterPx);
             letter.setTypeface(Typeface.create("serif", Typeface.BOLD));
@@ -136,6 +163,16 @@ final class Tiles {
             pl.gravity = Gravity.END | Gravity.BOTTOM;
             pl.setMargins(0, 0, Math.max(2, sizePx / 12), Math.max(2, sizePx / 10));
             cell.addView(pts, pl);
+
+            if (blank) {
+                View nick = new View(ctx);
+                nick.setBackgroundResource(R.drawable.bg_joker_dot);
+                int dot = Math.max((int) (5 * d), sizePx / 7);
+                FrameLayout.LayoutParams nl = new FrameLayout.LayoutParams(dot, dot);
+                nl.gravity = Gravity.START | Gravity.TOP;
+                nl.setMargins(Math.max(2, sizePx / 12), Math.max(2, sizePx / 10), 0, 0);
+                cell.addView(nick, nl);
+            }
 
             if (tap != null) {
                 cell.setTag(i);
