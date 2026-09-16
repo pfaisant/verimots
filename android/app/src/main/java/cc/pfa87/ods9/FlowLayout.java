@@ -41,7 +41,8 @@ public class FlowLayout extends ViewGroup {
 
     @Override
     protected void onMeasure(int wSpec, int hSpec) {
-        int maxW = MeasureSpec.getSize(wSpec);
+        int width = MeasureSpec.getSize(wSpec);
+        int maxW = Math.max(0, width - getPaddingLeft() - getPaddingRight());
         int x = 0, y = 0, rowH = 0;
         int count = getChildCount();
         for (int i = 0; i < count; i++) {
@@ -59,15 +60,15 @@ public class FlowLayout extends ViewGroup {
             rowH = Math.max(rowH, chh);
         }
         int h = y + rowH + getPaddingTop() + getPaddingBottom();
-        setMeasuredDimension(maxW, resolveSize(h, hSpec));
+        setMeasuredDimension(width, resolveSize(h, hSpec));
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int maxW = r - l;
+        int maxW = Math.max(0, r - l - getPaddingLeft() - getPaddingRight());
         int count = getChildCount();
         int start = 0;
-        int rowY = 0;
+        int rowY = getPaddingTop();
         while (start < count) {
             // Gather one row, then place it (optionally centred).
             int x = 0, rowH = 0, end = start;
@@ -85,7 +86,7 @@ public class FlowLayout extends ViewGroup {
             }
             int rowW = Math.max(0, x - gap);
             int offset = center ? Math.max(0, (maxW - rowW) / 2) : 0;
-            int cx = offset;
+            int cx = getPaddingLeft() + offset;
             for (int i = start; i < end; i++) {
                 View ch = getChildAt(i);
                 if (ch.getVisibility() == GONE) continue;

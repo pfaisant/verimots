@@ -4,15 +4,16 @@
     android:layout_height="match_parent"
     android:clipToPadding="false"
     android:fillViewport="true"
-    android:overScrollMode="never">
+    android:overScrollMode="never"
+        android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="20dp"
+        android:paddingHorizontal="16dp"
         android:paddingTop="6dp"
-        android:paddingBottom="24dp">
+        android:paddingBottom="16dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -28,13 +29,13 @@
                 android:imeOptions="actionSearch"
                 android:importantForAutofill="no"
                 android:inputType="textCapCharacters|textNoSuggestions"
-                android:letterSpacing="0.08"
+                android:letterSpacing="0.04"
                 android:maxLength="16"
-                android:paddingStart="18dp"
-                android:paddingEnd="48dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="52dp"
                 android:textColor="@color/ink"
                 android:textColorHint="@color/dim"
-                android:textSize="20sp" />
+                android:textSize="19sp" />
 
             <TextView
                 android:id="@+id/check_joker"
@@ -51,20 +52,18 @@
                 android:textStyle="bold"
                 android:visibility="gone" />
 
-            <TextView
+            <ImageButton
                 android:id="@+id/check_clear"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="end|center_vertical"
                 android:layout_marginEnd="4dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_icon_action"
                 android:contentDescription="@string/clear"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="×"
-                android:textColor="@color/gold"
-                android:textSize="26sp"
-                android:visibility="gone" />
+                android:visibility="gone"
+            style="@style/IconAction"
+            android:src="@drawable/ic_clear"
+            android:padding="12dp" />
         </FrameLayout>
 
         <HorizontalScrollView
@@ -214,47 +213,42 @@
                 <!-- Inline verdict pill (web .verdict .status), not a full-width bar -->
                 <TextView
                     android:id="@+id/check_status"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_status_ok"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.08"
+                    android:letterSpacing="0.02"
                     android:maxLines="1"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
-                    android:textAllCaps="true"
-                    android:textSize="11sp" />
+                    android:textSize="11sp"
+            android:layout_weight="1" />
 
                 <ImageButton
                     android:id="@+id/check_daily_next"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_count"
+                    android:background="@drawable/bg_icon_action"
                     android:contentDescription="@string/daily_next"
-                    android:padding="7dp"
+                    android:padding="12dp"
                     android:src="@drawable/ic_refresh"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+            style="@style/IconAction" />
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
+                <ImageButton
                     android:id="@+id/check_fav"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="4dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/bg_icon_action"
                     android:contentDescription="@string/fav_add"
-                    android:gravity="center"
-                    android:text="☆"
-                    android:textColor="@color/gold"
-                    android:textSize="22sp"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+            style="@style/IconAction"
+            android:src="@drawable/ic_star"
+            android:padding="12dp" />
             </LinearLayout>
 
             <!-- Headline only when the tiles are not shown (word refused) -->
@@ -309,8 +303,10 @@
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/wiki_short"
                     android:textColor="@color/gold"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
+                    android:textSize="12sp"
+                    android:visibility="gone"
+            android:minHeight="48dp"
+            android:gravity="center_vertical" />
             </LinearLayout>
 
             <View
@@ -335,9 +331,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:lineSpacingMultiplier="1.25"
-                android:textColor="@color/ink"
-                android:textSize="14sp" />
+            style="@style/DefinitionText" />
+            <TextView android:id="@+id/check_def_more" style="@style/DefinitionMore" android:text="@string/definition_more" />
 
             <!-- Share sits in the card's bottom-right corner, away from the definition -->
             <LinearLayout
@@ -349,8 +344,8 @@
 
                 <TextView
                     android:id="@+id/check_lemma"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
                     android:background="@drawable/bg_pill"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
@@ -358,23 +353,21 @@
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp"
                     android:textColor="@color/gold"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
+                    android:textSize="13sp"
+                    android:visibility="gone"
+            android:layout_weight="1"
+            android:gravity="center_vertical" />
 
                 <ImageButton
                     android:id="@+id/check_share"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/bg_wa"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_icon_action"
                     android:contentDescription="@string/share"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_wa"
-                    android:visibility="gone" />
+                    android:padding="12dp"
+                    android:src="@drawable/ic_share"
+                    android:visibility="gone"
+            style="@style/IconAction" />
             </LinearLayout>
 
         </LinearLayout>

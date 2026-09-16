@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { adjectiveFromParticiple, cleanWikitext, extractSenses, isJunkDef, lemmaFromInflection, rankTitles, lookupQuery, senseKind, voirTitles } from '../scripts/ods-define.mjs'
+import { adjectiveFromParticiple, cleanWikitext, extractSenses, handleOdsDefine, isJunkDef, lemmaFromInflection, lookupDefinition, rankTitles, lookupQuery, resetDefineCacheForTests, senseKind, voirTitles } from '../scripts/ods-define.mjs'
 
 test('cleanWikitext drops Wiktionary label separators', () => {
   const text = cleanWikitext('{{lb|en|now|_|regional}} A [[bag]] or [[wallet]].')
@@ -357,4 +357,311 @@ test('variante and English form-of glosses are inflections with a lemma', () => 
   )
   assert.equal(lemmaFromInflection(['Inflection of eat']), 'eat')
   assert.equal(lemmaFromInflection(['Plural of cat']), 'cat')
+})
+
+test('lookupDefinition merges accent homographs: RAPEZ shows raper and râper', async () => {
+  const { lookupDefinition, resetDefineCacheForTests } = await import('../scripts/ods-define.mjs')
+  resetDefineCacheForTests()
+  const pages = {
+    rapez: `{{voir|râpez}}
+== {{langue|fr}} ==
+=== {{S|verbe|fr|flexion}} ===
+# ''Deuxième personne du pluriel de l’indicatif présent du verbe'' [[raper]].
+`,
+    râpez: `{{voir|rapez}}
+== {{langue|fr}} ==
+=== {{S|verbe|fr|flexion}} ===
+# ''Deuxième personne du pluriel de l’indicatif présent du verbe'' [[râper]].
+`,
+    raper: `== {{langue|fr}} ==
+=== {{S|nom|fr}} ===
+# {{argot|fr}} [[policier|Policier]] en tenue.
+=== {{S|verbe|fr}} ===
+# [[chanter|Chanter]] le rap.
+`,
+    râper: `== {{langue|fr}} ==
+=== {{S|verbe|fr}} ===
+# {{lexique|cuisine|fr}} Réduire en petits morceaux avec une râpe.
+`,
+  }
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    const u = new URL(String(url))
+    const body = u.searchParams.get('action') === 'query'
+      ? { query: { search: [{ title: 'rapez' }, { title: 'râpez' }, { title: 'raper' }, { title: 'rape' }] } }
+      : (() => {
+          const title = u.searchParams.get('page')
+          return pages[title] ? { parse: { title, wikitext: pages[title] } } : { error: 'missing' }
+        })()
+    return { ok: true, json: async () => body }
+  }
+  try {
+    const r = await lookupDefinition('RAPEZ', 'fr')
+    assert.equal(r.found, true)
+    assert.equal(r.lemma, 'raper')
+    assert.deepEqual(r.lemmas, ['raper', 'râper'])
+    assert.deepEqual(r.senses.map((s) => [s.pos, s.lemma]), [['nom', 'raper'], ['verbe', 'raper'], ['verbe', 'râper']])
+    assert.match(r.senses[2].defs[0], /râpe/)
+    assert.equal(r.url, 'https://fr.wiktionary.org/wiki/raper')
+  } finally {
+    globalThis.fetch = realFetch
+    resetDefineCacheForTests()
+  }
+})
+
+test('lookupDefinition keeps a single lemma untagged and drops flexion senses from a lexical page', async () => {
+  const { lookupDefinition, resetDefineCacheForTests } = await import('../scripts/ods-define.mjs')
+  resetDefineCacheForTests()
+  const pages = {
+    cote: `== {{langue|fr}} ==
+=== {{S|nom|fr}} ===
+# Code alphabétique ou numérique.
+=== {{S|verbe|fr|flexion}} ===
+# ''Première personne du singulier de l’indicatif présent de'' [[coter]].
+`,
+  }
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    const u = new URL(String(url))
+    const body = u.searchParams.get('action') === 'query'
+      ? { query: { search: [{ title: 'cote' }] } }
+      : pages[u.searchParams.get('page')] ? { parse: { title: u.searchParams.get('page'), wikitext: pages[u.searchParams.get('page')] } } : {}
+    return { ok: true, json: async () => body }
+  }
+  try {
+    const r = await lookupDefinition('cote', 'fr')
+    assert.equal(r.lemma, 'cote')
+    assert.equal(r.lemmas, undefined)
+    assert.deepEqual(r.senses.map((s) => s.pos), ['nom'])
+    assert.equal('lemma' in r.senses[0], false)
+  } finally {
+    globalThis.fetch = realFetch
+    resetDefineCacheForTests()
+  }
+})
+
+test('extractSenses reads Catalan senses and skips the Occitan section', () => {
+  const wiki = `{{vegeu|collegi}}
+
+== {{-oc-}} ==
+
+=== Nom ===
+{{oc-nom|m}}
+
+# Occitan gloss.
+
+== {{-ca-}} ==
+{{ca-pron|è|informal=/kuˈɫɛ.ʒit/}}
+{{etim-lang|la|ca|collegium}}, {{etim-s|ca|XIV}}.
+
+=== Nom ===
+{{ca-nom|m}}
+
+# [[escola|Escola]].
+# Associació professional.
+#: ''col·legi d'infermeria''
+
+{{-sin-}}
+* [[agrupació]], [[associació]].
+
+=== Miscel·lània ===
+* {{ca-sil}}
+
+=== Vegeu també ===
+* {{Viquipèdia}}
+`
+  const senses = extractSenses(wiki, 'ca')
+  assert.equal(senses.length, 1)
+  assert.equal(senses[0].pos, 'nom')
+  assert.deepEqual(senses[0].defs, ['Escola.', 'Associació professional.'])
+})
+
+test('Catalan form templates expand to a gloss with a findable lemma', () => {
+  assert.equal(cleanWikitext('{{forma-p|ca|col·legi}}'), 'Plural de col·legi')
+  assert.equal(cleanWikitext('{{ca-forma-conj|cantar|2|imperf|ind}}'), 'Forma conjugada de cantar')
+  assert.equal(lemmaFromInflection(['Plural de col·legi']), 'col·legi')
+  assert.equal(lemmaFromInflection(['Forma conjugada de cantar']), 'cantar')
+  // Those glosses must read as inflections so the lookup swaps to the lemma.
+  assert.equal(senseKind([{ pos: 'nom', defs: ['Plural de col·legi'] }]), 'inflection')
+  assert.equal(senseKind([{ pos: 'verb', defs: ['Forma conjugada de cantar'] }]), 'inflection')
+})
+
+test('Catalan queries keep Ç and the interpunct, and fold stress marks', () => {
+  assert.equal(lookupQuery('CAÇA', 'ca'), 'caça')
+  assert.equal(lookupQuery('COL·LEGI', 'ca'), 'col·legi')
+  assert.equal(lookupQuery('CAFE', 'ca'), 'cafe')
+  // Ç is only a letter in Catalan: elsewhere "français" still folds to c.
+  assert.equal(lookupQuery('FRANÇAIS', 'fr'), 'francais')
+  // The accented page must stay a candidate for an unaccented Scrabble word:
+  // "abac" itself has no Catalan section, so the lookup falls through to it.
+  const ranked = rankTitles('abac', ['Abacus', 'àbac', 'abaca'], 'ca')
+  assert.equal(ranked[0], 'àbac')
+})
+
+test('lookupDefinition still reads the exact word when Wiktionary search fails', async () => {
+  const realFetch = globalThis.fetch
+  const calls = []
+  resetDefineCacheForTests()
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input))
+    calls.push(url.searchParams.get('action'))
+    if (url.searchParams.get('action') === 'query') throw new Error('Search timeout')
+    assert.equal(url.searchParams.get('page'), 'pain')
+    return { ok: true, json: async () => ({ parse: {
+      title: 'pain',
+      wikitext: '== {{langue|fr}} ==\n=== {{S|nom|fr}} ===\n# Aliment à base de farine.',
+    } }) }
+  }
+  try {
+    const result = await lookupDefinition('PAIN')
+    assert.equal(result.ok, true)
+    assert.equal(result.found, true)
+    assert.equal(result.lemma, 'pain')
+    assert.equal(result.unavailable, undefined)
+    assert.deepEqual(calls, ['query', 'parse'])
+  } finally {
+    globalThis.fetch = realFetch
+    resetDefineCacheForTests()
+  }
+})
+
+test('temporary definition failures remain retryable instead of becoming missing entries', async () => {
+  const realFetch = globalThis.fetch
+  let failing = true
+  resetDefineCacheForTests()
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input))
+    if (url.searchParams.get('action') === 'query') {
+      return { ok: true, json: async () => ({ query: { search: [] } }) }
+    }
+    if (failing) throw new Error('Wiktionary connection reset')
+    return { ok: true, json: async () => ({ parse: {
+      title: 'pain',
+      wikitext: '== {{langue|fr}} ==\n=== {{S|nom|fr}} ===\n# Aliment à base de farine.',
+    } }) }
+  }
+  try {
+    const unavailable = await lookupDefinition('PAIN')
+    assert.equal(unavailable.ok, false)
+    assert.equal(unavailable.unavailable, true)
+    assert.equal(unavailable.found, false)
+    failing = false
+    const retry = await lookupDefinition('PAIN')
+    assert.equal(retry.ok, true)
+    assert.equal(retry.found, true)
+  } finally {
+    globalThis.fetch = realFetch
+    resetDefineCacheForTests()
+  }
+})
+
+test('definition API distinguishes Wiktionary errors from an absent page', async () => {
+  const realFetch = globalThis.fetch
+  let wikiError = 'maxlag'
+  resetDefineCacheForTests()
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input))
+    return { ok: true, json: async () => url.searchParams.get('action') === 'query'
+      ? { query: { search: [] } }
+      : { error: { code: wikiError } } }
+  }
+  async function request() {
+    let response
+    await handleOdsDefine(
+      { method: 'GET', headers: {}, socket: { remoteAddress: 'test-definition' } },
+      {},
+      new URL('https://s.pfa87.cc/api/define?w=PAIN&lang=fr'),
+      { json: (_res, status, body, headers) => { response = { status, body, headers } } },
+    )
+    return response
+  }
+  try {
+    const unavailable = await request()
+    assert.equal(unavailable.status, 503)
+    assert.equal(unavailable.body.unavailable, true)
+    assert.equal(unavailable.headers['Cache-Control'], 'no-store')
+    wikiError = 'missingtitle'
+    const missing = await request()
+    assert.equal(missing.status, 200)
+    assert.equal(missing.body.ok, true)
+    assert.equal(missing.body.found, false)
+    assert.equal(missing.body.unavailable, undefined)
+    assert.equal(missing.headers['Cache-Control'], 'no-store')
+  } finally {
+    globalThis.fetch = realFetch
+    resetDefineCacheForTests()
+  }
+})
+
+test('a search API error does not become a definitive missing definition', async () => {
+  const realFetch = globalThis.fetch
+  resetDefineCacheForTests()
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input))
+    return { ok: true, json: async () => ({ error: {
+      code: url.searchParams.get('action') === 'query' ? 'ratelimited' : 'missingtitle',
+    } }) }
+  }
+  try {
+    const result = await lookupDefinition('ECOLE')
+    assert.equal(result.ok, false)
+    assert.equal(result.unavailable, true)
+  } finally {
+    globalThis.fetch = realFetch
+    resetDefineCacheForTests()
+  }
+})
+
+test('definition lookups coalesce concurrent requests and bound oversized upstream responses', async () => {
+  const original = globalThis.fetch
+  resetDefineCacheForTests()
+  let calls = 0
+  globalThis.fetch = async (input) => {
+    calls++
+    const url = new URL(input)
+    const body = url.searchParams.get('action') === 'query'
+      ? { query: { search: [] } }
+      : { parse: { title: 'chat', wikitext: '== {{langue|fr}} ==\n=== {{S|nom|fr}} ===\n# Un animal domestique.' } }
+    return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } })
+  }
+  try {
+    const [a, b] = await Promise.all([lookupDefinition('CHAT'), lookupDefinition('CHAT')])
+    assert.equal(a.found, true)
+    assert.deepEqual(a, b)
+    assert.equal(calls, 2, 'one search and one page request serve both callers')
+    resetDefineCacheForTests()
+    globalThis.fetch = async () => new Response('oversized', { headers: { 'Content-Length': String(3 * 1024 * 1024) } })
+    const oversized = await lookupDefinition('CHAT')
+    assert.equal(oversized.ok, false)
+    assert.equal(oversized.unavailable, true)
+  } finally {
+    globalThis.fetch = original
+    resetDefineCacheForTests()
+  }
+})
+
+test('definition service bounds outstanding distinct lookups without blocking duplicate queries', async () => {
+  const original = globalThis.fetch
+  resetDefineCacheForTests()
+  let release
+  const gate = new Promise((resolve) => { release = resolve })
+  globalThis.fetch = async (input) => {
+    await gate
+    return new Response(JSON.stringify(new URL(input).searchParams.get('action') === 'query' ? { query: { search: [] } } : { error: { code: 'missingtitle' } }))
+  }
+  let pending = []
+  try {
+    pending = Array.from({ length: 16 }, (_, i) => lookupDefinition('mot' + String.fromCharCode(97 + i)))
+    const busy = await lookupDefinition('overflow')
+    assert.equal(busy.unavailable, true)
+    const duplicate = lookupDefinition('mota')
+    release()
+    const results = await Promise.all([...pending, duplicate])
+    assert.ok(results.every((result) => result.ok && !result.found))
+  } finally {
+    release()
+    await Promise.allSettled(pending)
+    globalThis.fetch = original
+    resetDefineCacheForTests()
+  }
 })

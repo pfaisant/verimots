@@ -9,6 +9,7 @@ final class Dict {
     static final String YAWL = "yawl";
     static final String WOW24 = "wow24";
     static final String RLA = "rla";
+    static final String DISC = "disc";
     /** Spanish tile sets: international FISE (100 tiles) or North America (103). */
     static final String ES_FISE = "fise";
     static final String ES_NA = "na";
@@ -21,7 +22,8 @@ final class Dict {
 
     static String normalize(String dict) {
         if (YAWL.equals(dict)) return CSW;
-        if (ODS.equals(dict) || CSW.equals(dict) || WOW24.equals(dict) || RLA.equals(dict)) return dict;
+        if (ODS.equals(dict) || CSW.equals(dict) || WOW24.equals(dict) || RLA.equals(dict)
+                || DISC.equals(dict)) return dict;
         return "";
     }
 
@@ -35,12 +37,14 @@ final class Dict {
         String id = normalize(dict);
         if (CSW.equals(id) || WOW24.equals(id)) return Lang.EN;
         if (RLA.equals(id)) return Lang.ES;
+        if (DISC.equals(id)) return Lang.CA;
         return Lang.FR;
     }
 
     static String defaultFor(String lang) {
         if (Lang.EN.equals(lang)) return WOW24;
         if (Lang.ES.equals(lang)) return RLA;
+        if (Lang.CA.equals(lang)) return DISC;
         return ODS;
     }
 
@@ -54,6 +58,7 @@ final class Dict {
         if (CSW.equals(dict)) return c.getString(R.string.dict_using_csw);
         if (WOW24.equals(dict)) return c.getString(R.string.dict_using_wow24);
         if (RLA.equals(dict)) return c.getString(R.string.dict_using_rla);
+        if (DISC.equals(dict)) return c.getString(R.string.dict_using_disc);
         return c.getString(R.string.dict_using_ods);
     }
 

@@ -1,6 +1,8 @@
-import { encodeTiles, decodeRack } from './tiles.js?v=131'
+import { encodeTiles, decodeRack } from './tiles.js?v=158'
 
 const HARD = /[JKÑQWXYZ]/
+// Catalan's own awkward tiles: no K/W/Y exist, and NY/QU/L·L are single tiles.
+const HARD_CA = /[JÇXZ]|NY|QU|L·L/
 
 const FR = `
 AMI ANE ARC BAL BAR BEC BLE BOL BON BUS BUT CAP CAR CAS COL COR COU CRI DES DOS
@@ -86,19 +88,51 @@ ESCUELA FAMILIA FLORES GALLETA JARDIN MAESTRO MANZANA NARANJA OVEJAS PAJARO
 PALABRA PELOTA PERROS PLANETA PLATANO REGALO TOMATE TORTUGA VENTANA VERANO
 `.trim().split(/\s+/).filter((w) => /^[A-ZÑ]{6,8}$/.test(w))
 
+
+const CA = `
+AVI CAP CEL COL COR CUC DIA DIT DOS FIL FOC FUM GAT GEL GOS GRA MAI MAR MEL MES
+MON MUR NAS NET NEU NIT NOI NOM NOU OLI PAU PEL PES PEU PIS PLE POT RAO REI RES
+RIU SAC SAL SEC SET SOL SUC TAP TIA TOT TUB ULL VAS VIA VIU
+AIRE AMIC BLAU BOCA BOLA BOSC BOTA CAFE CAMA CAMP CARA CARN CASA CEBA CIMS CINE
+CLAU CODI CREU CRIT DALT DENT DINS DOLC DONA FAVA FILL FIRA FLOR FONS FONT FORN
+FRED GANA GENT GRAN GRIS HOME HORA ILLA LLAC LLET LLIT LLUM MANS MAPA MARE MELO
+MOLI MOLT MOTO NADAL NAU PARC PARE PATI PERA PILA PINS PLAT PLOU POLL POLS POMA
+PONT PORC PORT POST PRAT PREU PUNT RAIG RAMA RATA RODA ROIG ROSA SABO SALT SANG
+SANT TALL TAPA TARD TAST TRAU TREN TRES TROS TUBS VALL VELA VELL VENT VERD VIDA
+VILA ZONA
+AIGUA AMICS ARBRE CANTA CORDA CUINA ESTIU FEINA FESTA FRUIT GERRA HERBA LLARG
+LLIS LLUNA MADUR MORAT NEBOT NORD NUVOL ORDRE OSSOS PAGES PAPER PEDRA PILOT
+PINSA PISOS PLANA POBLE PODER PORTA POSTA PRIMA PUJAR RAMAT REGAL RENOU RIURE
+ROURE SERRA SOMNI SOPA SORRA SORT SUCRE TANCA TARDA TAULA TEMPS TENDA TERRA
+TEULA TINTA TORRE TRIST VENDA VESPA VIURE VOLAR VOLTA
+`.trim().split(/\s+/).filter((w) => w.length >= 3 && w.length <= 5 && !HARD_CA.test(w))
+
+const CA_LONG = `
+ANIMALS ARBRES BALENA BOSQUES CADIRA CAMISA CAMPANA CANTANT CARRER CAVALL CIUTAT
+COLORS COL·LEGI CONILL DIMARTS ELEFANT ESCOLA ESTRELLA FAMILIA FINESTRA FLORISTA
+FORMATGE FRUITA FULLES GALETA GERMANA GERMANS GIRAFA GRANOTA JARDINS LLAPIS
+LLIBRE LLIBRES MADUIXA MESTRE MONEDA MUNTANYA NADALES OCELLS OVELLA PALAUS
+PARAIGUA PARAULA PARAULES PASTIS PATATA PILOTA PLANETA PLATAN PLATANS PLATJA
+POMERA PORTES QUADERN RATOLI REGALS SABATA SABATES SENYERA SORPRESA SOSTRE
+TARONJA TAULES TAULETA TERRASSA TOMAQUET TORTUGA VACANCES VEDELL VENTALL
+VERDURA VERMELL VESTIT XOCOLATA
+`.trim().split(/\s+/).filter((w) => /^[A-ZÇ·]{6,10}$/.test(w))
+
 const LISTS = {
   fr: [...new Set([...FR, ...FR_LONG])],
   en: [...new Set([...EN, ...EN_LONG])],
   es: [...new Set([...ES, ...ES_LONG])],
+  ca: [...new Set([...CA, ...CA_LONG])],
 }
 const LONG = {
   fr: [...new Set(FR_LONG)],
   en: [...new Set(EN_LONG)],
   es: [...new Set(ES_LONG)],
+  ca: [...new Set(CA_LONG)],
 }
 
 function language(lang) {
-  return lang === 'en' || lang === 'es' ? lang : 'fr'
+  return lang === 'en' || lang === 'es' || lang === 'ca' ? lang : 'fr'
 }
 
 function rackCounts(rack) {
@@ -171,7 +205,9 @@ export function dealKids(lang = 'fr', rnd = Math.random, excludeSeed = '', editi
   const blocked = String(excludeSeed || '').toUpperCase()
   const filtered = fullPool.filter((word) => word !== blocked)
   const pool = filtered.length ? filtered : fullPool
-  const fallback = lang === 'en' ? 'HORSES' : lang === 'es' ? 'CABALLO' : 'CHEVAUX'
+  const fallback = lang === 'en' ? 'HORSES'
+    : lang === 'es' ? 'CABALLO'
+      : lang === 'ca' ? 'CAVALL' : 'CHEVAUX'
   // Shuffle tiles, not characters: LLAVE shuffles as LL·A·V·E.
   const shuffleTiles = (seed) =>
     decodeRack(shuffleWord(encodeTiles(seed, language(lang), edition), rnd), language(lang), edition)

@@ -1,0 +1,148 @@
+diff --git a/scripts/ga-inject.mjs b/scripts/ga-inject.mjs
+--- a/scripts/ga-inject.mjs
++++ b/scripts/ga-inject.mjs
+@@ -22,8 +22,8 @@
+ //     and user counts work. This is what GA4 needs to show anything at all.
+ //   denied: cookieless pings only. Google accepts them (204) but reports no
+ //     users and Realtime stays empty, so only use it if you add a banner.
+-// FeedAI's public reader always starts denied until an explicit choice; its
+-// optional notice can be ignored. Other hosts retain the configured default.
++// FeedAI and Verimots always start denied until an explicit choice.
++// Other hosts retain the configured default.
+ // An explicit choice stored by a site's own banner wins in both directions.
+ 
+ import { createHash } from 'node:crypto'
+@@ -100,7 +100,7 @@
+     ';window.dataLayer=window.dataLayer||[];function g(){dataLayer.push(arguments)}window.gtag=window.gtag||g;' +
+     "var C={ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'" +
+     granted +
+-    "'};if(location.hostname.toLowerCase()==='news.pfa87.cc')C.analytics_storage='denied';g('consent','default',C);try{var K=" +
++    "'};if(['news.pfa87.cc','s.pfa87.cc','verimots.pfa87.cc'].indexOf(location.hostname.toLowerCase())!==-1)C.analytics_storage='denied';g('consent','default',C);try{var K=" +
+     JSON.stringify(CONSENT_KEYS) +
+     ";for(var i=0;i<K.length;i++){var v=localStorage.getItem(K[i]);if(v==='granted'||v==='denied'){g('consent','update',{analytics_storage:v});break}}}catch(e){}" +
+     "g('js',new Date());g('config',I,{anonymize_ip:true});" +
+@@ -130,6 +130,21 @@
+ export function gaTagsHost(host) {
+   const h = String(host || '').toLowerCase().split(':')[0]
+   return Boolean(h) && !OWN_PROPERTY_HOSTS.has(h)
++}
++
++// Sensitive handoff pages can opt out before the shared tag is injected.
++// Ignore examples in comments/scripts, and accept normal HTML attribute order.
++function pageOptsOut(html) {
++  const markup = html.replace(/<!--[\s\S]*?-->|<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
++  for (const tag of markup.match(/<meta\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi) || []) {
++    const attrs = new Map()
++    for (const match of tag.matchAll(/\s([a-z][a-z0-9:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi)) {
++      const name = match[1].toLowerCase()
++      if (!attrs.has(name)) attrs.set(name, (match[2] ?? match[3] ?? match[4]).trim().toLowerCase())
++    }
++    if (attrs.get('name') === 'pfa87-analytics' && attrs.get('content') === 'off') return true
++  }
++  return false
+ }
+ 
+ /**
+@@ -142,6 +157,7 @@
+ export function injectGa(html, host) {
+   if (!gaEnabled()) return html
+   if (typeof html !== 'string' || !html) return html
++  if (pageOptsOut(html)) return html
+   if (host !== undefined && !gaTagsHost(host)) return html
+   if (html.includes(MARKER) || html.includes(`gtag/js?id=${gaId()}`)) return html
+   const snippet = gaSnippet()
+diff --git a/tests/ga-verimots.test.mjs b/tests/ga-verimots.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/tests/ga-verimots.test.mjs
+@@ -0,0 +1,90 @@
++import test from 'node:test'
++import assert from 'node:assert/strict'
++import vm from 'node:vm'
++import { readFileSync } from 'node:fs'
++
++process.env.PFA87_GA_ID = 'G-TESTID1234'
++process.env.PFA87_GA_CONSENT = 'granted'
++const { injectGa, gaSnippet } = await import('../scripts/ga-inject.mjs')
++
++function runTag(hostname, values = {}, blocked = false) {
++  const scripts = []
++  const context = {
++    location: { hostname },
++    localStorage: { getItem: key => { if (blocked) throw new Error('denied'); return values[key] ?? null } },
++    document: { createElement: () => ({}), head: { appendChild: script => scripts.push(script) } },
++  }
++  context.window = context
++  vm.runInNewContext(gaSnippet().match(/<script>([\s\S]*?)<\/script>/)[1], context)
++  return { entries: context.dataLayer.map(args => Array.from(args)), scripts }
++}
++
++test('explicit page opt-out prevents every shared GA byte, with either attribute order', () => {
++  for (const meta of [
++    '<meta name="pfa87-analytics" content="off">',
++    "<META content='OFF' NAME='pfa87-analytics' />",
++    '<meta data-note="a > b" content = "off" name = "pfa87-analytics">',
++    '<meta name=pfa87-analytics content=off>',
++  ]) {
++    const html = `<html><head>${meta}</head><body>Sign in</body></html>`
++    assert.equal(injectGa(html, 's.pfa87.cc'), html)
++    assert.equal(injectGa(html, 'verimots.pfa87.cc'), html)
++    assert.equal(injectGa(html), html, 'serve callers without hostname also honor page opt-out')
++  }
++})
++
++test('unrelated metadata and inert examples do not disable analytics', () => {
++  for (const meta of [
++    '<meta name="pfa87-analytics" content="on">',
++    '<meta name="other" content="off">',
++    '<!-- <meta name="pfa87-analytics" content="off"> -->',
++    '<script>const example = \'<meta name="pfa87-analytics" content="off">\'</script>',
++    '<meta name="other" title="name=pfa87-analytics content=off">',
++  ]) {
++    assert.match(injectGa(`<html><head>${meta}</head></html>`, 'menu.pfa87.cc'), /<!--pfa87-ga-->/)
++  }
++})
++
++test('Verimots defaults denied before config even when the global default is granted', () => {
++  for (const hostname of ['s.pfa87.cc', 'verimots.pfa87.cc', 'S.PFA87.CC', 'news.pfa87.cc']) {
++    for (const blocked of [false, true]) {
++      const { entries } = runTag(hostname, {}, blocked)
++      const consent = entries.find(([cmd, action]) => cmd === 'consent' && action === 'default')
++      assert.equal(consent[2].analytics_storage, 'denied', hostname)
++      assert.equal(consent[2].ad_storage, 'denied')
++      assert.ok(entries.indexOf(consent) < entries.findIndex(([cmd]) => cmd === 'config'))
++    }
++  }
++})
++
++test('stored shared and legacy choices still override the denied default', () => {
++  for (const hostname of ['s.pfa87.cc', 'verimots.pfa87.cc']) {
++    for (const key of ['pfa87-consent', 'verimots-consent']) {
++      for (const choice of ['granted', 'denied']) {
++        const { entries } = runTag(hostname, { [key]: choice })
++        const consent = entries.filter(([cmd]) => cmd === 'consent')
++        assert.equal(consent[0][2].analytics_storage, 'denied')
++        assert.equal(consent.at(-1)[2].analytics_storage, choice)
++        assert.ok(entries.indexOf(consent.at(-1)) < entries.findIndex(([cmd]) => cmd === 'config'))
++      }
++    }
++  }
++})
++
++test('unrelated hosts retain the configured default and stored refusal', () => {
++  for (const hostname of ['menu.pfa87.cc', 'family.pfa87.cc', 's.pfa87.cc.example.org', 'verimots-test.pfa87.cc']) {
++    let consent = runTag(hostname).entries.filter(([cmd]) => cmd === 'consent')
++    assert.equal(consent[0][2].analytics_storage, 'granted')
++    consent = runTag(hostname, { 'pfa87-consent': 'denied' }).entries.filter(([cmd]) => cmd === 'consent')
++    assert.equal(consent.at(-1)[2].analytics_storage, 'denied')
++  }
++})
++
++test('both actual Android handoff pages suppress the injector before token handling', { skip: !process.env.VERIMOTS_REVIEW_ROOT }, () => {
++  const root = process.env.VERIMOTS_REVIEW_ROOT
++  for (const name of ['auth-android.html', 'auth-android-done.html']) {
++    const html = readFileSync(`${root}/web/${name}`, 'utf8')
++    assert.match(html, /name="pfa87-analytics" content="off"/)
++    assert.equal(injectGa(html, 's.pfa87.cc'), html)
++  }
++})

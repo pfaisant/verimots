@@ -1,0 +1,9 @@
+<resources>
+    <string name="definition_more">Leer más</string>
+    <string name="definition_less">Mostrar menos</string>
+    <string name="polish_selected">Seleccionada</string>
+    <string name="next_rack">Siguiente atril</string>
+    <string name="score_local_only">Puntuación guardada en este dispositivo. Clasificación no disponible para esta ronda.</string>
+    <string name="account_saved_offline">Cuenta guardada en este dispositivo. Verificación no disponible por ahora. Puedes seguir jugando.</string>
+    <string name="play_offline">Puedes jugar sin cuenta, incluso sin conexión.</string>
+</resources>

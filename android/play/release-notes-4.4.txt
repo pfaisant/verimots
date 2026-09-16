@@ -1,0 +1,17 @@
+Verimots 4.4.0 (78)
+Package: cc.pfa87.verimots
+AAB: https://s.pfa87.cc/verimots-4.4.0-78.aab
+APK: https://s.pfa87.cc/verimots-4.4.0.apk
+
+<fr-FR>
+Interface Android affinée : en-tête plus clair, commandes mieux alignées et boutons plus faciles à toucher. Petits Mots : points plus discrets, mot sélectionné bien visible et bouton Mode défi toujours accessible. Classements avec icônes, pagination et rappel de ta place. Mots vérifiés en premier, et Tous les types pour réunir tes activités.
+</fr-FR>
+<en-GB>
+A more polished Android interface with a clearer header, aligned controls and easier tap targets. Short Words now has smaller point values, a clear selected word and an always-accessible challenge button. Leaderboards add icons, pages and a reminder of your position. Words checked comes first, with All types combining your activities.
+</en-GB>
+<es-ES>
+Interfaz Android mejorada: cabecera más clara, controles alineados y botones más fáciles de pulsar. Palabras cortas muestra puntos más discretos, la palabra seleccionada y un botón de desafío siempre accesible. Clasificaciones con iconos, páginas y tu puesto. Palabras verificadas aparece primero; Todos los tipos reúne tus actividades.
+</es-ES>
+<ca>
+Interfície Android millorada: capçalera més clara, controls alineats i botons més fàcils de tocar. Mots curts mostra punts més discrets, el mot seleccionat i un botó de repte sempre accessible. Classificacions amb icones, pàgines i la teva posició. Mots verificats apareix primer; Tots els tipus reuneix les activitats.
+</ca>

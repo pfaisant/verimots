@@ -1,0 +1,6 @@
+<resources>
+    <item name="board_compact_category" type="id" />
+    <item name="board_compact_period" type="id" />
+    <string name="board_compact_period">Période</string>
+    <string name="board_compact_all_time">Tout</string>
+</resources>

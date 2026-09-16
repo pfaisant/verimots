@@ -1,20 +1,24 @@
 /* Verimots lexicon worker — lookup, anagrams, patterns and training deals.
  *
  * Internally every word and rack is a tile-encoded string (see tiles.js):
- * Spanish digraphs CH/LL/RR are one char each, so lengths, joker indexes and
- * shuffles are tile-correct. Messages come in and go out in display form.
+ * Spanish digraphs CH/LL/RR and the Catalan NY/QU/L·L tiles are one char
+ * each, so lengths, joker indexes and shuffles are tile-correct. Messages
+ * come in and go out in display form.
  */
-import { dealKids, kidsAnagrams } from './kids.js?v=69'
+import { dealKids, kidsAnagrams } from './kids.js?v=158'
 import {
   tileSpec,
   encodeTiles,
   decodeWord,
   decodeRack,
   scoreTiles,
+  tileCount,
   usesHardTiles,
   unplayableWord,
   normalizeEsEdition,
-} from './tiles.js?v=131'
+} from './tiles.js?v=158'
+
+const LANGS = ['fr', 'en', 'es', 'ca']
 
 let SPEC = tileSpec('fr')
 let VALUES = SPEC.values
@@ -183,7 +187,7 @@ function dealChallenge(excludeSeed = '', excludeRack = '') {
   const allowed = p.bingo.filter((word) =>
     word !== blockedSeed && (!blockedRack || rackKey(word) !== blockedRack)
   )
-  const fallback = currentLang === 'es' ? 'PALABRA' : 'SCRABBLE'
+  const fallback = currentLang === 'es' ? 'PALABRA' : currentLang === 'ca' ? 'PARAULA' : 'SCRABBLE'
   const seed = pickWord(allowed.length ? allowed : p.bingo.length ? p.bingo : [fallback])
   const rack = shuffleWord(seed)
   return { category: 'bingo', rack, groups: anagrams(rack, 2, rack.length), seed }
@@ -262,7 +266,9 @@ function hash32(str) {
 }
 let dailyPool = null
 let dailyPoolKey = ''
-function dailyWord(random = false) {
+// `skip` steps past a candidate the page rejected (an inflection, a word
+// with no definition): the day's word stays deterministic, just shifted.
+function dailyWord(random = false, skip = 0) {
   const poolKey = `${currentLang}|${currentDict}|${currentEdition}`
   if (!dailyPool || dailyPoolKey !== poolKey) {
     dailyPool = []
@@ -273,7 +279,8 @@ function dailyWord(random = false) {
   }
   if (!dailyPool.length) return null
   const key = `${parisDayKey()}|${poolKey}`
-  const word = random ? pickWord(dailyPool) : dailyPool[hash32(key) % dailyPool.length]
+  const step = Math.max(0, Math.floor(Number(skip) || 0))
+  const word = random ? pickWord(dailyPool) : dailyPool[(hash32(key) + step) % dailyPool.length]
   return { word: decodeWord(word), tiles: word.length, score: scoreWord(word), day: parisDayKey(), random }
 }
 
@@ -306,6 +313,8 @@ function anagrams(rack, minLen, maxLen) {
 function likelyInfinitive(word, lang) {
   if (lang === 'fr') return /(?:ER|IR|RE|OIR)$/.test(word)
   if (lang === 'es') return /(?:AR|ER|IR)$/.test(word)
+  // Catalan: cantAR, tEMER, dormIR, and the -RE verbs (perdre, beure).
+  if (lang === 'ca') return /(?:AR|ER|IR|RE)$/.test(word)
   return false
 }
 
@@ -316,6 +325,9 @@ function likelyInflection(word, lang) {
   if (lang === 'es') {
     return /(?:ABA|ABAN|ADA|ADAS|ADO|ADOS|ANDO|ARIA|ARIAN|ASTE|ASTEIS|IA|IAN|IDA|IDAS|IDO|IDOS|IENDO|AMOS|EMOS|IMOS|ARON|IERON|ASE|IESE|EN|ES)$/.test(word)
   }
+  if (lang === 'ca') {
+    return /(?:ANT|INT|AVA|AVEN|AVES|AVEM|AVEU|ARIA|ARIEN|ARIES|ARIEM|ARIEU|IRIA|IRIEN|ARA|ARAN|ARAS|ARE|AREM|AREN|ARES|AREU|ADA|ADES|ATS|AT|IDA|IDES|ITS|SSIS|SSIN|SSIM|SSIU|IEN|IEM|IEU|EM|EU|EN|ES|IS|IA)$/.test(word)
+  }
   return /(?:ED|ING)$/.test(word)
 }
 
@@ -324,9 +336,11 @@ function matchFind(mode, q, filters = {}) {
   const out = []
   const limit = 400
   if (mode === 'pattern') {
-    const re = new RegExp('^' + q.replace(/[.?]/g, '.') + '$')
-    const pool = byLen[q.length] || []
-    for (const w of pool) if (re.test(decodeWord(w))) { out.push(decodeWord(w)); if (out.length >= limit) break }
+    const pattern = enc(q)
+    const source = [...pattern].map((ch) => isBlank(ch) ? '.' : ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('')
+    const re = new RegExp('^' + source + '$')
+    const pool = byLen[pattern.length] || []
+    for (const w of pool) if (re.test(w)) { out.push(decodeWord(w)); if (out.length >= limit) break }
     return out
   }
   const start = String(filters.start || (mode === 'prefix' ? q : '')).toUpperCase()
@@ -339,7 +353,7 @@ function matchFind(mode, q, filters = {}) {
     if (start && !word.startsWith(start)) continue
     if (has && !word.includes(has)) continue
     if (end && !word.endsWith(end)) continue
-    if (length && word.length !== length) continue
+    if (length && tileCount(word, currentLang, currentEdition) !== length) continue
     if (infinitives && !likelyInfinitive(word, currentLang)) continue
     if (hideInflections && likelyInflection(word, currentLang)) continue
     out.push(word)
@@ -350,18 +364,19 @@ function matchFind(mode, q, filters = {}) {
 
 function normalizeDict(dict, lang) {
   if (dict === 'yawl') return 'csw'
-  if (dict === 'ods' || dict === 'csw' || dict === 'wow24' || dict === 'rla') return dict
-  return lang === 'en' ? 'wow24' : lang === 'es' ? 'rla' : 'ods'
+  if (dict === 'ods' || dict === 'csw' || dict === 'wow24' || dict === 'rla' || dict === 'disc') return dict
+  return lang === 'en' ? 'wow24' : lang === 'es' ? 'rla' : lang === 'ca' ? 'disc' : 'ods'
 }
 
 function dictLang(id) {
   if (id === 'csw' || id === 'wow24') return 'en'
   if (id === 'rla') return 'es'
+  if (id === 'disc') return 'ca'
   return 'fr'
 }
 
 async function load(lang = 'fr', dict = '', edition = '') {
-  const id = normalizeDict(dict, lang === 'en' || lang === 'es' ? lang : 'fr')
+  const id = normalizeDict(dict, LANGS.includes(lang) ? lang : 'fr')
   const next = dictLang(id)
   const ed = next === 'es' ? normalizeEsEdition(edition || currentEdition) : 'fise'
   if (ready && currentLang === next && currentDict === id && currentEdition === ed) return wordSet.size
@@ -370,27 +385,27 @@ async function load(lang = 'fr', dict = '', edition = '') {
     csw: ['data/yawl.txt.gz', 'data/yawl.txt'],
     wow24: ['data/wow24.txt.gz', 'data/wow24.txt'],
     rla: ['data/rla-es.txt.gz', 'data/rla-es.txt'],
+    disc: ['data/disc-ca.txt.gz', 'data/disc-ca.txt'],
   }
   const [file, plain] = files[id]
-  let res = await fetch(file, { cache: 'force-cache' })
-  if (!res.ok) res = await fetch(plain, { cache: 'force-cache' })
-  if (!res.ok) throw new Error('lexicon ' + res.status)
-  const buf = await res.arrayBuffer()
-  const u8 = new Uint8Array(buf)
-  const gzipped = u8.length >= 2 && u8[0] === 0x1f && u8[1] === 0x8b
-  const text = gzipped
-    ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text()
-    : new TextDecoder('utf-8').decode(buf)
-  words = text.split('\n').filter(Boolean)
+  let text
+  try {
+    text = await lexiconText(file)
+  } catch {
+    // Plain lists also support browsers without DecompressionStream and
+    // recovery from a damaged compressed download.
+    text = await lexiconText(plain)
+  }
+  words = text.split(/\r?\n/).filter(Boolean)
   SPEC = tileSpec(next, ed)
   VALUES = SPEC.values
   TILE_COUNTS = SPEC.bag
   HARD = SPEC.hard
   wordSet = new Set()
   byLen = Array.from({ length: 16 }, () => [])
-  const encodeAll = next === 'es'
+  const encodeAll = next === 'es' || next === 'ca'
   for (const w of words) {
-    const e = encodeAll ? encodeTiles(w, 'es', ed) : w
+    const e = encodeAll ? encodeTiles(w, next, ed) : w
     if (e.length < 2 || e.length > 15) continue
     wordSet.add(e)
     // FISE has no K/W tiles and blanks may not stand for them: those words
@@ -406,13 +421,30 @@ async function load(lang = 'fr', dict = '', edition = '') {
   return wordSet.size
 }
 
+async function lexiconText(file) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 15000)
+  try {
+    const res = await fetch(file, { cache: 'force-cache', signal: controller.signal })
+    if (!res.ok) throw new Error('lexicon ' + res.status)
+    const buf = await res.arrayBuffer()
+    const u8 = new Uint8Array(buf)
+    const gzipped = u8.length >= 2 && u8[0] === 0x1f && u8[1] === 0x8b
+    return gzipped
+      ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text()
+      : new TextDecoder('utf-8').decode(buf)
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 async function handle(msg) {
   if (msg.type === 'load') {
     const count = await load(msg.lang || 'fr', msg.dict || '', msg.edition || '')
     self.postMessage({ type: 'ready', count, id: msg.id, lang: currentLang, dict: currentDict, edition: currentEdition })
     return
   }
-  const want = ['fr', 'en', 'es'].includes(msg.lang) ? msg.lang : currentLang || 'fr'
+  const want = LANGS.includes(msg.lang) ? msg.lang : currentLang || 'fr'
   const wantDict = normalizeDict(msg.dict, want)
   const wantEdition = want === 'es' ? normalizeEsEdition(msg.edition || currentEdition) : 'fise'
   if (!ready || currentLang !== want || currentDict !== wantDict || currentEdition !== wantEdition) {
@@ -463,7 +495,7 @@ async function handle(msg) {
     return
   }
   if (msg.type === 'kids') {
-    const rack = enc(msg.rack).replace(/[?.*]/g, '').slice(0, 7)
+    const rack = enc(msg.rack).replace(/[?.*]/g, '').slice(0, 8)
     const deal = rack.length >= 2
       ? {
           category: 'kids',
@@ -486,7 +518,7 @@ async function handle(msg) {
     return
   }
   if (msg.type === 'daily') {
-    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord(!!msg.random) || {}), ...base })
+    self.postMessage({ type: 'daily', id: msg.id, ...(dailyWord(!!msg.random, msg.skip) || {}), ...base })
     return
   }
   if (msg.type === 'find') {

@@ -10,3 +10,4 @@ android/ods9/
 *.iml
 .idea/
 .env
+.local-state/

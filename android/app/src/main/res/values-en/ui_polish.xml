@@ -1,0 +1,9 @@
+<resources>
+    <string name="definition_more">Read more</string>
+    <string name="definition_less">Show less</string>
+    <string name="polish_selected">Selected</string>
+    <string name="next_rack">Next rack</string>
+    <string name="score_local_only">Score saved on this device. Ranking unavailable for this round.</string>
+    <string name="account_saved_offline">Account saved on this device. Verification is unavailable for now. You can keep playing.</string>
+    <string name="play_offline">You can play without an account, even offline.</string>
+</resources>

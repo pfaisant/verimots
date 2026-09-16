@@ -13,6 +13,9 @@ import {
   formatChartAverage,
   averageScore,
   boardScoreHtml,
+  entryPointsOf,
+  formatPoints,
+  boardLanguageFlag,
   parseRack,
   defiShareText,
   dailyStudySlice,
@@ -42,8 +45,9 @@ import {
 } from '../web/game.js'
 import { loadHistory, rememberWord, historyLabel, historyDayLabel, clearHistory } from '../web/history.js'
 import { kidsWords, kidsLong } from '../web/kids.js'
+import { tileCount, encodeTiles, decodeRack } from '../web/tiles.js'
 import { competeAccepted, fetchLeaderboard } from '../web/competitive.js'
-import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js'
+import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=158'
 
 test('rack tile usage assigns unmatched letters to blanks', () => {
   assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
@@ -69,6 +73,8 @@ const {
   seedUserForTests,
   sessionCookieForTests,
   mergeGoogleUserForTests,
+  compareBoardEntries,
+  entryPoints,
 } = await import('../scripts/ods-game.mjs')
 
 test('score moyen uses a French decimal comma', () => {
@@ -81,10 +87,40 @@ test('score moyen uses a French decimal comma', () => {
   assert.equal(averageScore([{ p: 40 }, { p: 80 }]), 60)
   assert.equal(averageScore([{ p: 100 }, { p: 70 }, { p: 80 }]), 83.3)
   assert.equal(averageScore([]), null)
-  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /58,0%/)
-  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /9 parties/)
-  assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /100,0%/)
-  assert.doesNotMatch(boardScoreHtml({ percent: 100, plays: 1 }), /partie/)
+  // Points lead the line; average and game count explain them.
+  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /^522<em>pts<\/em>/)
+  assert.match(boardScoreHtml({ percent: 58, plays: 9 }), /58,0% · 9 parties/)
+  assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /^100<em>pts<\/em>/)
+  assert.match(boardScoreHtml({ percent: 100, plays: 1 }), /100,0% · 1 partie/)
+  assert.ok(boardScoreHtml({ points: 1234, percent: 58, plays: 9 }).startsWith(`${formatPoints(1234)}<em>`))
+  assert.equal(entryPointsOf({ percent: 58, plays: 9 }), 522)
+  assert.equal(entryPointsOf({ points: 7, percent: 100, plays: 1 }), 7)
+  assert.equal(entryPointsOf({ percent: 87 }), 87)
+})
+
+test('points rank a board before the average', () => {
+  const oneShot = { sub: 'a', plays: 1, sumPercent: 100, timestamp: '2026-08-20T00:00:00Z' }
+  const regular = { sub: 'b', plays: 40, sumPercent: 3240, timestamp: '2026-08-28T00:00:00Z' }
+  const legacy = { sub: 'c', percent: 87, timestamp: '2026-08-18T00:00:00Z' }
+  assert.equal(entryPoints(oneShot), 100)
+  assert.equal(entryPoints(regular), 3240)
+  assert.equal(entryPoints(legacy), 87)
+  assert.deepEqual([oneShot, legacy, regular].sort(compareBoardEntries), [regular, oneShot, legacy])
+  // Equal points: the better average wins, then the earlier player.
+  assert.ok(compareBoardEntries({ plays: 2, sumPercent: 100 }, { plays: 1, sumPercent: 100 }) > 0)
+  assert.ok(
+    compareBoardEntries(
+      { plays: 1, sumPercent: 50, timestamp: '2026-08-20T00:00:00Z' },
+      { plays: 1, sumPercent: 50, timestamp: '2026-08-21T00:00:00Z' }
+    ) < 0
+  )
+})
+
+test('combined leaderboard flags identify each language', () => {
+  assert.match(boardLanguageFlag('fr'), /flag-fr/)
+  assert.match(boardLanguageFlag('en'), /flag-en/)
+  assert.match(boardLanguageFlag('es'), /flag-es/)
+  assert.match(boardLanguageFlag('ca'), /flag-ca/)
 })
 
 test('leaderboard client requests and preserves the selected language', async () => {
@@ -103,6 +139,53 @@ test('leaderboard client requests and preserves the selected language', async ()
     assert.equal(new URL(requested, 'https://s.pfa87.cc').searchParams.get('lang'), 'en')
     assert.equal(board.lang, 'en')
     assert.equal(board.top[0].pseudo, 'English player')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('leaderboard client requests the day board', async () => {
+  const originalFetch = globalThis.fetch
+  let requested = ''
+  globalThis.fetch = async (url) => {
+    requested = String(url)
+    return {
+      async json() {
+        return { ok: true, lang: 'fr', scope: 'day', date: '2026-09-03', top: [{ pseudo: 'Ada' }] }
+      },
+    }
+  }
+  try {
+    const board = await fetchLeaderboard(null, 'fr', { scope: 'day' })
+    assert.equal(new URL(requested, 'https://s.pfa87.cc').searchParams.get('scope'), 'day')
+    assert.equal(board.scope, 'day')
+    assert.equal(board.date, '2026-09-03')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('leaderboard client preserves the any-language board and all own rows', async () => {
+  const originalFetch = globalThis.fetch
+  let requested = ''
+  globalThis.fetch = async (url) => {
+    requested = String(url)
+    return {
+      async json() {
+        return {
+          ok: true,
+          lang: 'any',
+          top: [{ pseudo: 'Sam', lang: 'fr' }, { pseudo: 'Sam', lang: 'en' }],
+          mine: [{ pseudo: 'Sam', lang: 'fr' }, { pseudo: 'Sam', lang: 'en' }],
+        }
+      },
+    }
+  }
+  try {
+    const board = await fetchLeaderboard(null, 'any')
+    assert.equal(new URL(requested, 'https://s.pfa87.cc').searchParams.get('lang'), 'any')
+    assert.equal(board.lang, 'any')
+    assert.deepEqual(board.mine.map((entry) => entry.lang), ['fr', 'en'])
   } finally {
     globalThis.fetch = originalFetch
   }
@@ -132,7 +215,7 @@ test('Kids mode is labelled Beginners', () => {
   setLang('fr')
 })
 
-test('each language dictionary is a community list that disclaims the official source', () => {
+test('each language names its source and links concise copy to full dictionary notices', async () => {
   setLang('en')
   assert.equal(t('dict_name_ods'), 'ODS')
   assert.equal(t('dict_name_csw'), 'CSW')
@@ -146,16 +229,28 @@ test('each language dictionary is a community list that disclaims the official s
   assert.match(t('dict_blurb_wow24'), /WGPO \(Official Words 2024\)/)
   assert.match(t('dict_blurb_rla'), /RLA-ES/)
   assert.match(t('dict_blurb_rla'), /Not the official FILE/)
-  assert.match(t('about_p3'), /SCRABBLE is a trademark/)
+  assert.match(t('about_p3'), /Dictionaries/)
   setLang('fr')
   assert.match(t('dict_blurb_ods'), /communautaire/)
   assert.match(t('dict_blurb_ods'), /pas l’Officiel du Scrabble/)
   assert.match(t('dict_blurb_wow24'), /Official Words 2024/)
-  assert.match(t('about_p3'), /marque déposée de Mattel/)
+  assert.match(t('about_p3'), /Dictionnaires/)
   setLang('es')
   assert.match(t('dict_blurb_ods'), /comunitaria/)
-  assert.match(t('about_p3'), /marca registrada de Mattel/)
+  assert.match(t('about_p3'), /Diccionaris|Diccionarios/)
+  setLang('ca')
+  assert.equal(t('dict_name_disc'), 'DISC')
+  assert.match(t('dict_blurb_disc'), /DISC/)
+  assert.match(t('dict_blurb_disc'), /Joan Montané/)
+  assert.match(t('dict_blurb_ods'), /comunitària/)
+  assert.match(t('about_p3'), /Diccionaris|Diccionarios/)
+  // Catalan is the only language whose list is a real Scrabble dictionary, so
+  // it names its source instead of disclaiming an official one.
+  const notices = await readFile(new URL('../web/dictionaries.html', import.meta.url), 'utf8')
+  assert.match(notices, /SCRABBLE is a trademark/)
+  assert.match(notices, /Joan Montané/)
   setLang('fr')
+  assert.match(t('dict_blurb_disc'), /catalan/)
 })
 
 test('English defaults to WGPO WOW24 and names the list everywhere', () => {
@@ -460,7 +555,7 @@ test('game percent is clamped 0–100', async () => {
   assert.equal(snap.average, 50)
 })
 
-test('a failed ranked submission keeps the official attempt retryable', () => {
+test('ranked score acknowledgement distinguishes accepted and unconfirmed results', () => {
   assert.equal(competeAccepted({ ok: true }), true)
   assert.equal(competeAccepted({ ok: false, error: 'already_submitted' }), true)
   assert.equal(competeAccepted({ ok: false, error: 'network_error' }), false)
@@ -638,6 +733,23 @@ async function apiRequest(method, path, cookie, payload = null) {
   return { status: out.status(), body: out.body() }
 }
 
+test('a delayed ranked score cannot move into a different signed-in account', async () => {
+  resetGameStatsForTests(
+    join(dir, 'owner-score.json'), join(dir, 'owner-salt.txt'),
+    join(dir, 'owner-board.json'), join(dir, 'owner-auth.json')
+  )
+  seedUserForTests('alice', { name: 'Alice' })
+  seedUserForTests('bob', { name: 'Bob' })
+  const cookie = sessionCookieForTests('bob')
+  const rejected = await apiRequest('POST', '/api/game/compete', cookie, { owner: 'alice', pass: true, lang: 'fr' })
+  assert.equal(rejected.status, 409)
+  assert.equal(rejected.body.error, 'session_changed')
+  assert.equal((await apiRequest('GET', '/api/game/board?lang=fr', cookie)).body.me, null)
+  const accepted = await apiRequest('POST', '/api/game/compete', cookie, { owner: 'bob', pass: true, lang: 'fr' })
+  assert.equal(accepted.status, 200)
+  assert.equal(accepted.body.plays, 1)
+})
+
 test('leaderboard stores the server score for the official weekly word', async () => {
   resetGameStatsForTests(
     join(dir, 'board-score.json'),
@@ -697,6 +809,68 @@ test('leaderboard stores the server score for the official weekly word', async (
   }
 })
 
+test('boards rank by total points, so playing more never drops a player', async () => {
+  resetGameStatsForTests(
+    join(dir, 'points.json'),
+    join(dir, 'points-salt.txt'),
+    join(dir, 'points-leaderboard.json'),
+    join(dir, 'points-auth.json')
+  )
+  seedUserForTests('one-shot', { name: 'One shot' })
+  seedUserForTests('regular', { name: 'Regular' })
+  const oneShot = sessionCookieForTests('one-shot')
+  const regular = sessionCookieForTests('regular')
+  const { plays } = await officialPlays(isoWeekTrailId())
+  const best = plays[0]
+  const worse = plays.find((p) => p.pts < best.pts) || best
+  const worsePct = Math.min(100, Math.round((100 * worse.pts) / Math.max(1, best.pts)))
+
+  // One perfect game…
+  const perfect = await postCompete(oneShot, { word: best.word, lang: 'fr' })
+  assert.equal(perfect.ok, true)
+  assert.equal(perfect.points, 100)
+
+  // …loses to a perfect game plus a weaker one: more points, lower average.
+  assert.equal((await postCompete(regular, { word: best.word, lang: 'fr' })).ok, true)
+  const second = await postCompete(regular, { word: worse.word, lang: 'fr' })
+  assert.equal(second.ok, true)
+  assert.equal(second.plays, 2)
+  assert.equal(second.points, 100 + worsePct)
+
+  const week = await apiRequest('GET', '/api/game/board?lang=fr', regular)
+  assert.equal(week.body.top[0].pseudo, 'Regular')
+  assert.equal(week.body.top[0].points, 100 + worsePct)
+  assert.equal(week.body.top[1].pseudo, 'One shot')
+  assert.equal(week.body.top[1].points, 100)
+  assert.equal(week.body.me.rank, 1)
+
+  const general = await apiRequest('GET', '/api/game/board?lang=fr&scope=all', oneShot)
+  assert.equal(general.body.top[0].pseudo, 'Regular')
+  assert.equal(general.body.me.rank, 2)
+  assert.equal(general.body.me.points, 100)
+
+  const any = await apiRequest('GET', '/api/game/board?lang=any&scope=all', regular)
+  assert.equal(any.body.top[0].pseudo, 'Regular')
+  assert.equal(any.body.top[0].points, 100 + worsePct)
+
+  const me = await apiRequest('GET', '/api/auth/me', regular)
+  assert.equal(me.body.user.stats.points, 100 + worsePct)
+
+  const day = await apiRequest('GET', '/api/game/board?lang=fr&scope=day', regular)
+  assert.equal(day.body.ok, true)
+  assert.equal(day.body.scope, 'day')
+  assert.match(String(day.body.date), /^\d{4}-\d{2}-\d{2}$/)
+  assert.equal(day.body.top[0].pseudo, 'Regular')
+  assert.equal(day.body.top[0].points, 100 + worsePct)
+  assert.equal(day.body.top[0].plays, 2)
+  assert.equal(day.body.top[1].pseudo, 'One shot')
+  assert.equal(day.body.me.rank, 1)
+
+  const anyDay = await apiRequest('GET', '/api/game/board?lang=any&scope=day', regular)
+  assert.equal(anyDay.body.scope, 'day')
+  assert.equal(anyDay.body.top[0].pseudo, 'Regular')
+})
+
 test('concurrent board reads cannot erase a ranked submission', async () => {
   resetGameStatsForTests(
     join(dir, 'board-race.json'),
@@ -745,6 +919,10 @@ test('english official plays use english tile values', async () => {
 })
 
 test('Spanish trail, Ñ scoring and leaderboard are language-isolated', async () => {
+  // Two R tiles must remain distinct from the RR digraph, even in a rack
+  // that also contains LL. The API display alphabet includes this separator.
+  assert.equal(decodeRack('RRA2AAA', 'es', 'fise'), 'R·RALLAAA')
+  assert.equal(encodeTiles('R·RALLAAA', 'es', 'fise'), 'RRA2AAA')
   resetGameStatsForTests(
     join(dir, 'board-es-score.json'),
     join(dir, 'board-es-score-salt.txt'),
@@ -757,8 +935,11 @@ test('Spanish trail, Ñ scoring and leaderboard are language-isolated', async ()
   assert.equal(trail.status, 200)
   assert.equal(trail.body.lang, 'es')
   assert.match(trail.body.trailId, /-es$/)
-  assert.match(trail.body.rack, /^[A-ZÑ]{3,7}$/)
-  const { plays, lang } = await officialPlays(trail.body.trailId)
+  assert.match(trail.body.rack, /^[A-ZÑ·]+$/)
+  assert.ok(tileCount(trail.body.rack, 'es', 'fise') >= 3)
+  assert.ok(tileCount(trail.body.rack, 'es', 'fise') <= 7)
+  const { plays, lang, rack } = await officialPlays(trail.body.trailId)
+  assert.equal(encodeTiles(trail.body.rack, 'es', 'fise'), rack, 'display rack must preserve every original tile')
   assert.equal(lang, 'es')
   assert.ok(plays.length > 0)
   for (const play of plays) assert.equal(play.pts, playScore(play.word, 'es'))
@@ -786,6 +967,18 @@ test('playing another language in the same week does not reset the streak', asyn
   const me = await apiRequest('GET', '/api/auth/me', cookie)
   assert.equal(me.body.user.stats.streak, 1)
   assert.equal(me.body.user.stats.plays, 2)
+  const weekly = await apiRequest('GET', '/api/game/board?lang=any', cookie)
+  assert.equal(weekly.body.lang, 'any')
+  assert.equal(weekly.body.top.length, 2)
+  assert.deepEqual(weekly.body.top.map((entry) => entry.lang).sort(), ['en', 'fr'])
+  assert.equal(weekly.body.top.filter((entry) => entry.pseudo === 'Sam').length, 2)
+  assert.equal(weekly.body.mine.length, 2)
+  const general = await apiRequest('GET', '/api/game/board?lang=any&scope=all', cookie)
+  assert.equal(general.body.lang, 'any')
+  assert.equal(general.body.top.length, 2)
+  assert.deepEqual(general.body.top.map((entry) => entry.lang).sort(), ['en', 'fr'])
+  assert.equal(general.body.top.filter((entry) => entry.pseudo === 'Sam').length, 2)
+  assert.equal(general.body.mine.length, 2)
 })
 
 test('auth/google rejects an invalid token', async () => {
@@ -1132,4 +1325,62 @@ test('feedback endpoint stores a comment and rejects empty ones', async () => {
 
 test.after(async () => {
   await rm(dir, { recursive: true, force: true })
+})
+
+test('guest identities: incremental userNNNNNN pseudo, board row, idempotent session, adopted by Google sign-in', async () => {
+  resetGameStatsForTests(
+    join(dir, 'guest.json'),
+    join(dir, 'guest-salt.txt'),
+    join(dir, 'guest-leaderboard.json'),
+    join(dir, 'guest-auth.json')
+  )
+  const first = await apiRequest('POST', '/api/auth/guest', null)
+  assert.equal(first.status, 200)
+  assert.equal(first.body.ok, true)
+  assert.equal(first.body.user.guest, true)
+  assert.match(first.body.user.name, /^user1\d{5}$/)
+  assert.ok(first.body.user.sub.startsWith('guest:'))
+  assert.ok(first.body.sessionToken)
+  const cookie = 'ods9_session=' + first.body.sessionToken
+
+  const again = await apiRequest('POST', '/api/auth/guest', cookie)
+  assert.equal(again.body.user.sub, first.body.user.sub, 'same device keeps its guest identity')
+
+  const second = await apiRequest('POST', '/api/auth/guest', null)
+  assert.equal(Number(second.body.user.name.slice(4)), Number(first.body.user.name.slice(4)) + 1, 'counter increments')
+
+  const me = await apiRequest('GET', '/api/auth/me', cookie)
+  assert.equal(me.body.user.guest, true)
+  assert.equal(me.body.user.name, first.body.user.name)
+
+  const trailOut = collectRes()
+  await handleOdsGame({ method: 'GET', headers: {} }, trailOut.res, new URL('http://localhost/api/game/trail?lang=fr'), { json: jsonHelper() })
+  const trail = trailOut.body()
+  const { plays } = await officialPlays(trail.trailId)
+  const ok = await postCompete(cookie, { percent: 50, word: plays[0].word, lang: 'fr' })
+  assert.equal(ok.ok, true)
+  const board = await apiRequest('GET', `/api/game/board?lang=fr`, cookie)
+  assert.equal(board.body.me?.pseudo, first.body.user.name, 'the guest is on the board under its pseudo')
+
+  // Google sign-in from the guest device adopts the row and the stats.
+  await mergeGoogleUserForTests('google-42', 'Ada', '')
+  const { isGuestSub, adoptGuestForTests } = await import('../scripts/ods-game.mjs')
+  assert.equal(isGuestSub(first.body.user.sub), true)
+  assert.equal(await adoptGuestForTests(first.body.user.sub, 'google-42', 'Ada'), true)
+  const adaCookie = sessionCookieForTests('google-42')
+  const adaBoard = await apiRequest('GET', `/api/game/board?lang=fr`, adaCookie)
+  assert.equal(adaBoard.body.me?.pseudo, 'Ada', 'the guest row now belongs to the account')
+  assert.equal(adaBoard.body.top.filter((row) => /^user1\d{5}$/.test(row.pseudo)).length, 0, 'no orphan guest row left')
+  const adaMe = await apiRequest('GET', '/api/auth/me', adaCookie)
+  assert.equal(adaMe.body.user.stats.plays, 1)
+  const gone = await apiRequest('GET', '/api/auth/me', cookie)
+  assert.equal(gone.status, 401, 'the guest identity is retired')
+})
+
+test('Catalan gets its own weekly trail id', () => {
+  const day = new Date('2026-08-18T12:00:00+02:00')
+  assert.equal(isoWeekTrailId(day, 'ca'), '2026-W34-ca')
+  assert.equal(isoWeekTrailId(day, 'ca', true), '2026-W34-kids-ca')
+  // An unknown language must not invent a suffix.
+  assert.equal(isoWeekTrailId(day, 'de'), '2026-W34')
 })

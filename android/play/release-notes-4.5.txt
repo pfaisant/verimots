@@ -1,0 +1,17 @@
+Verimots 4.5.0 (79)
+Package: cc.pfa87.verimots
+AAB: https://s.pfa87.cc/verimots-4.5.0-79.aab
+APK: https://s.pfa87.cc/verimots-4.5.0.apk
+
+<fr-FR>
+Dictionnaire en haut à droite et espaces plus réguliers. Un seul onglet Classement. Indices supprimés. Se connecter devient Infos après connexion. Passer, règles et partage réunis dans un menu discret en bas à droite ; Suivant libère la rangée de lettres. Mini-jeux harmonisés avec le site, affichage des lettres au premier lancement corrigé et commandes accessibles en paysage.
+</fr-FR>
+<en-GB>
+Dictionary at the top right with more consistent spacing. One Leaderboard tab. Hints removed. Log in becomes Info after signing in. Pass, rules and sharing grouped in a discreet lower-right menu; Next no longer crowds the rack. Mini-games match the website layout, first-load letters display correctly, and landscape controls remain accessible.
+</en-GB>
+<es-ES>
+Diccionario arriba a la derecha y espacios más regulares. Una sola pestaña Clasificación. Pistas eliminadas. Iniciar sesión pasa a Info al conectarse. Pasar, reglas y compartir reunidos en un menú discreto abajo a la derecha; Siguiente deja libre el atril. Minijuegos alineados con la web, letras visibles al abrir y controles accesibles en horizontal.
+</es-ES>
+<ca>
+Diccionari a dalt a la dreta i espais més regulars. Una sola pestanya Classificació. Pistes eliminades. Connecta’t passa a Info en iniciar la sessió. Passar, regles i compartir en un menú discret a baix a la dreta; Següent deixa lliure el faristol. Minijocs coherents amb el web, lletres visibles en obrir i controls accessibles en horitzontal.
+</ca>

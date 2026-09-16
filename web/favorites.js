@@ -1,4 +1,4 @@
-import { t } from './i18n.js?v=131'
+import { t } from './i18n.js?v=158'
 
 const KEY = 'verimots-favorites-v1'
 const MAX = 200
@@ -13,10 +13,22 @@ function store(storage) {
   return null
 }
 
+// Stored words are in display form, so the tile alphabet includes Ñ (Spanish),
+// Ç and the interpunct of the Catalan L·L tile. Length is bounded in characters,
+// not tiles: the longest 15-tile word runs to 18 characters in Catalan
+// (DODECASIL·LABIQUES) and 17 in Spanish (ACHICHARRONABAMOS).
+const WORD_CHARS = /[^A-ZÑÇ·]/g
+const MAX_WORD_CHARS = 20
+
 function cleanWord(word) {
   return String(word || '')
     .toUpperCase()
-    .replace(/[^A-ZÑ]/g, '')
+    .replace(WORD_CHARS, '')
+}
+
+function points(value) {
+  const n = Number(value)
+  return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0
 }
 
 export function loadFavorites(storage) {
@@ -24,17 +36,20 @@ export function loadFavorites(storage) {
     const raw = store(storage)?.getItem(KEY)
     const rows = raw ? JSON.parse(raw) : []
     if (!Array.isArray(rows)) return []
+    const seen = new Set()
     return rows
       .map((row) => {
         const word = cleanWord(row?.word)
-        if (word.length < 2) return null
+        if (word.length < 2 || word.length > MAX_WORD_CHARS || seen.has(word)) return null
+        seen.add(word)
         return {
           word,
-          pts: Math.max(0, Math.round(Number(row?.pts) || 0)),
-          at: Number(row?.at) || 0,
+          pts: points(row?.pts),
+          at: Number.isFinite(Number(row?.at)) ? Math.max(0, Number(row.at)) : 0,
         }
       })
       .filter(Boolean)
+      .slice(0, MAX)
   } catch {
     return []
   }
@@ -48,11 +63,11 @@ export function isFavorite(word, storage) {
 
 export function toggleFavorite(word, pts, storage) {
   const key = cleanWord(word)
-  if (key.length < 2) return loadFavorites(storage)
+  if (key.length < 2 || key.length > MAX_WORD_CHARS) return loadFavorites(storage)
   const rows = loadFavorites(storage)
   const next = rows.some((row) => row.word === key)
     ? rows.filter((row) => row.word !== key)
-    : [{ word: key, pts: Math.max(0, Math.round(Number(pts) || 0)), at: Date.now() }, ...rows].slice(0, MAX)
+    : [{ word: key, pts: points(pts), at: Date.now() }, ...rows].slice(0, MAX)
   try {
     store(storage)?.setItem(KEY, JSON.stringify(next))
   } catch {

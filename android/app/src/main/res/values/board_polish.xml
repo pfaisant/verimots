@@ -1,0 +1,11 @@
+<resources>
+    <string name="board_refresh_action">Actualiser le classement</string>
+    <string name="board_previous_page">Page précédente</string>
+    <string name="board_next_page">Page suivante</string>
+    <string name="board_page_number">%1$d / %2$d</string>
+    <string name="board_personal_position">Ta place : %1$d</string>
+    <plurals name="board_activities_count">
+        <item quantity="one">%1$s activité</item>
+        <item quantity="other">%1$s activités</item>
+    </plurals>
+</resources>

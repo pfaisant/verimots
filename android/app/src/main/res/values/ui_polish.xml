@@ -1,0 +1,9 @@
+<resources>
+    <string name="definition_more">Tout lire</string>
+    <string name="definition_less">Réduire</string>
+    <string name="polish_selected">Sélectionné</string>
+    <string name="next_rack">Tirage suivant</string>
+    <string name="score_local_only">Score gardé sur cet appareil. Classement indisponible pour ce tour.</string>
+    <string name="account_saved_offline">Compte enregistré sur cet appareil. Vérification indisponible pour le moment. Vous pouvez continuer à jouer.</string>
+    <string name="play_offline">Vous pouvez jouer sans compte, même hors connexion.</string>
+</resources>

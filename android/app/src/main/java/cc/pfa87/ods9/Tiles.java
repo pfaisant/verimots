@@ -50,6 +50,8 @@ final class Tiles {
     static void fill(LinearLayout row, String word, Set<Integer> used, View.OnClickListener tap, int bonusIndex, boolean alpha) {
         Context ctx = row.getContext();
         float d = ctx.getResources().getDisplayMetrics().density;
+        Object renderToken = new Object();
+        row.setTag(R.id.tile_render_token, renderToken);
         row.removeAllViews();
         int n = word == null ? 0 : word.length();
         if (n == 0) return;
@@ -68,7 +70,12 @@ final class Tiles {
                         int ol, int ot, int or, int ob) {
                     if (row.getWidth() <= 0) return;
                     row.removeOnLayoutChangeListener(this);
-                    fill(row, word, used, tap, bonusIndex, alpha);
+                    // Replacing children inside layout can leave them at 0 x 0.
+                    // Defer the refill, and discard it if a newer rack was painted.
+                    row.post(() -> {
+                        if (row.getTag(R.id.tile_render_token) == renderToken)
+                            fill(row, word, used, tap, bonusIndex, alpha);
+                    });
                 }
             });
         }
@@ -110,14 +117,17 @@ final class Tiles {
                     i == bonusIndex ? R.drawable.bg_tile_bonus
                             : spent ? R.drawable.bg_tile_used
                                     : R.drawable.bg_tile);
-            if (i == bonusIndex) cell.setContentDescription("+1 " + ch);
+            if (i == bonusIndex) cell.setContentDescription("+1 " + Lexicon.tileGlyph(ch));
 
             boolean blank = ch == '?' || ch == '.' || ch == '*';
             TextView letter = new TextView(ctx);
             letter.setGravity(Gravity.CENTER);
-            letter.setText(blank ? "?" : String.valueOf(ch));
+            String glyph = blank ? "?" : Lexicon.tileGlyph(ch);
+            letter.setText(glyph);
             letter.setTextColor(ctx.getColor(spent ? R.color.tile_used_ink : R.color.tile_ink));
-            letter.setTextSize(TypedValue.COMPLEX_UNIT_PX, letterPx);
+            // A digraph (CH, LL, RR) is one tile carrying two letters: shrink the
+            // glyph rather than let it clip or widen the tile.
+            letter.setTextSize(TypedValue.COMPLEX_UNIT_PX, glyph.length() > 1 ? letterPx * 0.62f : letterPx);
             letter.setTypeface(Typeface.create("serif", Typeface.BOLD));
             letter.setIncludeFontPadding(false);
             letter.setMaxLines(1);
@@ -145,58 +155,84 @@ final class Tiles {
         }
     }
 
-    static TextView chip(Context ctx, String word, int pts, boolean on, boolean mine) {
-        return chip(ctx, word, pts, on, mine, 0);
-    }
-
-    /** inkColor overrides the word colour (0 = default) — Combinaisons paints
-     *  revealed words red and hinted words orange. */
-    static TextView chip(Context ctx, String word, int pts, boolean on, boolean mine, int inkColor) {
+    /** A flat result row: word and score align without individual cards. */
+    static LinearLayout wordRow(Context ctx, String word, int pts, boolean selected, boolean mine, int inkColor) {
         float d = ctx.getResources().getDisplayMetrics().density;
-        TextView t = new TextView(ctx);
-        t.setMinWidth((int) (72 * d));
-        t.setGravity(Gravity.CENTER);
-        t.setPadding((int) (6 * d), (int) (8 * d), (int) (6 * d), (int) (8 * d));
-        t.setBackgroundResource(on ? R.drawable.bg_chip_on : mine ? R.drawable.bg_chip_mine : R.drawable.bg_chip);
-        t.setTextColor(inkColor != 0 ? inkColor : ctx.getColor(on ? R.color.ink : mine ? R.color.ok : R.color.muted));
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        t.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        t.setLetterSpacing(0.04f);
-        t.setMaxLines(1);
-        // Long words shrink instead of clipping on narrow weight-shared rows.
-        t.setAutoSizeTextTypeUniformWithConfiguration(8, 11, 1, TypedValue.COMPLEX_UNIT_SP);
-        // Word + score on one line, the score echoing the small gold value
-        // printed on the letter tiles.
-        String label = Lexicon.display(word) + " " + pts;
-        android.text.SpannableString span = new android.text.SpannableString(label);
-        int at = label.length() - String.valueOf(pts).length();
-        span.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(R.color.gold)),
-                at, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        span.setSpan(new android.text.style.RelativeSizeSpan(0.82f),
-                at, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        span.setSpan(new android.text.style.StyleSpan(Typeface.BOLD),
-                at, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        t.setText(span);
-        t.setTag(word);
-        return t;
+        LinearLayout row = new LinearLayout(ctx);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(Math.round(48 * d));
+        row.setPadding(Math.round(8 * d), 0, Math.round(8 * d), 0);
+        row.setBackgroundResource(R.drawable.bg_word_row);
+        row.setSelected(selected);
+        row.setFocusable(true);
+        row.setTag(word);
+        String shown = Lexicon.display(word);
+        row.setContentDescription(shown + ", " + pts + " " + ctx.getString(R.string.pts_unit));
+        TextView label = new TextView(ctx);
+        label.setText(shown);
+        label.setTextColor(inkColor != 0 ? inkColor : ctx.getColor(selected ? R.color.gold : mine ? R.color.ok : R.color.ink));
+        label.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        label.setTextSize(13);
+        label.setIncludeFontPadding(false);
+        label.setMaxLines(1);
+        label.setAutoSizeTextTypeUniformWithConfiguration(10, 13, 1, TypedValue.COMPLEX_UNIT_SP);
+        label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        row.addView(label, new LinearLayout.LayoutParams(0, Math.round(48 * d), 1));
+        label.setGravity(Gravity.CENTER_VERTICAL);
+        TextView score = new TextView(ctx);
+        score.setText(String.valueOf(pts));
+        score.setTextSize(12);
+        score.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        score.setFontFeatureSettings("tnum");
+        score.setTextColor(ctx.getColor(selected ? R.color.gold : R.color.dim));
+        score.setPadding(Math.round(8 * d), 0, 0, 0);
+        score.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        row.addView(score, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        return row;
     }
 
     static TextView studyTile(Context ctx, String word) {
+        float d = ctx.getResources().getDisplayMetrics().density;
+        TextView tile = new TextView(ctx);
+        tile.setMinWidth(Math.round(52 * d));
+        tile.setMinHeight(Math.round(56 * d));
+        tile.setGravity(Gravity.CENTER);
+        tile.setPadding(Math.round(5 * d), Math.round(5 * d), Math.round(5 * d), Math.round(5 * d));
+        tile.setIncludeFontPadding(false);
+        tile.setLineSpacing(d, 1f);
+        tile.setMaxLines(2);
+        tile.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        tile.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        // A three-tile word may display more letters (NY, QU, L·L, CH…).
+        // Fit both the complete word and its separate, smaller points line.
+        tile.setHorizontallyScrolling(false);
+        tile.setAutoSizeTextTypeUniformWithConfiguration(12, 17, 1, TypedValue.COMPLEX_UNIT_SP);
+        tile.setBackgroundResource(R.drawable.bg_study_tile);
+        tile.setTag(word);
+        tile.setFocusable(true);
+        setStudySelected(tile, false);
+        return tile;
+    }
+
+    static void setStudySelected(TextView tile, boolean selected) {
+        Context ctx = tile.getContext();
+        String word = String.valueOf(tile.getTag());
         int pts = 0;
         for (int i = 0; i < word.length(); i++) pts += Lexicon.letterScore(word.charAt(i));
-        float d = ctx.getResources().getDisplayMetrics().density;
-        TextView t = new TextView(ctx);
-        t.setMinWidth((int) (52 * d));
-        t.setGravity(Gravity.CENTER);
-        t.setPadding((int) (8 * d), (int) (7 * d), (int) (8 * d), (int) (6 * d));
-        t.setBackgroundResource(R.drawable.bg_tile);
-        t.setTextColor(ctx.getColor(R.color.tile_ink));
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        t.setTypeface(Typeface.create("serif", Typeface.BOLD));
-        t.setLetterSpacing(0.06f);
-        t.setText(word + "\n" + pts);
-        t.setTag(word);
-        return t;
+        String shown = Lexicon.display(word);
+        String label = shown + "\n" + pts + " " + ctx.getString(R.string.pts_unit);
+        android.text.SpannableString styled = new android.text.SpannableString(label);
+        int start = shown.length() + 1;
+        styled.setSpan(new android.text.style.AbsoluteSizeSpan(10, true), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        styled.setSpan(new android.text.style.TypefaceSpan("sans-serif"), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        styled.setSpan(new android.text.style.StyleSpan(Typeface.NORMAL), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        styled.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(selected ? R.color.muted : R.color.tile_used_ink)), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        tile.setSelected(selected);
+        tile.setTextColor(ctx.getColor(selected ? R.color.gold : R.color.tile_ink));
+        tile.setText(styled);
+        tile.setContentDescription(shown + ", " + pts + " " + ctx.getString(R.string.pts_unit)
+                + (selected ? ", " + ctx.getString(R.string.polish_selected) : ""));
     }
 
     static TextView resultChip(Context ctx, String word, int pts, int[] jokers) {
@@ -212,13 +248,19 @@ final class Tiles {
             for (int j : jokers) if (j >= 0 && j < a.length) a[j] = '?';
             shown = new String(a);
         }
-        t.setText(shown + "  " + pts);
+        String label = Lexicon.display(shown) + "  " + pts;
+        android.text.SpannableString styled = new android.text.SpannableString(label);
+        int numberAt = label.length() - String.valueOf(pts).length();
+        styled.setSpan(new android.text.style.RelativeSizeSpan(0.78f), numberAt, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        styled.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(R.color.muted)), numberAt, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        t.setText(styled);
+        t.setMinHeight(Math.round(48 * d));
         t.setTextColor(inkColor != 0 ? inkColor : ctx.getColor(R.color.ink));
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         t.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         t.setLetterSpacing(0.04f);
         t.setPadding((int) (10 * d), (int) (8 * d), (int) (10 * d), (int) (8 * d));
-        t.setBackgroundResource(R.drawable.bg_chip);
+        t.setBackgroundResource(R.drawable.bg_word_row);
         t.setTag(word);
         return t;
     }

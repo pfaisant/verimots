@@ -64,7 +64,7 @@ final class Kids {
             "PUERTA RADIO RATON RELOJ RUEDA SALTO SOPA TIERRA TIGRE VASO VERDE ZUMO").split("\\s+");
 
     static final String[] FR_LONG = {
-            "CHEVAUX", "CHEVAL", "MAISON", "ECOLE", "BANANE", "TOMATE", "FLEURS",
+            "CHEVAUX", "CHEVAL", "MAISON", "BANANE", "TOMATE", "FLEURS",
             "CADEAU", "BONBON", "BATEAU", "AVIONS", "SOLEIL", "GATEAU", "OISEAU",
             "ANIMAUX", "VOITURE", "FENETRE", "CAHIER", "POMMES", "FROMAGE",
             "CAROTTE", "LAPINS", "CHIENS", "CADEAUX", "BATEAUX", "MAISONS",
@@ -86,14 +86,51 @@ final class Kids {
             "VENTANA", "VERANO"
     };
 
+    /** Catalan beginner words, kept in step with web/kids.js. */
+    private static final String[] CA_SHORT = (
+            "AVI CAP CEL COL COR CUC DIA DIT DOS FIL FOC FUM GAT GEL GOS GRA MAI MAR MEL " +
+            "MES MON MUR NAS NET NEU NIT NOI NOM NOU OLI PAU PEL PES PEU PIS PLE POT RAO " +
+            "REI RES RIU SAC SAL SEC SET SOL SUC TAP TIA TOT TUB ULL VAS VIA VIU AIRE AMIC " +
+            "BLAU BOCA BOLA BOSC BOTA CAFE CAMA CAMP CARA CARN CASA CEBA CIMS CINE CLAU " +
+            "CODI CREU CRIT DALT DENT DINS DOLC DONA FAVA FILL FIRA FLOR FONS FONT FORN " +
+            "FRED GANA GENT GRAN GRIS HOME HORA ILLA LLAC LLET LLIT LLUM MANS MAPA MARE " +
+            "MELO MOLI MOLT MOTO NADAL NAU PARC PARE PATI PERA PILA PINS PLAT PLOU POLL " +
+            "POLS POMA PONT PORC PORT POST PRAT PREU PUNT RAIG RAMA RATA RODA ROIG ROSA " +
+            "SABO SALT SANG SANT TALL TAPA TARD TAST TRAU TREN TRES TROS TUBS VALL VELA " +
+            "VELL VENT VERD VIDA VILA AIGUA AMICS ARBRE CANTA CORDA CUINA ESTIU FEINA " +
+            "FESTA FRUIT GERRA HERBA LLARG LLIS LLUNA MADUR MORAT NEBOT NORD NUVOL ORDRE " +
+            "OSSOS PAGES PAPER PEDRA PILOT PINSA PISOS PLANA POBLE PODER PORTA POSTA PRIMA " +
+            "RAMAT REGAL RENOU RIURE ROURE SERRA SOMNI SOPA SORRA SORT SUCRE TANCA TARDA " +
+            "TAULA TEMPS TENDA TERRA TEULA TINTA TORRE TRIST VENDA VESPA VIURE VOLAR VOLTA").split("\\s+");
+
+    static final String[] CA_LONG = {
+            "ANIMALS", "ARBRES", "BALENA", "BOSQUES", "CADIRA", "CAMISA", "CAMPANA",
+            "CANTANT", "CARRER", "CAVALL", "CIUTAT", "COLORS", "COL·LEGI", "CONILL",
+            "DIMARTS", "ELEFANT", "ESCOLA", "ESTRELLA", "FAMILIA", "FINESTRA", "FLORISTA",
+            "FORMATGE", "FRUITA", "FULLES", "GALETA", "GERMANA", "GERMANS", "GIRAFA",
+            "GRANOTA", "JARDINS", "LLAPIS", "LLIBRE", "LLIBRES", "MADUIXA", "MESTRE",
+            "MONEDA", "MUNTANYA", "NADALES", "OCELLS", "OVELLA", "PALAUS", "PARAIGUA",
+            "PARAULA", "PARAULES", "PASTIS", "PATATA", "PILOTA", "PLANETA", "PLATAN",
+            "PLATANS", "PLATJA", "POMERA", "PORTES", "QUADERN", "RATOLI", "REGALS",
+            "SABATA", "SABATES", "SENYERA", "SORPRESA", "SOSTRE", "TARONJA", "TAULES",
+            "TAULETA", "TERRASSA", "TOMAQUET", "TORTUGA", "VACANCES", "VEDELL", "VENTALL",
+            "VERDURA", "VERMELL", "VESTIT", "XOCOLATA"
+    };
+
     static String pickLong(String lang, Random rng) {
-        String[] pool = "en".equals(lang) ? EN_LONG : "es".equals(lang) ? ES_LONG : FR_LONG;
+        String[] pool = "en".equals(lang) ? EN_LONG
+                : "es".equals(lang) ? ES_LONG
+                : Lang.CA.equals(lang) ? CA_LONG : FR_LONG;
         return pool[rng.nextInt(pool.length)];
     }
 
     static String[] words(String lang) {
-        String[] shortWords = "en".equals(lang) ? EN_SHORT : "es".equals(lang) ? ES_SHORT : FR_SHORT;
-        String[] longWords = "en".equals(lang) ? EN_LONG : "es".equals(lang) ? ES_LONG : FR_LONG;
+        String[] shortWords = "en".equals(lang) ? EN_SHORT
+                : "es".equals(lang) ? ES_SHORT
+                : Lang.CA.equals(lang) ? CA_SHORT : FR_SHORT;
+        String[] longWords = "en".equals(lang) ? EN_LONG
+                : "es".equals(lang) ? ES_LONG
+                : Lang.CA.equals(lang) ? CA_LONG : FR_LONG;
         int easyCount = 0;
         for (String word : shortWords) if (!hasHardLetter(word)) easyCount++;
         String[] out = new String[easyCount + longWords.length];

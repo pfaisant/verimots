@@ -4,13 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Política de privacidad — Verimots</title>
-  <meta name="description" content="Política de privacidad de Verimots: datos locales, retos anónimos e inicio de sesión de Google opcional." />
+  <meta name="description" content="Privacidad de Verimots: datos locales, sesiones de invitado, actividad sincronizada y eliminación de cuentas." />
   <meta name="theme-color" content="#142018" />
   <link rel="canonical" href="https://s.pfa87.cc/privacidad.html" />
   <link rel="alternate" hreflang="fr" href="https://s.pfa87.cc/confidentialite.html" />
   <link rel="alternate" hreflang="en" href="https://s.pfa87.cc/privacy.html" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=131" />
+  <link rel="alternate" hreflang="ca" href="https://s.pfa87.cc/privadesa.html" />
+  <link rel="icon" href="favicon.svg?v=158" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://s.pfa87.cc/app.css?v=158" />
 </head>
 <body class="simple legal">
   <header class="top">
@@ -22,7 +23,7 @@
   <main>
     <article class="info">
       <h2>Política de privacidad</h2>
-      <p>Última actualización: 20 de agosto de 2026.</p>
+      <p>Última actualización: 16 de septiembre de 2026.</p>
       <p>
         Verimots es un verificador de palabras y juego de letras publicado por
         <strong>pfa87</strong>
@@ -32,31 +33,34 @@
         Está disponible en la web y como aplicación Android
         (<code>cc.pfa87.verimots</code>). No contiene publicidad ni compras y no vende datos.
       </p>
-      <p><a href="/confidentialite.html">Français</a> · <a href="/privacy.html">English</a> · <a href="/support.html">Ayuda y contacto</a></p>
+      <p><a href="/confidentialite.html">Français</a> · <a href="/privacy.html">English</a> · <a href="/privadesa.html">Català</a> · <a href="/support.html">Ayuda y contacto</a></p>
+      <p><strong><a href="#delete-account">Solicitar la eliminación de la cuenta y los datos</a></strong></p>
 
       <h3>Responsable</h3>
       <p>pfa87, contacto: <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>.</p>
 
-      <h3>No se necesita una cuenta</h3>
+      <h3>Sesión de invitado y Google opcional</h3>
       <p>
-        La consulta de palabras, el atril y los modos de reto y entrenamiento
-        funcionan sin cuenta. El inicio de sesión de Google es
-        <strong>opcional</strong> y solo se usa para la clasificación semanal y
-        el historial sincronizado.
+        Puedes consultar palabras y jugar sin Google. El uso en línea puede crear automáticamente
+        una identidad de invitado, con un nombre como <code>user100001</code> y una cookie o token de sesión.
+        Las puntuaciones y la actividad pueden vincularse a esa identidad sin Google.
+        La conexión con Google es <strong>opcional</strong> y vincula el historial, la actividad
+        y las clasificaciones del invitado a la cuenta para usarlos en otros dispositivos.
       </p>
 
       <h3>Datos guardados en el dispositivo</h3>
       <ul>
-        <li>Historial local de palabras, puntuaciones y estadísticas de entrenamiento.</li>
+        <li>Historial local de palabras, favoritos, puntuaciones y estadísticas de entrenamiento.</li>
         <li>Idioma, modo de juego y preferencias de interfaz.</li>
         <li>Caché de hasta 80 definiciones consultadas, durante un máximo de siete días.</li>
-        <li>Token de sesión si has iniciado sesión.</li>
+        <li>Cookie o token de invitado o de cuenta vinculada a Google, y actividad pendiente de sincronizar.</li>
       </ul>
-      <p>Puedes eliminarlos borrando los datos del sitio o de la aplicación.</p>
+      <p>Los favoritos y las preferencias son locales. El historial y la actividad pueden tener también una copia en el servidor. Borrar los datos del sitio o de la aplicación elimina la copia local, no los datos del servidor.</p>
 
       <h3>Datos enviados a s.pfa87.cc</h3>
-      <p><strong>Reto anónimo.</strong> Solo se envía el porcentaje (0–100) para calcular la media pública.</p>
-      <p><strong>Competición opcional.</strong> Tras iniciar sesión, Google nos facilita el identificador <code>sub</code>, el nombre mostrado y la URL de la foto. Se usan para la clasificación, el historial y las estadísticas. El <code>sub</code> nunca se muestra públicamente.</p>
+      <p><strong>Partidas y consultas.</strong> La actividad en línea puede enviar la palabra, el idioma, el diccionario, el modo, el atril, la edición de fichas y los identificadores del evento y de la ronda, junto con la sesión. Las partidas clasificadas envían la palabra o el pase, el atril y el porcentaje. El servidor los valida y guarda clasificaciones, fechas, historial y recuentos de actividad. Los registros contra duplicados usan huellas hash; las clasificaciones por actividad no publican las palabras consultadas. Los eventos sin conexión ya vinculados a una identidad pueden enviarse al reconectar.</p>
+      <p><strong>Google opcional.</strong> Si te conectas, Google facilita el identificador <code>sub</code>, el nombre y la URL de la foto para identificar la cuenta y sincronizar el historial y las estadísticas. El <code>sub</code> no se publica.</p>
+      <p><strong>Clasificaciones públicas.</strong> Pueden mostrar el nombre del invitado o de la cuenta, idioma, posición, puntos, medias, número de partidas o actividades y fechas. Las partidas clasificadas también pueden mostrar una palabra jugada. La media pública del reto usa porcentajes agregados; esto no convierte toda la actividad en anónima.</p>
       <p><strong>Definiciones.</strong> La palabra consultada se envía a nuestro servidor y después a Wikcionario/Wiktionary.</p>
       <p><strong>Comentarios.</strong> Se guardan el mensaje, el email opcional, la fecha, el idioma y la dirección IP para limitar abusos y poder responder.</p>
 
@@ -77,14 +81,23 @@
       <h3>Conservación y derechos</h3>
       <ul>
         <li>Porcentajes anónimos: se conservan agregados y sin identificador.</li>
-        <li>Cuenta e historial: hasta que solicites su eliminación.</li>
+        <li>Perfiles de invitado o Google, historial, clasificaciones y totales de actividad: guardados en el servidor, aparte de los datos locales. El historial sincronizado contiene hasta 80 palabras distintas recientes.</li>
         <li>Cookie o token de sesión: hasta 30 días o hasta cerrar sesión.</li>
       </ul>
       <p>
-        Para consultar, exportar o borrar los datos vinculados a Google, escribe a
-        <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>. También puedes
-        cerrar sesión y borrar los datos locales de la aplicación.
+        Para consultar o exportar datos de invitado o de Google, escribe a
+        <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a> indicando el nombre mostrado y cualquier identificador de cuenta disponible.
       </p>
+
+      <section id="delete-account" aria-labelledby="delete-account-title">
+        <h3 id="delete-account-title">Eliminar tu cuenta y tus datos</h3>
+        <p><strong><a href="mailto:pfanokif@gmail.com?subject=Verimots%20eliminar%20cuenta%20y%20datos">Solicitar la eliminación por email</a></strong> a pfanokif@gmail.com. Sirve para cuentas de invitado y vinculadas a Google.</p>
+        <p>Indica tu nombre mostrado o identificador de invitado y solicita eliminar la cuenta, el historial sincronizado, las clasificaciones y la actividad. Podemos necesitar información para identificar la cuenta. No envíes contraseñas ni tokens de sesión.</p>
+        <p>Cerrar sesión o borrar los datos del dispositivo no elimina los datos del servidor. Borrar el historial de palabras no elimina las clasificaciones ni los totales de actividad.</p>
+      </section>
+
+      <h3>Medición de visitas en la web</h3>
+      <p>El sitio usa Google Analytics para medir visitas. Las cookies de medición solo se activan si aceptas. La elección se guarda localmente y puede cambiarse mediante Cookies en la aplicación. Los registros de juego descritos arriba son independientes de ese consentimiento.</p>
 
       <h3>Menores</h3>
       <p>Verimots no está dirigido a menores de 13 años y no recopila deliberadamente sus datos.</p>

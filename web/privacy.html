@@ -4,13 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Privacy policy — Verimots</title>
-  <meta name="description" content="Verimots privacy policy: on-device data, anonymous challenge scores, optional Google sign-in." />
+  <meta name="description" content="Verimots privacy policy: local data, guest sessions, synced activity and account deletion." />
   <meta name="theme-color" content="#142018" />
   <link rel="canonical" href="https://s.pfa87.cc/privacy.html" />
   <link rel="alternate" hreflang="fr" href="https://s.pfa87.cc/confidentialite.html" />
   <link rel="alternate" hreflang="es" href="https://s.pfa87.cc/privacidad.html" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=131" />
+  <link rel="alternate" hreflang="ca" href="https://s.pfa87.cc/privadesa.html" />
+  <link rel="icon" href="favicon.svg?v=158" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://s.pfa87.cc/app.css?v=158" />
 </head>
 <body class="simple legal">
   <header class="top">
@@ -25,47 +26,51 @@
   <main>
     <article class="info">
       <h2>Privacy policy</h2>
-      <p>Last updated: 20 August 2026.</p>
+      <p>Last updated: 16 September 2026.</p>
       <p>
-        Verimots is a French, English and Spanish word checker and letter game published by
+        Verimots is a French, English, Spanish and Catalan word checker and letter game published by
         <strong>pfa87</strong>
         (<a href="https://s.pfa87.cc/">s.pfa87.cc</a>,
         <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>).
         Web and Android app (<code>cc.pfa87.verimots</code>).
         No ads, no in-app purchases, no sale of personal data.
       </p>
-      <p><a href="/confidentialite.html">Version française</a> · <a href="/privacidad.html">Español</a> · <a href="/dictionaries.html">Dictionaries</a> · <a href="/support.html">Support</a></p>
+      <p><a href="/confidentialite.html">Version française</a> · <a href="/privacidad.html">Español</a> · <a href="/privadesa.html">Català</a> · <a href="/dictionaries.html">Dictionaries</a> · <a href="/support.html">Support</a></p>
+      <p><strong><a href="#delete-account">Request account and data deletion</a></strong></p>
 
       <h3>Controller</h3>
       <p>pfa87, <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>. The service is served at s.pfa87.cc.</p>
 
-      <h3>No account required</h3>
+      <h3>Guest sessions and optional Google sign-in</h3>
       <p>
-        Word check, rack search, the anonymous challenge and training work without an account.
-        Google sign-in is <strong>optional</strong> and is only used for the weekly leaderboard
-        and synced history.
+        You can check words and play without Google. Online use can automatically create a
+        guest identity with a generated name such as <code>user100001</code> and a session cookie
+        or token. Scores and activity can be linked to this identity without Google sign-in.
+        Signing in with Google is <strong>optional</strong>; it links the guest's history,
+        activity and rankings to that account for use across devices.
       </p>
 
       <h3>Data on the device</h3>
       <ul>
-        <li>Local word history, the 0–100 score chart and training statistics.</li>
+        <li>Local word history, favorites, the 0–100 score chart and training statistics.</li>
         <li>Language, game mode and interface preferences.</li>
         <li>A cache of up to 80 definitions, retained for at most seven days.</li>
-        <li>A session token if you are signed in.</li>
+        <li>A guest or Google-linked session cookie/token, and activity waiting to sync.</li>
       </ul>
-      <p>Clear site or app storage to delete this data.</p>
+      <p>Favorites and interface preferences are local. History and activity may also have a server copy. Clearing site or app storage deletes local data; it does not delete server data.</p>
 
       <h3>Data sent to s.pfa87.cc</h3>
-      <p><strong>Anonymous challenge.</strong> If you submit a challenge online, only the percentage (0–100) is sent for the public average. No name, email, advertising ID or played word.</p>
-      <p><strong>Competitive mode (optional, after Google sign-in).</strong> Google sends us:</p>
+      <p><strong>Play and checks.</strong> Online activity can send the word, language, dictionary, game mode, rack, tile edition and event/round identifier with the guest or account session. Ranked play sends the word or pass, rack and score percentage. The server validates these and keeps rankings, dates, history and activity counts. Deduplication records use hashes; activity-count leaderboards do not publish checked words. Offline events already linked to an identity may be sent after reconnection.</p>
+      <p><strong>Google sign-in.</strong> If you choose it, Google sends us:</p>
       <ul>
         <li>your Google account id (<code>sub</code>);</li>
         <li>display name;</li>
         <li>profile photo URL.</li>
       </ul>
-      <p>We use these for the weekly board (name as pseudo), synced history, and stats (streak, best score). The <code>sub</code> is not shown publicly.</p>
+      <p>These identify your account and support synced history and statistics. The Google account identifier <code>sub</code> is not shown publicly.</p>
       <p><strong>Definitions.</strong> When online, the looked-up word is sent to our proxy and then to the matching Wiktionary edition.</p>
-      <p><strong>Leaderboard.</strong> A ranked score may include percentage, optional word, trail date and display name.</p>
+      <p><strong>Public leaderboards.</strong> Guest or account display names, language, rank, points, averages, game/activity counts and dates may be public. Ranked game entries can also show a played word. The separate public challenge average uses aggregated percentages; this does not make all play anonymous.</p>
+      <p><strong>Feedback.</strong> Messages include the text, optional email address, date and language. The service also uses the request IP address to limit abuse.</p>
 
       <h3>What we do not do</h3>
       <ul>
@@ -76,7 +81,7 @@
 
       <h3>Processors</h3>
       <ul>
-        <li><strong>Google</strong> — Sign in with Google. <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></li>
+        <li><strong>Google</strong> — optional sign-in and web audience measurement. <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></li>
         <li><strong>Wikimedia / Wiktionary</strong> — definitions when you are online.</li>
         <li><strong>Cloudflare</strong> — HTTPS front for s.pfa87.cc.</li>
       </ul>
@@ -84,17 +89,25 @@
       <h3>Retention</h3>
       <ul>
         <li>Anonymous percentages: stored in aggregate, not tied to a person.</li>
-        <li>Competitive account and history: until you ask us to delete them.</li>
+        <li>Guest and Google-linked profiles, history, rankings and activity totals: stored on the server, separately from local device data. Synced word history is limited to the 80 most recent distinct words.</li>
         <li>Session cookie / token: up to 30 days, or until you sign out.</li>
       </ul>
 
-      <h3>Your rights</h3>
+      <h3>Access and export</h3>
       <p>
-        To access, export or delete Google-linked data, email
-        <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>.
-        We handle deletion requests in a reasonable time.
-        Sign out in the app and clear app data to remove the local copy.
+        To request access to or export of guest or Google-linked data, contact
+        <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a> with the displayed account name and any available account identifier.
       </p>
+
+      <section id="delete-account" aria-labelledby="delete-account-title">
+        <h3 id="delete-account-title">Delete your account and data</h3>
+        <p><strong><a href="mailto:pfanokif@gmail.com?subject=Verimots%20account%20and%20data%20deletion">Request deletion by email</a></strong> at pfanokif@gmail.com. This applies to guest and Google-linked accounts.</p>
+        <p>Include your displayed name or guest identifier and say that you want the account, synced history, rankings and activity data deleted. We may need information to identify the account. Do not send passwords or session tokens.</p>
+        <p>Signing out or clearing device storage does not delete server data. Clearing word history does not delete rankings or lifetime activity totals.</p>
+      </section>
+
+      <h3>Web audience measurement</h3>
+      <p>The website uses Google Analytics to measure visits. Analytics cookies are enabled only after you accept. Your choice is stored locally and can be changed using Cookies in the app. Gameplay records described above are separate from analytics consent.</p>
 
       <h3>Children</h3>
       <p>Verimots is not directed at children under 13 and we do not knowingly collect their data.</p>

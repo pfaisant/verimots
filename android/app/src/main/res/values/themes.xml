@@ -5,9 +5,22 @@
         <item name="android:colorAccent">#e8c56b</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:editTextStyle">@style/Field</item>
+        <item name="android:scrollViewStyle">@style/QuietScroll</item>
+        <item name="android:listViewStyle">@style/QuietList</item>
+        <item name="android:dropDownListViewStyle">@style/QuietDropdown</item>
     </style>
     <style name="Field" parent="@android:style/Widget.EditText">
         <item name="android:background">@drawable/bg_input</item>
         <item name="android:textCursorDrawable">@null</item>
+        <item name="android:scrollbars">none</item>
+    </style>
+    <style name="QuietScroll" parent="@android:style/Widget.ScrollView">
+        <item name="android:scrollbars">none</item>
+    </style>
+    <style name="QuietList" parent="@android:style/Widget.DeviceDefault.ListView">
+        <item name="android:scrollbars">none</item>
+    </style>
+    <style name="QuietDropdown" parent="@android:style/Widget.DeviceDefault.ListView.DropDown">
+        <item name="android:scrollbars">none</item>
     </style>
 </resources>

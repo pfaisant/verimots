@@ -4,13 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Politique de confidentialité — Verimots</title>
-  <meta name="description" content="Politique de confidentialité de Verimots : données locales, défi anonyme, connexion Google optionnelle." />
+  <meta name="description" content="Confidentialité de Verimots : données locales, sessions invité, activité synchronisée et suppression de compte." />
   <meta name="theme-color" content="#142018" />
   <link rel="canonical" href="https://s.pfa87.cc/confidentialite.html" />
   <link rel="alternate" hreflang="en" href="https://s.pfa87.cc/privacy.html" />
   <link rel="alternate" hreflang="es" href="https://s.pfa87.cc/privacidad.html" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=131" />
+  <link rel="alternate" hreflang="ca" href="https://s.pfa87.cc/privadesa.html" />
+  <link rel="icon" href="favicon.svg?v=158" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://s.pfa87.cc/app.css?v=158" />
 </head>
 <body class="simple legal">
   <header class="top">
@@ -25,9 +26,9 @@
   <main>
     <article class="info">
       <h2>Politique de confidentialité</h2>
-      <p>Dernière mise à jour : 20 août 2026.</p>
+      <p>Dernière mise à jour : 16 septembre 2026.</p>
       <p>
-        Verimots est un vérificateur de mots et un jeu de lettres en français, anglais et espagnol,
+        Verimots est un vérificateur de mots et un jeu de lettres en français, anglais, espagnol et catalan,
         publié par <strong>pfa87</strong>
         (<a href="https://verimots.pfa87.cc/">verimots.pfa87.cc</a>,
         <a href="https://s.pfa87.cc/">s.pfa87.cc</a>,
@@ -35,7 +36,8 @@
         Version web et application Android (<code>cc.pfa87.verimots</code>).
         Pas de publicité, pas d’achat intégré, pas de vente de données.
       </p>
-      <p><a href="/privacy.html">English version</a> · <a href="/privacidad.html">Español</a> · <a href="/dictionnaires.html">Dictionnaires</a> · <a href="/support.html">Aide et contact</a></p>
+      <p><a href="/privacy.html">English version</a> · <a href="/privacidad.html">Español</a> · <a href="/privadesa.html">Català</a> · <a href="/dictionnaires.html">Dictionnaires</a> · <a href="/support.html">Aide et contact</a></p>
+      <p><strong><a href="#delete-account">Demander la suppression du compte et des données</a></strong></p>
 
       <h3>Responsable</h3>
       <p>
@@ -43,40 +45,43 @@
         L’app et le site sont hébergés via verimots.pfa87.cc et s.pfa87.cc.
       </p>
 
-      <h3>Vous pouvez tout faire sans compte</h3>
+      <h3>Session invité et connexion Google facultative</h3>
       <p>
-        Vérifier un mot, le tiroir, le défi anonyme et l’entraînement fonctionnent sans créer de compte.
-        La connexion Google est <strong>optionnelle</strong> et sert uniquement au classement hebdomadaire
-        et à l’historique de compte.
+        Vous pouvez vérifier des mots et jouer sans Google. En ligne, une identité invité
+        peut être créée automatiquement, avec un nom tel que <code>user100001</code> et un cookie
+        ou jeton de session. Les scores et activités peuvent être liés à cette identité sans connexion Google.
+        Google reste <strong>facultatif</strong> : la connexion rattache l'historique, les activités
+        et les classements de l'invité au compte pour les retrouver sur plusieurs appareils.
       </p>
 
       <h3>Données sur l’appareil</h3>
       <ul>
-        <li>Historique local des mots, graphique des scores et statistiques d’entraînement.</li>
+        <li>Historique local des mots, favoris, graphique des scores et statistiques d'entraînement.</li>
         <li>Langue, mode de jeu et préférences d’interface.</li>
         <li>Cache local de 80 définitions au maximum, conservées jusqu’à sept jours.</li>
-        <li>Jeton de session si vous êtes connecté (pour rester identifié).</li>
+        <li>Cookie ou jeton de session invité ou Google, et activités en attente de synchronisation.</li>
       </ul>
       <p>
-        Ces données restent sur l’appareil. Vous les effacez en vidant les données
-        du site ou de l’application.
+        Les favoris et préférences restent locaux. L'historique et les activités peuvent aussi
+        avoir une copie sur le serveur. Vider les données du site ou de l'application efface
+        la copie locale, pas les données du serveur.
       </p>
 
       <h3>Données envoyées à s.pfa87.cc</h3>
-      <p><strong>Défi anonyme.</strong> Si vous validez un défi en ligne, seul le pourcentage (0 à 100) est envoyé pour la moyenne publique. Pas de nom, e-mail, identifiant publicitaire ni mot joué.</p>
-      <p><strong>Compétition (optionnel, après connexion Google).</strong> Nous recevons de Google :</p>
+      <p><strong>Jeux et vérifications.</strong> En ligne, une activité peut envoyer le mot, la langue, le dictionnaire, le mode, le tirage, l'édition des tuiles et les identifiants de l'événement et de la manche, avec la session invité ou de compte. Une partie classée transmet le mot ou le passage, le tirage et le pourcentage. Le serveur les vérifie et conserve classements, dates, historique et compteurs d'activité. Les traces de dédoublonnage utilisent des empreintes ; les classements d'activité ne publient pas les mots vérifiés. Des événements hors ligne déjà liés à une identité peuvent être envoyés à la reconnexion.</p>
+      <p><strong>Connexion Google.</strong> Si vous la choisissez, nous recevons :</p>
       <ul>
         <li>identifiant de compte Google (<code>sub</code>), stable ;</li>
         <li>nom affiché ;</li>
         <li>photo de profil (URL fournie par Google).</li>
       </ul>
       <p>
-        Nous les utilisons pour le classement du jour (pseudo = nom),
-        l’historique de mots synchronisé, et vos stats (série, meilleur score).
-        Le <code>sub</code> n’est pas affiché publiquement.
+        Ces données identifient votre compte et permettent de synchroniser historique et statistiques.
+        L'identifiant Google <code>sub</code> n'est pas affiché publiquement.
       </p>
       <p><strong>Définitions.</strong> En ligne, le mot consulté est envoyé à notre relais puis au Wiktionnaire.</p>
-      <p><strong>Classement.</strong> Un score de compétition contient : pourcentage, mot éventuellement, date du défi, pseudo.</p>
+      <p><strong>Classements publics.</strong> Le nom invité ou de compte, la langue, le rang, les points, les moyennes, les nombres de parties ou d'activités et les dates peuvent être publics. Une partie classée peut aussi afficher un mot joué. La moyenne publique du défi utilise des pourcentages agrégés ; cela ne rend pas toute l'activité anonyme.</p>
+      <p><strong>Commentaires.</strong> Les messages comprennent le texte, l'adresse e-mail facultative, la date et la langue. Le service utilise aussi l'adresse IP de la requête pour limiter les abus.</p>
 
       <h3>Ce que nous ne faisons pas</h3>
       <ul>
@@ -87,11 +92,12 @@
 
       <h3>Mesure d’audience (Google Analytics)</h3>
       <p>
-        Sur le site web uniquement, nous utilisons Google Analytics 4
-        (<code>G-6R0YS8HW30</code>) pour compter les visites.
-        Google peut recevoir l’URL de la page, la langue du navigateur, le type
-        d’appareil et une localisation approximative. Pas de publicité, pas de
-        remarketing. L’application Android n’embarque pas ce tag.
+        Le site utilise Google Analytics 4 pour mesurer les visites. Les cookies de mesure
+        ne sont activés que si vous acceptez. Votre choix est enregistré localement et peut
+        être modifié avec le bouton Cookies. Google peut recevoir l'URL, la langue du navigateur,
+        le type d'appareil et une localisation approximative. Pas de publicité ni de remarketing.
+        L'application Android ne contient pas ce tag. Les enregistrements de jeu décrits ci-dessus
+        sont distincts du consentement à la mesure d'audience.
       </p>
 
       <h3>Sous-traitants</h3>
@@ -104,18 +110,23 @@
       <h3>Conservation</h3>
       <ul>
         <li>Scores anonymes (pourcentage) : agrégés, sans identifiant.</li>
-        <li>Compte compétition et historique : tant que le compte existe, ou jusqu’à suppression.</li>
+        <li>Profils invité ou Google, historique, classements et totaux d'activité : conservés sur le serveur, séparément des données locales. L'historique synchronisé contient au plus 80 mots distincts récents.</li>
         <li>Session : cookie / jeton jusqu’à 30 jours, ou jusqu’à déconnexion.</li>
       </ul>
 
-      <h3>Vos droits</h3>
+      <h3>Accès et export</h3>
       <p>
-        Pour voir, exporter ou supprimer les données liées à votre connexion Google,
-        écrivez à <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a> depuis une adresse
-        qui permet de vérifier le compte, ou déconnectez-vous dans l’app
-        (l’historique local s’efface en vidant les données de l’app).
-        Nous traitons une demande de suppression dans un délai raisonnable.
+        Pour demander accès aux données invité ou Google, ou leur export,
+        écrivez à <a href="mailto:pfanokif@gmail.com">pfanokif@gmail.com</a>
+        en indiquant le nom affiché et tout identifiant de compte disponible.
       </p>
+
+      <section id="delete-account" aria-labelledby="delete-account-title">
+        <h3 id="delete-account-title">Supprimer le compte et les données</h3>
+        <p><strong><a href="mailto:pfanokif@gmail.com?subject=Verimots%20suppression%20du%20compte%20et%20des%20donnees">Demander la suppression par e-mail</a></strong> à pfanokif@gmail.com. Cette démarche concerne les comptes invité et les comptes liés à Google.</p>
+        <p>Indiquez votre nom affiché ou identifiant invité et demandez la suppression du compte, de l'historique synchronisé, des classements et des activités. Des informations peuvent être nécessaires pour identifier le compte. N'envoyez ni mot de passe ni jeton de session.</p>
+        <p>Se déconnecter ou vider les données de l'appareil ne supprime pas les données du serveur. Effacer l'historique des mots ne supprime ni les classements ni les totaux d'activité.</p>
+      </section>
 
       <h3>Enfants</h3>
       <p>
@@ -132,23 +143,6 @@
 
       <h3>Modifications</h3>
       <p>Nous mettons à jour cette page si le traitement change. La date en tête fait foi.</p>
-
-      <h3>Mesure d'audience</h3>
-      <p>
-        Ce site utilise <strong>Google Analytics 4</strong> pour mesurer l'audience
-        (pages visitées, durée, appareil). Nous n'utilisons pas Google Analytics pour
-        la publicité. Les cookies de mesure ne sont placés que si vous acceptez.
-      </p>
-      <p>
-        Vous pouvez <strong>refuser les cookies</strong> lors de votre première visite
-        ou à tout moment via le bouton « Cookies » en bas de page. Votre choix est
-        enregistré localement dans votre navigateur.
-      </p>
-      <p>
-        Aucune donnée publicitaire n'est collectée. Google Analytics est configuré
-        en mode « analytics_storage » uniquement, sans « ad_storage », « ad_user_data »
-        ni « ad_personalization ».
-      </p>
 
       <h3>Contact</h3>
       <p>
@@ -174,6 +168,6 @@
     </div>
   </aside>
 
-  <script src="analytics.js?v=28"></script>
+  <script src="analytics.js?v=158"></script>
 </body>
 </html>

@@ -100,6 +100,11 @@ final class HistoryStore {
     }
 
     private static SharedPreferences prefs(Context ctx) {
-        return ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE);
+        // Cloud history belongs to an account; never merge it into another
+        // account's list on a shared device. The existing device-only list stays local.
+        String owner = Session.loggedIn(ctx) ? Session.owner(ctx) : "";
+        String scope = owner.isEmpty() ? PREF : PREF + "-" + java.util.Base64.getUrlEncoder()
+                .withoutPadding().encodeToString(owner.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return ctx.getSharedPreferences(scope, Context.MODE_PRIVATE);
     }
 }

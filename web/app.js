@@ -1,15 +1,23 @@
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, extractFormOf, isInflectionDef } from './game.js?v=131'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=131'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=131'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=131'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS } from './i18n.js?v=131'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=131'
+import { mountLeaderboard } from './leaderboard.js?v=158'
+import { polishIcons, icon } from './icons.js?v=158'
+import { activityId, recordActivity } from './activity.js?v=158'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=158'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=158'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=158'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=158'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=158'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=158'
 
 function letterValues() {
   return tileValues(getLang())
 }
 
-/** Tile length of a display string (Spanish digraphs count once). */
+/** BCP 47 tag for number and date formatting in the active UI language. */
+function uiLocale() {
+  return { en: 'en-GB', es: 'es-ES', ca: 'ca-ES' }[getLang()] || 'fr-FR'
+}
+
+/** Tile length of a display string (a digraph or NY/QU/L·L counts once). */
 function tlen(value) {
   return tileCount(String(value || ''), getLang(), getEsEdition())
 }
@@ -40,6 +48,7 @@ const findOut = document.getElementById('find-out')
 const listsOut = document.getElementById('lists-out')
 const addJoker = document.getElementById('add-joker') || document.getElementById('q-joker')
 const qJoker = document.getElementById('q-joker')
+const qGem = document.getElementById('q-gem')
 const search = document.getElementById('search')
 const advToggle = document.getElementById('adv-toggle')
 const advNav = document.getElementById('adv-nav')
@@ -57,18 +66,21 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=84', { type: 'module' })
+const worker = new Worker('worker.js?v=158', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
 let advanced = false
 let nav = 'game'
 let openedPlayThisSession = false
+let linkedGame = new URLSearchParams(location.search).get('play')
 let findMode = 'exact'
 let listKind = '2'
 let rackLen = 'all'
 let meta = null
 let debounce = 0
+let checkActivityTimer = 0
+let lastCountedCheck = ''
 let lastShare = null
 let wordStack = []
 let writingUrl = false
@@ -87,8 +99,18 @@ function ask(type, payload = {}) {
   const dict = getDict()
   const edition = effectiveEdition()
   return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject, lang, dict })
-    worker.postMessage({ type, id, lang, dict, edition, ...payload })
+    const timeout = setTimeout(() => {
+      pending.delete(id)
+      reject(new Error(t('lex_fail')))
+    }, 30000)
+    pending.set(id, { resolve, reject, lang, dict, timeout })
+    try {
+      worker.postMessage({ type, id, lang, dict, edition, ...payload })
+    } catch (error) {
+      clearTimeout(timeout)
+      pending.delete(id)
+      reject(error)
+    }
   })
 }
 
@@ -96,20 +118,45 @@ worker.onmessage = (ev) => {
   const msg = ev.data || {}
   const slot = pending.get(msg.id)
   if (!slot) return
+  clearTimeout(slot.timeout)
   pending.delete(msg.id)
   if (msg.type === 'error') slot.reject(new Error(msg.error))
   else slot.resolve(msg)
 }
 
+worker.onerror = () => {
+  ready = false
+  for (const slot of pending.values()) {
+    clearTimeout(slot.timeout)
+    slot.reject(new Error(t('lex_fail')))
+  }
+  pending.clear()
+  setLive(t('lex_fail'))
+  if (hint) hint.textContent = t('lex_fail')
+}
+
 function normalize(value, opts = {}) {
-  const sentinel = '\ue000'
+  const nTilde = '\ue000'
+  const cCedilla = '\ue001'
+  // Ç is its own Catalan tile, so it must survive the accent fold that turns
+  // "français" into FRANCAIS everywhere else.
   let s = String(value || '')
     .normalize('NFC')
-    .replace(/ñ/gi, sentinel)
+    .replace(/ñ/gi, nTilde)
+    .replace(/ç/gi, getLang() === 'ca' ? cCedilla : 'c')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
-    .replaceAll(sentinel.toUpperCase(), 'Ñ')
+    .replaceAll(nTilde.toUpperCase(), 'Ñ')
+    .replaceAll(cCedilla.toUpperCase(), 'Ç')
+  if (getLang() === 'ca') {
+    // 4/5/6 type NY/QU/L·L directly. '·' is part of the L·L tile and never
+    // separates, so nothing here needs a separator: LL is simply two L tiles.
+    return s
+      .replace(/Ŀ/g, 'L·')
+      .replace(/[•‧∙]/g, '·')
+      .replace(/[^A-ZÇ456?.*·]/g, '')
+  }
   if (getLang() === 'es') {
     // 1/2/3 type CH/LL/RR directly; in a rack, a separator (space, dash, ·)
     // keeps two single tiles apart: L·L is two L tiles, LL is the digraph.
@@ -144,11 +191,11 @@ function tilesHtml(word, jokers = [], opts = {}) {
 
 function wikiUrl(word, lemma) {
   const title = lemma || String(word || '').toLowerCase()
-  const host = getLang() === 'en'
-    ? 'en.wiktionary.org'
-    : getLang() === 'es'
-      ? 'es.wiktionary.org'
-      : 'fr.wiktionary.org'
+  const host = {
+    en: 'en.wiktionary.org',
+    es: 'es.wiktionary.org',
+    ca: 'ca.wiktionary.org',
+  }[getLang()] || 'fr.wiktionary.org'
   return `https://${host}/wiki/${encodeURIComponent(title)}`
 }
 
@@ -198,14 +245,19 @@ function escapeHtml(value) {
 }
 
 function foldKeyClient(value) {
-  const sentinel = '\ue000'
+  const nTilde = '\ue000'
+  const cCedilla = '\ue001'
+  // Ç is a Catalan letter, so CAÇA and CACA are two words with two
+  // definitions; folding them together made one shadow the other in the cache.
   return String(value || '')
     .normalize('NFC')
-    .replace(/ñ/gi, sentinel)
+    .replace(/ñ/gi, nTilde)
+    .replace(/ç/gi, getLang() === 'ca' ? cCedilla : 'c')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .replaceAll(sentinel, 'ñ')
+    .replaceAll(nTilde, 'ñ')
+    .replaceAll(cCedilla, 'ç')
 }
 
 function wordLink(word) {
@@ -245,19 +297,20 @@ function defsHtml(payload) {
   if (!payload.found || !payload.senses?.length) {
     return `<div class="defs" id="defs">
       <h3>${t('def_heading')}</h3>
-      <p class="empty">${payload.offline ? t('def_need_net') : t('def_missing')}</p>
+      <p class="empty">${payload.unavailable ? t('def_unavailable') : payload.offline ? t('def_need_net') : t('def_missing')}</p>
     </div>`
   }
-  const lemma = payload.lemma && foldKeyClient(payload.lemma) !== foldKeyClient(payload.word)
-    ? `<p class="lemma">${t('lemma_entry')} <button type="button" class="form-of" data-form-of="${escapeHtml(payload.lemma)}">${escapeHtml(payload.lemma)}</button></p>`
-    : ''
+  const lemma = lemmaLine(payload, escapeHtml, 'lemma')
   // The pos header names the defined word so the reader always knows which
-  // entry is open, root navigation included.
+  // entry is open, root navigation included. Merged lemmas (RAPEZ: raper and
+  // râper) get up to four blocks with fewer glosses each.
   const headWord = String(payload.word || '').toUpperCase()
-  const blocks = payload.senses.slice(0, 2).map((sense) => `
+  const senses = payload.senses.slice(0, (payload.lemmas || []).length > 1 ? 4 : 2)
+  const perSense = senses.length > 2 ? 2 : 4
+  const blocks = senses.map((sense) => `
     <div class="sense">
-      <div class="pos">${[headWord && escapeHtml(headWord), sense.pos && escapeHtml(sense.pos)].filter(Boolean).join(' · ')}</div>
-      <ol>${sense.defs.slice(0, 4).map((d) => `<li>${linkifyDef(d, escapeHtml)}</li>`).join('')}</ol>
+      <div class="pos">${senseHeader(headWord, sense, payload, escapeHtml)}</div>
+      <ol>${sense.defs.slice(0, perSense).map((d) => `<li>${linkifyDef(d, escapeHtml)}</li>`).join('')}</ol>
     </div>`).join('')
   return `<div class="defs" id="defs">
     <h3>${t('def_heading')}</h3>
@@ -281,11 +334,17 @@ async function loadDefinition(word, opts = {}) {
     return { ok: true, found: false, offline: true, word: key }
   }
   const mine = opts.stable ? defSeq : ++defSeq
+  const controller = new AbortController()
+  // Allow the server's 8s search deadline plus its direct-title fallback.
+  const timer = setTimeout(() => controller.abort(), 20000)
   try {
     const langQ = `&lang=${encodeURIComponent(getLang())}`
-    const res = await fetch(`/api/define?w=${encodeURIComponent(key)}${langQ}`)
+    const res = await fetch(`/api/define?w=${encodeURIComponent(key)}${langQ}`, { signal: controller.signal })
     const data = await res.json()
     if (!opts.stable && mine !== defSeq) return null
+    if (!res.ok || !data?.ok || data.unavailable) {
+      return { ok: false, found: false, unavailable: true, word: key }
+    }
     const cleaned = lexicalDefinition(data)
     if (cleaned?.ok && cleaned.found) {
       defCache.set(cacheKey, cleaned)
@@ -294,7 +353,9 @@ async function loadDefinition(word, opts = {}) {
     return cleaned
   } catch {
     if (!opts.stable && mine !== defSeq) return null
-    return { ok: true, found: false, offline: true, word: key }
+    return { ok: false, found: false, unavailable: true, word: key }
+  } finally {
+    clearTimeout(timer)
   }
 }
 
@@ -307,11 +368,12 @@ function challengeFromUrl() {
 }
 
 function dictsPage() {
-  return getLang() === 'en' ? '/dictionaries.html' : getLang() === 'es' ? '/diccionarios.html' : '/dictionnaires.html'
+  return { en: '/dictionaries.html', es: '/diccionarios.html', ca: '/diccionaris.html' }[getLang()]
+    || '/dictionnaires.html'
 }
 
 function liveCount(n) {
-  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  const locale = uiLocale()
   return t('word_count', Number(n).toLocaleString(locale), dictLabel())
 }
 
@@ -326,7 +388,7 @@ function paintAboutCount(n) {
     aboutLex.textContent = n
     return
   }
-  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  const locale = uiLocale()
   aboutLex.innerHTML = `<strong>${Number(n).toLocaleString(locale)}</strong> ${t('about_words')}`
 }
 
@@ -428,39 +490,65 @@ function recordWords(entries) {
   }
   paintHistBtn()
   if (histSheet && !histSheet.hidden) renderHistory()
-  if (getCurrentUser()) {
-    import('./competitive.js?v=131').then(({ saveHistoryWord }) => {
-      for (const entry of entries) if (entry?.word) saveHistoryWord(entry)
+  const owner = getCurrentUser()?.sub
+  if (owner) {
+    import('./competitive.js?v=158').then(({ saveHistoryWord }) => {
+      if (getCurrentUser()?.sub !== owner || clearingHistory) return
+      for (const entry of entries) if (entry?.word) saveHistoryWord(entry, { owner })
     }).catch(() => {})
   }
 }
 
+let historyRevision = 0
+let clearingHistory = false
 async function syncCloudHistory() {
+  if (clearingHistory) return
   if (!getCurrentUser()) return
+  const owner = getCurrentUser().sub
+  const revision = historyRevision
   try {
-    const { fetchHistory } = await import('./competitive.js?v=131')
+    const { fetchHistory } = await import('./competitive.js?v=158')
     const remote = await fetchHistory()
-    if (!remote.ok) return
+    if (!remote.ok || revision !== historyRevision || getCurrentUser()?.sub !== owner) return
     mergeHistory(remote.history)
     paintHistBtn()
     if (histSheet && !histSheet.hidden) renderHistory()
-    const local = loadHistory()
-    const remoteWords = new Set((remote.history || []).map((row) => row.word))
-    const { saveHistoryWord } = await import('./competitive.js?v=131')
-    for (const row of local) {
-      if (!remoteWords.has(row.word)) await saveHistoryWord(row)
-    }
+    // Local history has no account owner. Never upload a previous visitor's
+    // saved words into the account that happens to sign in next.
   } catch {
     /* offline */
   }
 }
 
-function isDesk() {
-  return window.matchMedia('(min-width: 900px)').matches
+let accountSessionRequest = null
+let accountHistoryRequest = null
+let accountCheckedAt = -Infinity
+function refreshAccount() {
+  if (accountSessionRequest) return accountSessionRequest
+  if (Date.now() - accountCheckedAt < 30000) return Promise.resolve(getCurrentUser())
+  accountCheckedAt = Date.now()
+  accountSessionRequest = checkSession().then(user => {
+    game.setUser(user)
+    // Account/history hydration never belongs on the local startup path.
+    // A slow history read must not delay the next session refresh either.
+    if (user && !accountHistoryRequest) {
+      accountHistoryRequest = syncCloudHistory().catch(() => {}).finally(() => { accountHistoryRequest = null })
+    }
+    return user
+  }).catch(() => getCurrentUser()).finally(() => { accountSessionRequest = null })
+  return accountSessionRequest
 }
 
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void refreshAccount()
+})
+window.addEventListener('pageshow', event => {
+  if (event.persisted) void refreshAccount()
+})
+
 function boardSplit() {
-  return isDesk() && (isCompetitive() || isKids()) && nav === 'game' && gamePlayEl && !gamePlayEl.hidden
+  // Standings have one dedicated navigation entry on every screen size.
+  return false
 }
 
 function showPanel(name) {
@@ -553,6 +641,7 @@ function syncChrome() {
     brandSub.setAttribute('aria-label', `${t('dict_open')} · ${dictLabel()}`)
   }
   paintDictPop()
+  if (nav === 'board') mountBoardPage(true)
   const brandHome = document.getElementById('brand-home')
   if (brandHome) {
     brandHome.href = `https://verimots.pfa87.cc/?lang=${getLang()}`
@@ -565,8 +654,9 @@ function syncChrome() {
   document.querySelectorAll('.legal-link').forEach((el) => {
     el.hidden = nav === 'game' || nav === 'board'
     const href = el.getAttribute('href') || ''
-    if (el.tagName === 'A' && (href.includes('confidentialite') || href.includes('privacy') || href.includes('privacidad'))) {
-      el.setAttribute('href', getLang() === 'en' ? '/privacy.html' : getLang() === 'es' ? '/privacidad.html' : '/confidentialite.html')
+    if (el.tagName === 'A' && /confidentialite|privacy|privacidad|privadesa/.test(href)) {
+      el.setAttribute('href', { en: '/privacy.html', es: '/privacidad.html', ca: '/privadesa.html' }[getLang()]
+        || '/confidentialite.html')
     }
     if (el.tagName === 'A' && (href.includes('dictionnair') || href.includes('diccionari'))) {
       el.setAttribute('href', dictsPage())
@@ -583,11 +673,19 @@ function syncChrome() {
       (nav === 'lists' && key === 'info')
     btn.setAttribute('aria-current', on ? 'page' : 'false')
   })
+  paintLoginTab()
   paintDicts()
   qLabel.textContent = nav === 'rack' ? t('q_label_rack') : t('q_label')
   q.placeholder = placeholders[nav] || placeholders.check
-  q.maxLength = getLang() === 'es' ? (nav === 'rack' ? 26 : 17) : nav === 'rack' ? 16 : 15
+  // Multi-character tiles need room: the longest 15-tile Catalan word runs to
+  // 19 characters, and eight L·L tiles in a rack to 24.
+  q.maxLength = getLang() === 'es'
+    ? (nav === 'rack' ? 26 : 17)
+    : getLang() === 'ca'
+      ? (nav === 'rack' ? 26 : 21)
+      : nav === 'rack' ? 16 : 15
   if (qJoker) qJoker.hidden = nav !== 'rack'
+  if (qGem) qGem.hidden = getLang() !== 'ca' || (nav !== 'rack' && nav !== 'check')
   if (hint) {
     hint.textContent = hints[findMode] || hints.exact
     // The exact check speaks for itself — the "Dans la liste ?" line was noise.
@@ -641,7 +739,10 @@ function setNav(name) {
   showPanel(name)
   if (changed) window.scrollTo(0, 0)
   if (name === 'lists') renderLists()
-  if (name === 'info') renderStudy()
+  if (name === 'info') {
+    renderStudy()
+    void refreshAccount()
+  }
   if (name === 'game') enterGame()
   mountBoardPage(name === 'board')
   if (name === 'check' || name === 'rack') {
@@ -652,21 +753,60 @@ function setNav(name) {
   writeUrl()
 }
 
-// The leaderboard has its own tab: the board node moves into the page and
-// back to the game rail, so game.js keeps painting one element.
+// Share the Board renderer with the standalone page, preserving the active game.
 const boardPageEl = document.getElementById('board-page')
+let boardInstance = null
+let boardLanguage = null
+let boardActive = false
 function mountBoardPage(on) {
-  const boardEl = document.getElementById('game-board')
-  const rail = document.getElementById('play-rail')
-  if (!boardEl || !boardPageEl || !rail) return
-  if (on) {
-    if (boardEl.parentElement !== boardPageEl) boardPageEl.appendChild(boardEl)
-    game.setBoardPage(true)
-  } else {
-    if (boardEl.parentElement !== rail) rail.insertBefore(boardEl, document.getElementById('game-dock'))
-    game.setBoardPage(false)
+  const entering = on && !boardActive
+  boardActive = on
+  if (!on || !boardPageEl) return
+  if (!boardInstance || boardLanguage !== getLang()) {
+    boardInstance?.dispose()
+    boardLanguage = getLang()
+    boardInstance = mountLeaderboard(boardPageEl, {
+      lang: boardLanguage,
+      onPlay: async ({ lang, play, view }) => {
+        if (LANGS.includes(lang) && lang !== getLang()) await switchLang(lang)
+        if (['bingo', 'kids', 'find', 'training'].includes(play)) linkedGame = play
+        setNav(view === 'check' ? 'check' : 'game')
+      },
+    })
+  } else if (entering) {
+    boardInstance.refresh()
   }
 }
+
+function isAccountLinked() {
+  const user = getCurrentUser()
+  return !!user && !user.guest
+}
+
+function paintLoginTab() {
+  const linked = isAccountLinked()
+  const button = document.querySelector('#tabs [data-tab="info"]')
+  if (!button) return
+  const label = button.querySelector('span')
+  const key = 'tab_info'
+  label.dataset.i18n = key
+  label.textContent = t(key)
+  button.classList.remove('tab-login')
+  button.setAttribute('aria-label', t(key))
+  const glyph = button.querySelector('svg')
+  if (glyph) glyph.outerHTML = icon('info')
+  const prompt = document.getElementById('login-prompt')
+  if (prompt) prompt.hidden = linked
+  const signin = document.getElementById('account-signin-btn')
+  if (linked && signin) delete signin.dataset.lang
+  if (!linked && nav === 'info' && signin && signin.dataset.lang !== getLang()) {
+    signin.dataset.lang = getLang()
+    void game.mountAccountSignIn()
+  }
+}
+document.addEventListener('verimots-account', paintLoginTab)
+document.addEventListener('verimots-session', (event) => game.setUser(event.detail))
+document.getElementById('login-retry')?.addEventListener('click', () => game.mountAccountSignIn())
 
 function setAdvanced(on) {
   advanced = on
@@ -709,6 +849,15 @@ function addBlankToRack() {
   run()
 }
 
+/** The ela geminada needs an interpunct no plain keyboard offers on a phone. */
+function addGeminateTile() {
+  const raw = normalize(q.value, { rack: nav === 'rack' })
+  if (tlen(raw) >= 16) return
+  q.value = raw + 'L·L'
+  q.focus()
+  run()
+}
+
 function renderRackPreview() {
   const raw = normalize(q.value, { rack: true })
   if (nav !== 'rack') {
@@ -724,8 +873,8 @@ function renderRackPreview() {
     ? tilesHtml(raw, [], { tap: true })
     : `<div class="tiles"></div>`
   rackPreview.innerHTML = `${tiles}
-    <button type="button" class="tile add-blank" id="rack-add-blank" ${canAdd ? '' : 'disabled'} aria-label="Ajouter un joker">?<small>+</small></button>
-    <p class="preview-cap">${raw ? `${n} lettre${n > 1 ? 's' : ''}` : 'Tapez A–Z ou posez un ?'}${blanks ? ` · ${blanks} joker${blanks > 1 ? 's' : ''}` : ''}</p>`
+    <button type="button" class="tile add-blank" id="rack-add-blank" ${canAdd ? '' : 'disabled'} aria-label="${escapeHtml(t('add_blank'))}">?<small>+</small></button>
+    <p class="preview-cap">${raw ? escapeHtml(t('tiles_n', n)) : escapeHtml(t('rack_empty_hint'))}${blanks ? ` · ${escapeHtml(t('blanks_n', blanks))}` : ''}</p>`
 }
 
 const dailyEl = document.getElementById('daily')
@@ -741,16 +890,35 @@ async function renderDaily(random = dailySeen) {
     return
   }
   const seq = ++dailySeq
+  // A word worth discovering has a definition of its own. Inflections
+  // ("forme de…", "pluriel de…") and words the dictionary cannot define are
+  // skipped — a few steps along the same deterministic pool for the day's
+  // word, another random pick otherwise.
   let daily = null
-  try {
-    daily = await ask('daily', { random })
-  } catch {
-    daily = null
+  let payload = null
+  for (let attempt = 0; attempt < 4; attempt++) {
+    let pick = null
+    try {
+      pick = await ask('daily', { random, skip: attempt })
+    } catch {
+      pick = null
+    }
+    dailySeen = true
+    if (seq !== dailySeq) return
+    if (!pick?.word || staleResult(pick)) break
+    const def = await loadDefinition(pick.word, { stable: true })
+    if (seq !== dailySeq) return
+    daily = pick
+    payload = def
+    if (def?.unavailable || def?.offline) break
+    if (!def?.found) continue
+    const senses = def.senses || []
+    const onlyInflections = senses.length > 0 && senses.every((s) => (s.defs || []).every(isInflectionDef))
+    if (!onlyInflections) break
   }
-  dailySeen = true
-  if (seq !== dailySeq || !daily?.word || staleResult(daily)) return
+  if (!daily?.word) return
   if (nav !== 'check' || normalize(q.value)) return
-  const loc = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  const loc = uiLocale()
   const when = new Date().toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' })
   dailyEl.hidden = false
   dailyEl.innerHTML = `
@@ -769,7 +937,6 @@ async function renderDaily(random = dailySeen) {
       <span class="daily-tap">${escapeHtml(t('daily_tap'))} →</span>
     </button>
     <div class="game-def-body" id="daily-def">${defBody(null, escapeHtml)}</div>`
-  const payload = await loadDefinition(daily.word, { stable: true })
   if (seq !== dailySeq || dailyEl.hidden) return
   const blob = (payload?.senses || []).flatMap((s) => s.defs).join(' ')
   const formOf = extractFormOf(blob)
@@ -849,10 +1016,10 @@ function renderGroups(target, groups, emptyText, summary) {
     return
   }
   const total = groups.reduce((n, g) => n + g.words.length, 0)
-  target.innerHTML = `<p class="result-sum">${summary || `${total.toLocaleString('fr-FR')} mot${total > 1 ? 's' : ''}`}</p>` +
+  target.innerHTML = `<p class="result-sum">${summary || escapeHtml(t('words_n', total))}</p>` +
     groups.map((g) => `
       <div class="group">
-        <h3>${g.len} lettres · ${g.words.length}</h3>
+        <h3>${escapeHtml(t('tiles_n', g.len))} · ${g.words.length}</h3>
         <div class="words">${g.words.map((entry) => {
           const w = typeof entry === 'string' ? { word: entry, score: '', jokers: [] } : entry
           const letters = tileTokens(w.word, getLang(), getEsEdition())
@@ -895,14 +1062,28 @@ function setDictOpen(on) {
   dictPop.hidden = !on
   brandSub.classList.toggle('is-open', on)
   brandSub.setAttribute('aria-expanded', on ? 'true' : 'false')
-  if (on) paintDictPop()
+  if (on) {
+    paintDictPop()
+    dictPop.querySelector('[aria-selected="true"]')?.focus()
+  }
 }
+
+dictPop?.addEventListener('keydown', (event) => {
+  const options = [...dictPop.querySelectorAll('[role="option"]')]
+  const current = options.indexOf(document.activeElement)
+  let next
+  if (event.key === 'ArrowDown') next = (current + 1) % options.length
+  if (event.key === 'ArrowUp') next = (current - 1 + options.length) % options.length
+  if (event.key === 'Home') next = 0
+  if (event.key === 'End') next = options.length - 1
+  if (next !== undefined) { event.preventDefault(); options[next]?.focus() }
+})
 
 function paintDictPop() {
   if (!dictPop) return
   const current = getDict()
   dictPop.innerHTML = DICTS.flatMap((item) => {
-    const lang = item.lang === 'fr' ? 'FR' : item.lang === 'en' ? 'EN' : 'ES'
+    const lang = item.lang.toUpperCase()
     if (item.id === 'rla') {
       // Spanish has two official tile sets — the quick switcher shows both.
       return ['fise', 'na'].map((edition) => {
@@ -929,6 +1110,8 @@ async function paintDicts() {
     btn.setAttribute('aria-pressed', on ? 'true' : 'false')
     btn.setAttribute('aria-checked', on ? 'true' : 'false')
   })
+  const caTiles = document.getElementById('ca-tiles')
+  if (caTiles) caTiles.hidden = current !== 'disc'
   const editionBox = document.getElementById('es-edition')
   if (editionBox) {
     editionBox.hidden = current !== 'rla'
@@ -940,7 +1123,7 @@ async function paintDicts() {
   }
   paintDictPop()
   const info = await loadDictsInfo()
-  const locale = getLang() === 'en' ? 'en-GB' : getLang() === 'es' ? 'es-ES' : 'fr-FR'
+  const locale = uiLocale()
   document.querySelectorAll('[data-dict-meta]').forEach((el) => {
     const row = info?.[el.dataset.dictMeta]
     if (!row) return
@@ -1029,8 +1212,11 @@ function showGameView(view = 'menu') {
   if (gamePlayEl) gamePlayEl.hidden = view !== 'play'
   if (gameStudyEl) gameStudyEl.hidden = view !== 'study'
   const dock = document.getElementById('game-dock')
+  if (dock) dock.hidden = view !== 'play'
+  const actionsPanel = document.getElementById('game-actions-panel')
+  if (actionsPanel) actionsPanel.hidden = true
+  document.getElementById('game-options')?.setAttribute('aria-expanded', 'false')
   if (view !== 'play') {
-    if (dock) dock.hidden = true
     document.body.classList.remove('has-chart')
   }
   document.body.classList.toggle('game-split', boardSplit())
@@ -1107,6 +1293,19 @@ document.getElementById('study-def')?.addEventListener('click', async (e) => {
 })
 
 async function enterGame() {
+  const linkedModes = {bingo: 'competitive', kids: 'kids', find: 'defi', training: 'training'}
+  if (Object.hasOwn(linkedModes, linkedGame)) {
+    openedPlayThisSession = true
+    if (!ready) return
+    const mode = linkedModes[linkedGame]
+    linkedGame = null
+    setGameMode(mode)
+    showGameView('play')
+    await game.switchMode(mode, {force: true})
+    syncChrome()
+    showPanel(nav)
+    return
+  }
   const fromUrl = challengeFromUrl()
   if (parseRack(fromUrl.rack).length >= 2) {
     openedPlayThisSession = true
@@ -1227,12 +1426,27 @@ function renderRackEmpty() {
 }
 
 async function run() {
+  const requestView = nav
+  const requestQuery = q.value
+  try { await runQuery() }
+  catch {
+    if (nav !== requestView || q.value !== normalize(requestQuery, { rack: nav === 'rack' })) return
+    setLive(t('lex_fail'))
+    const target = nav === 'rack' ? rackOut : verdict
+    target.hidden = false
+    target.innerHTML = `<p role="alert" class="empty">${escapeHtml(t('lex_fail'))}</p>`
+  }
+}
+
+async function runQuery() {
+  clearTimeout(checkActivityTimer)
   const raw = normalize(q.value, { rack: nav === 'rack' })
   q.value = raw
   clearBtn.hidden = raw.length === 0
   renderRackPreview()
   if (addJoker) addJoker.disabled = blankCount(raw) >= 2 || tlen(raw) >= 16
   if (qJoker) qJoker.disabled = blankCount(raw) >= 2 || tlen(raw) >= 16
+  if (qGem) qGem.disabled = tlen(raw) >= 16
   writeUrl()
 
   if (nav === 'lists' || nav === 'info' || nav === 'game') return
@@ -1240,6 +1454,7 @@ async function run() {
   if (nav === 'check' && findMode === 'exact') {
     findOut.hidden = true
     if (!raw || /[?.*]/.test(raw)) {
+      lastCountedCheck = ''
       renderCheck('', null)
       return
     }
@@ -1251,9 +1466,19 @@ async function run() {
     if (staleResult(result)) return
     if (normalize(q.value) !== raw || nav !== 'check' || findMode !== 'exact') return
     renderCheck(raw, result)
+    if (!result.ok) lastCountedCheck = ''
     if (result.ok) {
+      const checkLang = getLang()
+      const checkDict = getDict()
+      const checkKey = `${checkLang}:${checkDict}:${raw}`
+      checkActivityTimer = setTimeout(() => {
+        if (nav !== 'check' || findMode !== 'exact' || normalize(q.value) !== raw || getDict() !== checkDict || checkKey === lastCountedCheck) return
+        lastCountedCheck = checkKey
+        recordWords([{word: result.word || raw, pts: result.score || 0, src: 'dico'}])
+        void recordActivity({id: activityId(), category: 'checks', lang: checkLang, dict: checkDict, word: result.word || raw})
+      }, 900)
       const definition = await loadDefinition(raw)
-      if (definition && normalize(q.value) === raw && nav === 'check' && findMode === 'exact') {
+      if (definition && !staleResult(result) && normalize(q.value) === raw && nav === 'check' && findMode === 'exact') {
         renderCheck(raw, { ...result, definition })
       }
     }
@@ -1271,7 +1496,7 @@ async function run() {
     }
     if (!ready) {
       findOut.hidden = false
-      findOut.innerHTML = `<p class="pending">Dictionnaire en cours de chargement…</p>`
+      findOut.innerHTML = `<p class="pending">${escapeHtml(t('loading_lex'))}</p>`
       return
     }
     const result = await ask('find', { mode: findMode, q: raw, filters })
@@ -1292,7 +1517,7 @@ async function run() {
     }
     rackHelp.hidden = true
     if (!ready) {
-      rackOut.innerHTML = `<p class="pending">Dictionnaire en cours de chargement…</p>`
+      rackOut.innerHTML = `<p class="pending">${escapeHtml(t('loading_lex'))}</p>`
       return
     }
     const max = rackLen === 'all' ? tlen(raw) : Number(rackLen)
@@ -1494,18 +1719,31 @@ favOut?.addEventListener('click', (e) => {
   if (e.target.closest('[data-word]')) setFavOpen(false)
 })
 document.getElementById('hist-clear')?.addEventListener('click', async () => {
+  if (clearingHistory) return
   if (!loadHistory().length) return
   if (!window.confirm(t('hist_clear_confirm'))) return
-  clearHistory()
-  paintHistBtn()
-  renderHistory()
-  if (getCurrentUser()) {
-    try {
-      const { clearCloudHistory } = await import('./competitive.js?v=131')
-      await clearCloudHistory()
-    } catch {
-      /* offline */
+  const button = document.getElementById('hist-clear')
+  const error = document.getElementById('hist-error')
+  const owner = getCurrentUser()?.sub
+  clearingHistory = true
+  historyRevision++
+  button.disabled = true
+  if (error) error.hidden = true
+  try {
+    if (owner) {
+      const { clearCloudHistory } = await import('./competitive.js?v=158')
+      if (getCurrentUser()?.sub !== owner) return
+      const result = await clearCloudHistory({ owner })
+      if (!result?.ok || getCurrentUser()?.sub !== owner) throw new Error('clear_failed')
     }
+    clearHistory()
+    paintHistBtn()
+    renderHistory()
+  } catch {
+    if (error) { error.textContent = t('hist_clear_failed'); error.hidden = false }
+  } finally {
+    clearingHistory = false
+    button.disabled = false
   }
 })
 histSheet?.addEventListener('click', (e) => {
@@ -1519,6 +1757,7 @@ histOut?.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && dictPopOpen()) {
     setDictOpen(false)
+    brandSub?.focus()
     return
   }
   if (e.key === 'Escape' && histSheet && !histSheet.hidden) setHistOpen(false)
@@ -1622,6 +1861,10 @@ function onAddJoker(e) {
   addBlankToRack()
 }
 qJoker?.addEventListener('click', onAddJoker)
+qGem?.addEventListener('click', (e) => {
+  e.preventDefault()
+  addGeminateTile()
+})
 
 document.body.addEventListener('click', (e) => {
   // One handler for every star — game result, check card, study popup, lists.
@@ -1674,6 +1917,7 @@ document.body.addEventListener('click', (e) => {
 
 clearBtn.addEventListener('click', () => {
   q.value = ''
+  lastCountedCheck = ''
   q.focus()
   run()
 })
@@ -1716,6 +1960,7 @@ function metaFile(id = getDict()) {
   if (id === 'csw' || id === 'yawl') return 'data/meta-en.json'
   if (id === 'wow24') return 'data/meta-en-wow24.json'
   if (id === 'rla') return 'data/meta-es.json'
+  if (id === 'disc') return 'data/meta-ca.json'
   return 'data/meta.json'
 }
 
@@ -1739,7 +1984,10 @@ async function reloadLexicon() {
   if (nav === 'check' || nav === 'rack') run()
   else if (nav === 'lists') renderLists()
   else if (nav === 'info') renderStudy()
-  else if (nav === 'game') game?.refresh?.()
+  else if (nav === 'game') {
+    if (linkedGame) await enterGame()
+    else await game?.refresh?.()
+  }
   else if (nav === 'board') await game?.showBoard?.()
 }
 
@@ -1815,10 +2063,11 @@ function initAlphaBtnOption() {
 
 async function boot() {
   initLang()
+  polishIcons()
   initAlphaBtnOption()
-  document.getElementById('lang-fr')?.addEventListener('click', () => switchLang('fr'))
-  document.getElementById('lang-en')?.addEventListener('click', () => switchLang('en'))
-  document.getElementById('lang-es')?.addEventListener('click', () => switchLang('es'))
+  for (const code of LANGS) {
+    document.getElementById(`lang-${code}`)?.addEventListener('click', () => switchLang(code))
+  }
   brandSub?.addEventListener('click', (e) => {
     e.stopPropagation()
     setDictOpen(!dictPopOpen())
@@ -1826,16 +2075,10 @@ async function boot() {
   readUrl()
   syncChrome()
   paintApkLink()
-  try {
-    const user = await checkSession()
-    game.setUser(user)
-    if (user) await syncCloudHistory()
-  } catch {
-    /* not signed in */
-  }
   paintHistBtn()
   showPanel(nav)
   if (nav === 'game') enterGame()
+  void refreshAccount()
   try {
     await loadMeta()
     renderLists()
@@ -1864,7 +2107,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=131').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=158').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
@@ -1876,9 +2119,20 @@ window.addEventListener('resize', () => {
 
 
 document.getElementById('logout-btn')?.addEventListener('click', async () => {
-  await logout()
+  const button = document.getElementById('logout-btn')
+  button.disabled = true
+  let result
+  try { result = await logout() } finally { button.disabled = false }
+  if (!result?.ok) {
+    setLive(t('logout_failed'))
+    const error = document.getElementById('account-error')
+    if (error) { error.textContent = t('logout_failed'); error.hidden = false }
+    return
+  }
+  const error = document.getElementById('account-error')
+  if (error) error.hidden = true
   game.setUser(null)
-  // Force the ranked view to rebuild: the sign-in gate comes back in Bingo.
+  // Continue solo with an anonymous account after signing out.
   await game.switchMode(isKids() ? 'kids' : isCompetitive() ? 'competitive' : 'defi', { force: true })
   if (histSheet && !histSheet.hidden) renderHistory()
 })
@@ -1888,3 +2142,52 @@ document.addEventListener('verimots-auth', () => {
 })
 
 boot()
+
+// All sheets behave as modal dialogs, including rules and feedback. Keep
+// keyboard focus inside the open sheet and return it to the triggering control.
+const modalSheets = [...document.querySelectorAll('.hist-sheet')]
+let modalActive = null
+let modalReturn = null
+let lastOutsideFocus = null
+document.addEventListener('focusin', (event) => {
+  if (!event.target.closest('.hist-sheet')) lastOutsideFocus = event.target
+})
+const modalTargets = () => modalActive ? [...modalActive.querySelectorAll('button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex="0"]')].filter(el => el.getClientRects().length) : []
+function syncModal() {
+  const open = modalSheets.find(el => !el.hidden) || null
+  if (open === modalActive) return
+  const old = modalActive
+  modalActive = open
+  document.body.classList.toggle('has-dialog', !!open)
+  for (const area of document.querySelectorAll('body > .top, body > main, body > .chrome-bar')) area.inert = !!open
+  if (open) {
+    if (!old) modalReturn = open.contains(document.activeElement) ? lastOutsideFocus : document.activeElement
+    const card = open.querySelector('.hist-card')
+    card?.setAttribute('role', 'dialog')
+    card?.setAttribute('aria-modal', 'true')
+    if (card && !card.hasAttribute('aria-labelledby')) card.setAttribute('aria-labelledby', open.querySelector('h2')?.id || 'feedback-title')
+    if (!open.contains(document.activeElement)) modalTargets()[0]?.focus({preventScroll: true})
+  } else if (modalReturn?.isConnected && modalReturn.getClientRects().length) {
+    modalReturn.focus({preventScroll: true})
+    modalReturn = null
+  }
+}
+const modalObserver = new MutationObserver(syncModal)
+for (const sheet of modalSheets) modalObserver.observe(sheet, {attributes: true, attributeFilter: ['hidden']})
+document.addEventListener('keydown', (event) => {
+  if (!modalActive) return
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    modalActive.querySelector('.hist-close')?.click()
+  } else if (event.key === 'Tab') {
+    const targets = modalTargets()
+    const first = targets[0], last = targets.at(-1)
+    if (!first) { event.preventDefault(); return }
+    if (event.shiftKey && (document.activeElement === first || !modalActive.contains(document.activeElement))) {
+      event.preventDefault(); last.focus()
+    } else if (!event.shiftKey && (document.activeElement === last || !modalActive.contains(document.activeElement))) {
+      event.preventDefault(); first.focus()
+    }
+  }
+}, true)

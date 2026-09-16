@@ -1,7 +1,8 @@
 <resources>
     <style name="Tab">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">56dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_marginHorizontal">2dp</item>
         <item name="android:background">@drawable/bg_nav</item>
@@ -9,9 +10,9 @@
         <item name="android:paddingTop">6dp</item>
         <item name="android:paddingBottom">5dp</item>
         <item name="android:textColor">@color/dim</item>
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:drawablePadding">3dp</item>
+        <item name="android:drawablePadding">4dp</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
         <item name="android:includeFontPadding">false</item>
@@ -21,5 +22,46 @@
     <style name="Display">
         <item name="android:fontFamily">serif</item>
         <item name="android:textColor">@color/ink</item>
+    </style>
+    <style name="IconAction">
+        <item name="android:layout_width">48dp</item><item name="android:layout_height">48dp</item>
+        <item name="android:padding">12dp</item><item name="android:background">@drawable/bg_icon_action</item>
+        <item name="android:focusable">true</item>
+    </style>
+    <style name="PrimaryAction">
+        <item name="android:minHeight">48dp</item><item name="android:background">@drawable/bg_gold_btn</item>
+        <item name="android:gravity">center</item><item name="android:textColor">@color/tile_ink</item>
+        <item name="android:textSize">14sp</item><item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingHorizontal">16dp</item><item name="android:paddingVertical">8dp</item>
+    </style>
+    <style name="DefinitionText">
+        <item name="android:textSize">14sp</item><item name="android:textColor">@color/ink</item>
+        <item name="android:lineSpacingMultiplier">1.16</item><item name="android:includeFontPadding">false</item>
+    </style>
+    <style name="SectionLabel">
+        <item name="android:fontFamily">sans-serif-medium</item><item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/muted</item><item name="android:letterSpacing">0.04</item>
+    </style>
+    <style name="DefinitionMore">
+        <item name="android:layout_width">wrap_content</item><item name="android:layout_height">48dp</item>
+        <item name="android:minWidth">48dp</item><item name="android:gravity">center_vertical</item>
+        <item name="android:fontFamily">sans-serif-medium</item><item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/gold</item><item name="android:visibility">gone</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
+    <style name="GameMenuItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:paddingVertical">12dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:drawablePadding">12dp</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 </resources>

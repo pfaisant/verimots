@@ -43,15 +43,14 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <TextView
+        <ImageButton
             android:id="@+id/hist_dialog_close"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@drawable/bg_count"
-            android:gravity="center"
-            android:text="×"
-            android:textColor="@color/ink"
-            android:textSize="24sp" />
+            android:contentDescription="@string/close_dialog"
+            android:padding="13dp"
+            android:src="@drawable/ic_clear" />
     </LinearLayout>
 
     <!-- Leaderboard only: "Semaine | Général" segmented pill (web .board-tabs) -->
@@ -74,7 +73,7 @@
             <TextView
                 android:id="@+id/board_scope_week"
                 android:layout_width="wrap_content"
-                android:layout_height="24dp"
+                android:layout_height="48dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:includeFontPadding="false"
@@ -88,7 +87,7 @@
             <TextView
                 android:id="@+id/board_scope_all"
                 android:layout_width="wrap_content"
-                android:layout_height="24dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="2dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
@@ -108,13 +107,9 @@
         android:layout_marginTop="10dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:fadeScrollbars="false"
         android:fillViewport="true"
         android:paddingHorizontal="12dp"
-        android:scrollbarSize="6dp"
-        android:scrollbarStyle="outsideOverlay"
-        android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
-        android:scrollbars="vertical">
+        android:scrollbars="none">
 
         <LinearLayout
             android:id="@+id/hist_list"

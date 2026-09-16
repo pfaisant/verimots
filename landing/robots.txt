@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://verimots.pfa87.cc/sitemap.xml
+Sitemap: https://verimots.pfa87.cc/sitemap.txt

@@ -9,6 +9,26 @@
 
   var LEGACY_KEY = 'verimots-consent';
   var SHARED_KEY = 'pfa87-consent';
+  var COPY = {
+    fr: ['Ce site utilise Google Analytics pour mesurer l’audience. Les cookies de mesure ne sont activés que si vous acceptez.', 'En savoir plus', 'Accepter', 'Refuser', '/confidentialite.html'],
+    en: ['This site uses Google Analytics to measure visits. Analytics cookies are enabled only if you accept.', 'Learn more', 'Accept', 'Decline', '/privacy.html'],
+    es: ['Este sitio utiliza Google Analytics para medir las visitas. Las cookies de medición solo se activan si aceptas.', 'Más información', 'Aceptar', 'Rechazar', '/privacidad.html'],
+    ca: ['Aquest lloc utilitza Google Analytics per mesurar les visites. Les galetes de mesurament només s’activen si acceptes.', 'Més informació', 'Accepta', 'Rebutja', '/privadesa.html'],
+  };
+
+  function translate() {
+    var lang = document.documentElement.lang.slice(0, 2);
+    var copy = COPY[lang] || COPY.fr;
+    var title = document.getElementById('consent-title');
+    if (!title) return;
+    title.textContent = copy[0] + ' ';
+    var link = document.createElement('a');
+    link.href = copy[4];
+    link.textContent = copy[1];
+    title.appendChild(link);
+    document.querySelector('#consent [data-consent="granted"]').textContent = copy[2];
+    document.querySelector('#consent [data-consent="denied"]').textContent = copy[3];
+  }
 
   function gtag() {
     window.dataLayer = window.dataLayer || [];
@@ -26,9 +46,12 @@
   function banner(show) {
     var el = document.getElementById('consent');
     if (!el) return;
+    translate();
     el.hidden = !show;
     el.setAttribute('aria-hidden', show ? 'false' : 'true');
   }
+
+  document.addEventListener('verimots-lang', translate);
 
   function choose(choice) {
     try {

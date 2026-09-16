@@ -1,0 +1,4 @@
+<resources>
+    <string name="board_compact_period">Período</string>
+    <string name="board_compact_all_time">Siempre</string>
+</resources>

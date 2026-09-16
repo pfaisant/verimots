@@ -1,80 +1,55 @@
-# Verimots Competitive Mode API
+# Verimots game and account API
 
-## Overview
+The app is hosted at `s.pfa87.cc`. The standalone host serves the same modules
+from this repository and isolates test state under `.local-state/`.
 
-Verimots now supports competitive mode with daily challenges, leaderboards, and Google authentication.
+## Current contract
 
-## Environment Variables
+- `GET /api/game/trail?lang=fr` returns the opening rack for the Paris ISO week.
+  Language and beginner mode have separate trails. The trail is weekly, not daily.
+- `GET /api/game/board` supports language, category and day/week/all-time filters.
+  Bingo totals accumulate server-recomputed percentages; activity categories count
+  valid word events. Public results omit Google account IDs and session tokens.
+- `POST /api/auth/guest` creates or resumes a pseudonymous guest account.
+  Online play and word activity can use this account without Google sign-in.
+- `POST /api/auth/google` verifies a Google ID token. When upgrading a guest,
+  its accumulated play data is adopted by the Google-linked account.
+- `GET /api/auth/me` returns the authenticated profile and statistics.
+- `POST /api/auth/logout` revokes the current signed session and clears its cookie.
+- `POST /api/game/compete` submits a word/rack for server validation and scoring.
+  The opening weekly rack is checked. Later racks are currently client chosen.
+- `POST /api/game/activity` submits a valid check/find/training event with a stable
+  event ID and owner. Duplicates are rejected within the bounded retention window.
+- `GET`, `POST`, `DELETE /api/game/history` read, add or clear account history.
+  New clients send an owner guard so a changed session cannot redirect a write.
+- `GET /api/game/stats` and `POST /api/game/score` retain the legacy aggregate
+  percentage endpoint. It is distinct from authenticated activity and Bingo.
 
-- `WEB_CLIENT_ID` - Google OAuth2 client ID (required for authentication). Without this, `/api/auth/google` returns 503.
-- `SESSION_SECRET` - Secret for signing session tokens (optional, generates ephemeral secret if not set)
-- `ODS9_GAME_FILE` - Anonymous stats file (default: `~/.local/state/aiconglomerate/ods9-game.json`)
-- `ODS9_TRAIL_SALT_FILE` - Trail seed salt file (default: `~/.local/state/aiconglomerate/ods9-trail-salt.txt`)
-- `ODS9_LEADERBOARD_FILE` - Leaderboard data file (default: `~/.local/state/aiconglomerate/ods9-leaderboard.json`)
-- `ODS9_AUTH_DB_FILE` - Auth database file (default: `~/.local/state/aiconglomerate/ods9-auth.json`)
+## Storage and integration
 
-## API Endpoints
+`ODS9_GAME_FILE`, `ODS9_TRAIL_SALT_FILE`, `ODS9_LEADERBOARD_FILE`,
+`ODS9_AUTH_DB_FILE`, `ODS9_FEEDBACK_FILE`, `ODS9_SIGNUP_FILE`, and
+`ODS9_SESSION_SECRET_FILE` override the corresponding private storage paths.
+`SESSION_SECRET` overrides the persisted HMAC signing secret. Keep these outside
+public directories and Git. The embedded Mac host retains its existing private
+storage locations; `npm start` sets isolated local paths before loading the APIs.
 
-### Anonymous endpoints (unchanged)
+`WEB_CLIENT_ID` overrides the configured Google web client ID. Browser origins
+must be authorized in that OAuth project. The Android browser fallback uses a
+one-use random state bound to the initiating app; credentials in the HTTPS return
+page use a fragment and are immediately removed from its address.
 
-- `GET /api/game/stats` - Get average score from all anonymous submissions
-- `POST /api/game/score` - Submit anonymous score `{ percent: 0-100 }`
+The host imports `ods-game.mjs`, `ods-define.mjs`, and `http-safety.mjs` together.
+The shared AiConglomerate host still owns routing, security headers, analytics
+injection and its other apps. Restart it after updating imported API modules.
 
-### Daily trail (public)
+## Release limits
 
-- `GET /api/game/trail` - Get today's deterministic challenge
-  - Returns: `{ ok: true, trailId: "YYYY-MM-DD", category: "bingo|long|hard", rack: "LETTERS" }`
-  - Trail ID is in Europe/Paris timezone
-  - Same trail for everyone on the same day (seeded RNG)
+The leaderboard is not resistant to a modified client: later racks and repeat
+submissions are not backed by server-issued one-use rounds. English competitive
+validation also uses YAWL while the client can select WOW24. Both need a coordinated
+web/Android/API protocol change before competitive scoring can be relied upon.
+JSON writes are atomic per file and serialized within one Node process, but updates
+spanning profile and board files are not a database transaction. Run one writer.
 
-### Leaderboard (public)
-
-- `GET /api/game/board?trailId=YYYY-MM-DD` - Get leaderboard for a trail
-  - Default: today's trail
-  - Returns: `{ ok: true, trailId, top: [...], me: {...} }`
-  - `top`: Array of public top 50 entries `{ rank, pseudo, percent, word?, timestamp }`
-  - `me`: User's rank if logged in (null if anonymous)
-
-### Compete (requires login)
-
-- `POST /api/game/compete` - Submit ranked score
-  - Requires session cookie `ods9_session`
-  - Body: `{ percent: 0-100, word?: "WORD" }`
-  - One attempt per user per trail (first score wins)
-  - Returns: `{ ok: true }` or `{ ok: false, error: "already_submitted" }`
-
-### Authentication
-
-- `POST /api/auth/google` - Sign in with Google
-  - Requires `WEB_CLIENT_ID` env var
-  - Body: `{ idToken: "..." }` (Google ID token)
-  - Returns: `{ ok: true, user: { sub, name, picture } }` with `ods9_session` cookie
-  - Returns: `{ ok: false, error: "google_not_configured" }` if `WEB_CLIENT_ID` is not set (503)
-  
-- `GET /api/auth/me` - Get current user
-  - Requires session cookie
-  - Returns: `{ ok: true, user: { sub, name, picture } }`
-
-- `POST /api/auth/logout` - Sign out
-  - Clears session cookie
-  - Returns: `{ ok: true }`
-
-## Implementation Notes
-
-- Daily trails use a seeded RNG with a server salt (generated on first run)
-- Same trail ID + salt always produces the same rack
-- Sessions are signed with HMAC-SHA256
-- Google `sub` is the stable user identifier (never exposed publicly)
-- Leaderboard shows pseudo (user's name) not their Google ID
-- First score per user per trail is final (no retries)
-- All new routes are added to `PUBLIC_PATHS` in `serve.mjs`
-
-## Client Integration
-
-The anonymous random challenge mode is unchanged. Clients can:
-1. Continue using `GET /api/game/stats` and `POST /api/game/score` for anonymous play
-2. Optionally load `GET /api/game/trail` for the daily challenge
-3. Show `GET /api/game/board` to display rankings
-4. Enable `POST /api/game/compete` when user is logged in
-
-**Important**: No live Google button is deployed. The auth endpoints are wired but inactive until `WEB_CLIENT_ID` is configured.
+See `RELEASE_REVIEW.md` for evidence, severity and acceptance checks.

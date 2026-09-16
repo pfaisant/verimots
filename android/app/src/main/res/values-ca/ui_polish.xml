@@ -1,0 +1,9 @@
+<resources>
+    <string name="definition_more">Llegeix-ne més</string>
+    <string name="definition_less">Mostra’n menys</string>
+    <string name="polish_selected">Seleccionada</string>
+    <string name="next_rack">Faristol següent</string>
+    <string name="score_local_only">Puntuació desada en aquest dispositiu. Classificació no disponible per a aquesta ronda.</string>
+    <string name="account_saved_offline">Compte desat en aquest dispositiu. Verificació no disponible ara mateix. Pots continuar jugant.</string>
+    <string name="play_offline">Pots jugar sense compte, fins i tot sense connexió.</string>
+</resources>

@@ -19,52 +19,71 @@ import java.util.zip.GZIPInputStream;
 
 /**
  * Word list + tile model. Internally every word and rack is a tile-encoded
- * string: one char per tile. Spanish digraphs are folded to digits —
- * '1' = CH, '2' = LL, '3' = RR — so lengths, joker indexes and shuffles stay
- * tile-correct; {@link #display} turns them back into letters for the UI.
+ * string: one char per tile. Multi-character tiles are folded to digits —
+ * '1' = CH, '2' = LL, '3' = RR (Spanish), '4' = NY, '5' = QU, '6' = L·L
+ * (Catalan) — so lengths, joker indexes and shuffles stay tile-correct;
+ * {@link #display} turns them back into letters for the UI.
  *
  * Two Spanish tile sets exist: international FISE (100 tiles, CH/LL/RR, no
  * K/W, a blank may not stand for K/W) and North America (103 tiles, K/W,
  * LL/RR but no CH tile). See {@link Dict#esEdition}.
+ *
+ * Catalan has one 100-tile set: NY, QU and L·L are single tiles and Ç is a
+ * letter of its own; there is no K, W or Y tile, and the Q tile is played as
+ * QU. No Catalan tile run is ambiguous, so a Catalan rack needs no '·'
+ * separator — there the interpunct belongs to the L·L tile itself.
  */
 public final class Lexicon {
     public static final char CH = '1';
     public static final char LL = '2';
     public static final char RR = '3';
+    public static final char NY = '4';
+    public static final char QU = '5';
+    public static final char GEM = '6';
     public static final char SEP = '·';
-    private static final String ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ123";
-    //                                      A  B  C  D  E   F  G  H  I  J  K   L  M  N  Ñ  O  P  Q   R  S  T  U  V  W   X   Y   Z   CH LL RR
+    private static final String ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ123Ç456";
+    //                                      A  B  C  D  E   F  G  H  I  J  K   L  M  N  Ñ  O  P  Q   R  S  T  U  V  W   X   Y   Z   CH LL RR Ç  NY QU L·L
     public static final int[] VAL = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 0, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10, 0, 0, 0
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 0, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0
     };
     private static final int[] VAL_EN = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 0, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10, 0, 0, 0
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 0, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10, 0, 0, 0, 0, 0, 0, 0
     };
     /** International (FISE): no K/W tiles; CH 5, LL 8, RR 8. */
     private static final int[] VAL_ES = {
-        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 0, 1, 3, 1, 8, 1, 3, 5, 1, 1, 1, 1, 4, 0, 8, 4, 10, 5, 8, 8
+        1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 0, 1, 3, 1, 8, 1, 3, 5, 1, 1, 1, 1, 4, 0, 8, 4, 10, 5, 8, 8, 0, 0, 0, 0
     };
     /** North America: K/W 8, J 6, C 2, Q 8; no CH tile. */
     private static final int[] VAL_ES_NA = {
-        1, 3, 2, 2, 1, 4, 2, 4, 1, 6, 8, 1, 3, 1, 8, 1, 3, 8, 1, 1, 1, 1, 4, 8, 8, 4, 10, 0, 8, 8
+        1, 3, 2, 2, 1, 4, 2, 4, 1, 6, 8, 1, 3, 1, 8, 1, 3, 8, 1, 1, 1, 1, 4, 8, 8, 4, 10, 0, 8, 8, 0, 0, 0, 0
+    };
+    /** Catalan: no K/W/Y and no bare Q tile; Ç 10, NY 10, QU 8, L·L 10. */
+    private static final int[] VAL_CA = {
+        1, 3, 2, 2, 1, 4, 3, 8, 1, 8, 0, 1, 2, 1, 0, 1, 3, 0, 1, 1, 1, 1, 4, 0, 10, 0, 8, 0, 0, 0, 10, 10, 8, 10
     };
     private static final int[] BAG = {
-        9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 0, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1, 0, 0, 0
+        9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 0, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0
     };
     private static final int[] BAG_EN = {
-        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 0, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1, 0, 0, 0
+        9, 2, 2, 4, 12, 2, 3, 2, 9, 1, 1, 4, 2, 6, 0, 8, 2, 1, 6, 4, 6, 4, 2, 2, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0
     };
     /** 98 letter tiles + 2 blanks = 100. */
     private static final int[] BAG_ES = {
-        12, 2, 4, 5, 12, 1, 2, 2, 6, 1, 0, 4, 2, 5, 1, 9, 2, 1, 5, 6, 4, 5, 1, 0, 1, 1, 1, 1, 1, 1
+        12, 2, 4, 5, 12, 1, 2, 2, 6, 1, 0, 4, 2, 5, 1, 9, 2, 1, 5, 6, 4, 5, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0
     };
     /** 101 letter tiles + 2 blanks = 103. */
     private static final int[] BAG_ES_NA = {
-        11, 3, 4, 4, 11, 2, 2, 2, 6, 2, 1, 4, 3, 5, 1, 8, 2, 1, 4, 7, 4, 6, 2, 1, 1, 1, 1, 0, 1, 1
+        11, 3, 4, 4, 11, 2, 2, 2, 6, 2, 1, 4, 3, 5, 1, 8, 2, 1, 4, 7, 4, 6, 2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0
+    };
+    /** 98 letter tiles + 2 blanks = 100 (Federació Internacional d'Scrabble en Català). */
+    private static final int[] BAG_CA = {
+        12, 2, 3, 3, 13, 1, 2, 1, 8, 1, 0, 4, 3, 6, 0, 5, 2, 0, 8, 8, 5, 4, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1
     };
     private static final String HARD_DEFAULT = "JKÑQWXYZ";
     private static final String HARD_ES = "JÑQXYZ123";
     private static final String HARD_ES_NA = "JKÑQWXYZ23";
+    /** Every Catalan tile worth 8 or more. */
+    private static final String HARD_CA = "ÇHJXZ456";
 
     public static final class Play {
         public final String word;
@@ -161,11 +180,12 @@ public final class Lexicon {
         this.dict = dict;
         this.edition = edition;
         boolean es = "es".equals(lang);
+        boolean ca = Lang.CA.equals(lang);
         boolean na = es && Dict.ES_NA.equals(edition);
         this.chTile = es && !na;
-        this.val = "en".equals(lang) ? VAL_EN : na ? VAL_ES_NA : es ? VAL_ES : VAL;
-        this.bag = "en".equals(lang) ? BAG_EN : na ? BAG_ES_NA : es ? BAG_ES : BAG;
-        String hardSet = na ? HARD_ES_NA : es ? HARD_ES : HARD_DEFAULT;
+        this.val = ca ? VAL_CA : "en".equals(lang) ? VAL_EN : na ? VAL_ES_NA : es ? VAL_ES : VAL;
+        this.bag = ca ? BAG_CA : "en".equals(lang) ? BAG_EN : na ? BAG_ES_NA : es ? BAG_ES : BAG;
+        String hardSet = ca ? HARD_CA : na ? HARD_ES_NA : es ? HARD_ES : HARD_DEFAULT;
         for (int i = 0; i < hardSet.length(); i++) hardMask[letterIndex(hardSet.charAt(i))] = true;
         for (int i = 0; i < byLen.length; i++) byLen[i] = new ArrayList<>();
         InputStream raw = openLexicon(ctx, dict);
@@ -173,7 +193,7 @@ public final class Lexicon {
             String line;
             while ((line = r.readLine()) != null) {
                 if (line.isEmpty()) continue;
-                String word = es ? encode(line, chTile) : line;
+                String word = ca ? encodeCa(line) : es ? encode(line, chTile) : line;
                 if (word.length() < 2 || word.length() > 15) continue;
                 set.add(word);
                 count++;
@@ -228,11 +248,58 @@ public final class Lexicon {
         return out.toString();
     }
 
+    /**
+     * Display → encoded, Catalan. Greedy longest-first folding of L·L, NY and
+     * QU; the digits 4/5/6 type those tiles directly. '·' is part of the L·L
+     * tile, so only a space or dash may separate tiles.
+     */
+    static String encodeCa(String display) {
+        StringBuilder out = new StringBuilder(display.length());
+        int n = display.length();
+        for (int i = 0; i < n; i++) {
+            char c = display.charAt(i);
+            if (c == '-' || c == ' ' || c == ',' || c == '/') continue;
+            if (c == NY || c == QU || c == GEM) {
+                out.append(c);
+                continue;
+            }
+            if (c == 'Ŀ') {
+                // A keyboard may offer the ela geminada precomposed.
+                if (i + 1 < n && display.charAt(i + 1) == 'L') {
+                    out.append(GEM);
+                    i++;
+                } else {
+                    out.append('L');
+                }
+                continue;
+            }
+            if (c == 'L' && i + 2 < n && display.charAt(i + 1) == SEP && display.charAt(i + 2) == 'L') {
+                out.append(GEM);
+                i += 2;
+                continue;
+            }
+            char next = i + 1 < n ? display.charAt(i + 1) : 0;
+            if (c == 'N' && next == 'Y') {
+                out.append(NY);
+                i++;
+            } else if (c == 'Q' && next == 'U') {
+                out.append(QU);
+                i++;
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
+
     /** Glyph shown on one tile ('1' → "CH"). */
     public static String tileGlyph(char code) {
         if (code == CH) return "CH";
         if (code == LL) return "LL";
         if (code == RR) return "RR";
+        if (code == NY) return "NY";
+        if (code == QU) return "QU";
+        if (code == GEM) return "L·L";
         return String.valueOf(code);
     }
 
@@ -250,6 +317,8 @@ public final class Lexicon {
      */
     public String displayRack(String encoded) {
         if (encoded == null) return "";
+        // Catalan runs never re-merge, and '·' would read as half an L·L tile.
+        if (Lang.CA.equals(lang)) return display(encoded);
         StringBuilder b = new StringBuilder(encoded.length() + 6);
         for (int i = 0; i < encoded.length(); i++) {
             String glyph = tileGlyph(encoded.charAt(i));
@@ -273,10 +342,12 @@ public final class Lexicon {
     private static InputStream openLexicon(Context ctx, String dict) throws IOException {
         String gz = Dict.CSW.equals(dict) ? "data/yawl.txt.gz"
                 : Dict.WOW24.equals(dict) ? "data/wow24.txt.gz"
-                : Dict.RLA.equals(dict) ? "data/rla-es.txt.gz" : "data/ods9.txt.gz";
+                : Dict.RLA.equals(dict) ? "data/rla-es.txt.gz"
+                : Dict.DISC.equals(dict) ? "data/disc-ca.txt.gz" : "data/ods9.txt.gz";
         String plain = Dict.CSW.equals(dict) ? "data/yawl.txt"
                 : Dict.WOW24.equals(dict) ? "data/wow24.txt"
-                : Dict.RLA.equals(dict) ? "data/rla-es.txt" : "data/ods9.txt";
+                : Dict.RLA.equals(dict) ? "data/rla-es.txt"
+                : Dict.DISC.equals(dict) ? "data/disc-ca.txt" : "data/ods9.txt";
         try {
             return new GZIPInputStream(ctx.getAssets().open(gz));
         } catch (IOException e) {
@@ -416,12 +487,17 @@ public final class Lexicon {
 
     private static String normalize(String raw, boolean keepBlanks) {
         boolean es = instance != null && "es".equals(instance.lang);
+        boolean ca = instance != null && Lang.CA.equals(instance.lang);
         String composed = java.text.Normalizer.normalize(
                 String.valueOf(raw == null ? "" : raw),
                 java.text.Normalizer.Form.NFC);
+        // Ç is a Catalan tile of its own, so protect it from the accent fold
+        // that turns "français" into FRANCAIS in every other language.
         String protectedRaw = composed
                 .replace('ñ', '\uE000')
-                .replace('Ñ', '\uE000');
+                .replace('Ñ', '\uE000')
+                .replace('ç', ca ? '\uE001' : 'c')
+                .replace('Ç', ca ? '\uE001' : 'C');
         String s = java.text.Normalizer.normalize(protectedRaw, java.text.Normalizer.Form.NFD);
         StringBuilder b = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
@@ -431,12 +507,19 @@ public final class Lexicon {
                 b.append('Ñ');
                 continue;
             }
+            if (c == '\uE001') {
+                b.append('Ç');
+                continue;
+            }
+            if (c == 'ŀ') c = 'Ŀ';
             if (c >= 'a' && c <= 'z') c = (char) (c - 32);
             if (c >= 'A' && c <= 'Z' || c == 'Ñ') b.append(c);
+            else if (ca && (c == NY || c == QU || c == GEM || c == SEP || c == 'Ŀ')) b.append(c);
             else if (es && (c == '1' || c == '2' || c == '3')) b.append(c);
             else if (es && keepBlanks && (c == SEP || c == '-' || c == ' ' || c == ',')) b.append(SEP);
             else if (keepBlanks && (c == '?' || c == '.' || c == '*')) b.append('?');
         }
+        if (ca) return encodeCa(b.toString());
         return es ? encode(b.toString(), instance.chTile) : b.toString();
     }
 
@@ -701,6 +784,7 @@ public final class Lexicon {
     }
 
     private String encodeKids(String word) {
+        if (Lang.CA.equals(lang)) return encodeCa(word);
         return "es".equals(lang) ? encode(word, chTile) : word;
     }
 

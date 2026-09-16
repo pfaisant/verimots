@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Classement complet — Verimots</title>
+  <meta name="description" content="Classement complet de Verimots : du jour, de la semaine et général, dans toutes les langues — français, anglais, espagnol et catalan." />
+  <meta name="theme-color" content="#141e19" />
+  <link rel="canonical" href="https://s.pfa87.cc/leaderboard.html" />
+  <link rel="icon" href="favicon.svg?v=158" type="image/svg+xml" />
+  <link rel="stylesheet" href="app.css?v=158" />
+
+</head>
+<body class="simple legal leaderboard-page">
+  <header class="top">
+    <div class="brand">
+      <a href="/" class="brand-home">
+        <span class="mark" aria-hidden="true">V</span>
+        <h1>Verimots</h1>
+      </a>
+      <span class="legal-kicker" id="lb-kicker">Classement</span>
+    </div>
+    <a class="menu-back" href="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.4 6.4 10.8 11l4.6 4.6L14 17l-6-6 6-6z"/></svg>
+      <span id="lb-back">Retour</span>
+    </a>
+  </header>
+  <main>
+    <article class="info">
+      <div class="lb-head">
+        <h2 id="lb-title">Classement complet</h2>
+        <button type="button" class="lb-refresh" id="lb-refresh"><span aria-hidden="true">↻</span><span id="lb-refresh-label">Actualiser</span></button>
+      </div>
+      <div class="lb-filters">
+        <label class="lb-filter"><span>Catégorie</span><select aria-label="Catégorie"><option>Mots vérifiés</option></select></label>
+        <label class="lb-filter"><span>Période</span><select aria-label="Période"><option>Semaine</option></select></label>
+      </div>
+      <p class="board-rule" id="lb-rule"></p>
+      <div class="lb-sections" id="lb-sections" aria-live="polite" aria-busy="true">
+        <p class="lb-loading" id="lb-loading">Chargement…</p>
+      </div>
+      <p class="fine lb-footer">
+        <a href="/" id="lb-play">Jouer à Verimots</a> ·
+        <a href="/support.html" id="lb-help">Aide</a> ·
+        <a href="/confidentialite.html" id="lb-privacy">Confidentialité</a>
+      </p>
+    </article>
+  </main>
+  <script type="module" src="leaderboard.js?v=158"></script>
+
+</body>
+</html>

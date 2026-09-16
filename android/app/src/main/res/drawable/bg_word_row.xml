@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/gold_soft">
+    <item>
+        <selector>
+            <item android:state_selected="true">
+                <layer-list>
+                    <item><shape><solid android:color="#14e8c56b" /></shape></item>
+                    <item android:gravity="bottom" android:height="1dp"><shape><solid android:color="@color/gold" /></shape></item>
+                </layer-list>
+            </item>
+            <item>
+                <layer-list>
+                    <item><shape><solid android:color="@android:color/transparent" /></shape></item>
+                    <item android:gravity="bottom" android:height="1dp"><shape><solid android:color="@color/card_line" /></shape></item>
+                </layer-list>
+            </item>
+        </selector>
+    </item>
+</ripple>

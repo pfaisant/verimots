@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Verimots — Vérificateur de mots et défi de lettres</title>
+  <meta name="description" content="Vérifie un mot, cherche sur un tiroir et entraîne-toi hors ligne en français, anglais, espagnol et catalan. Indépendant de Scrabble, Mattel et Hasbro." />
+  <meta name="theme-color" content="#142018" />
+  <link rel="canonical" href="https://verimots.pfa87.cc/" />
+  <link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/?lang=fr" />
+  <link rel="alternate" hreflang="en" href="https://verimots.pfa87.cc/?lang=en" />
+  <link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/?lang=es" />
+  <link rel="alternate" hreflang="ca" href="https://verimots.pfa87.cc/?lang=ca" />
+  <link rel="alternate" hreflang="x-default" href="https://verimots.pfa87.cc/" />
+  <link rel="icon" href="icon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Verimots — Vérificateur de mots et défi de lettres" />
+  <meta property="og:description" content="Vérifie un mot et entraîne-toi hors ligne en français, anglais, espagnol et catalan. Indépendant de Scrabble, Mattel et Hasbro." />
+  <meta property="og:url" content="https://verimots.pfa87.cc/" />
+  <meta property="og:image" content="https://verimots.pfa87.cc/og.jpg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:locale:alternate" content="en_GB" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Verimots — Vérificateur de mots et défi de lettres" />
+  <meta name="twitter:description" content="Vérifie un mot, cherche sur un tiroir et joue un défi. Indépendant de Scrabble, Mattel et Hasbro." />
+  <script type="application/ld+json" id="seo-json"></script>
+  <link rel="stylesheet" href="app.css?v=41" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="icon.png" width="44" height="44" alt="" />
+      <div>
+        <h1>Verimots</h1>
+      </div>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" id="lang-fr" class="lang-btn" aria-pressed="true">FR</button>
+      <button type="button" id="lang-en" class="lang-btn" aria-pressed="false">EN</button>
+      <button type="button" id="lang-es" class="lang-btn" aria-pressed="false">ES</button>
+      <button type="button" id="lang-ca" class="lang-btn" aria-pressed="false">CA</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="fly-rack" aria-hidden="true">
+        <div class="fly-word" id="fly-word"></div>
+      </div>
+      <p class="kicker" data-i18n="kicker">Web et Android</p>
+      <h2 data-i18n="headline">Les mots, à vous de jouer.</h2>
+      <div class="hero-copy">
+        <p class="lead" data-i18n="lead">Vérifiez un mot, trouvez quoi jouer avec vos lettres ou lancez un défi. Quatre langues. Gratuit, sans publicité.</p>
+        <div class="hero-row">
+        <ul class="stats">
+          <li><span class="stat-lang"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055A4"/><rect x="1" width="1" height="2" fill="#ffffff"/><rect x="2" width="1" height="2" fill="#EF4135"/></svg><span data-i18n="stat_fr">Français</span></span></li>
+          <li><span class="stat-lang"><svg class="flag" viewBox="0 0 60 30" aria-hidden="true"><rect width="60" height="30" fill="#012169"/><path d="M0 0L60 30M60 0L0 30" stroke="#ffffff" stroke-width="6"/><path d="M0 0L60 30M60 0L0 30" stroke="#C8102E" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#ffffff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#C8102E" stroke-width="6"/></svg><span data-i18n="stat_en">Anglais</span></span></li>
+          <li><span class="stat-lang"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="3" height="2" fill="#AA151B"/><rect y="0.5" width="3" height="1" fill="#F1BF00"/></svg><span data-i18n="stat_es">Espagnol</span></span></li>
+          <li><span class="stat-lang"><svg class="flag" viewBox="0 0 27 18" aria-hidden="true"><rect width="27" height="18" fill="#FCDD09"/><rect y="2" width="27" height="2" fill="#DA121A"/><rect y="6" width="27" height="2" fill="#DA121A"/><rect y="10" width="27" height="2" fill="#DA121A"/><rect y="14" width="27" height="2" fill="#DA121A"/></svg><span data-i18n="stat_ca">Catalan</span></span></li>
+        </ul>
+        <div class="cta">
+          <a class="btn gold" href="https://s.pfa87.cc/" data-i18n="play">Jouer</a>
+        </div>
+        </div>
+      </div>
+
+      <form class="signup" id="signup" novalidate>
+        <button type="button" class="info-btn" id="beta-info-btn">
+          <span aria-hidden="true">i</span>
+          <span class="sr" data-i18n="beta_info_aria">Pourquoi un test fermé ?</span>
+        </button>
+        <div class="signup-head">
+          <a class="play-badge-link" id="play-badge" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener">
+            <img class="play-badge" id="play-badge-img" src="play-fr.png" alt="Disponible sur Google Play" width="155" height="60" />
+          </a>
+          <div class="signup-copy">
+          <p class="signup-kicker" data-i18n="beta_kicker">Test fermé Google Play</p>
+          <h3 data-i18n="beta_title">Essayez l’app Android</h3>
+          </div>
+        </div>
+          <p class="signup-lead" data-i18n="beta_lead">Le test Google Play est sur invitation. Inscrivez l’adresse de votre compte Google ; ouvrez le lien du test une fois votre accès confirmé.</p>
+        <div class="signup-checks">
+          <label class="check">
+            <input type="checkbox" id="signup-beta" name="beta" checked />
+            <span data-i18n="signup_beta">M’inviter au test Play et m’envoyer le lien</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="signup-news" name="newsletter" />
+            <span data-i18n="signup_news">Newsletter Verimots (sorties, défi)</span>
+          </label>
+        </div>
+        <label class="sr" for="signup-email" data-i18n="signup_email">Email</label>
+        <div class="signup-row">
+          <input id="signup-email" name="email" type="email" required maxlength="120" autocomplete="email" data-i18n-placeholder="signup_email" placeholder="Email" />
+          <button type="submit" class="btn gold" id="signup-send" data-i18n="signup_send">Demander l’accès</button>
+        </div>
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <div class="signup-foot">
+          <p class="signup-note" data-i18n="signup_note">Email seulement pour l’invitation et/ou la newsletter. Pas de pub.</p>
+          <a class="btn join" id="play-join" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="beta_join">Rejoindre le test bêta</a>
+        </div>
+        <p class="signup-status" id="signup-status" role="status" hidden></p>
+        <p class="signup-next" id="signup-next" hidden>
+          <a id="signup-optin" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="signup_optin">Ouvrir le lien d’opt-in Play</a>
+          <span aria-hidden="true"> · </span>
+          <a href="https://s.pfa87.cc/" data-i18n="signup_play_now">Jouer maintenant dans le navigateur</a>
+        </p>
+      </form>
+    </section>
+
+    <section class="feats">
+      <div class="feat">
+        <span class="feat-tile" aria-hidden="true">1</span>
+        <div class="feat-body">
+          <h3 data-i18n="f1t">Hors ligne</h3>
+          <p data-i18n="f1">Sur le web, chargez les listes une première fois. Ensuite, vérifiez vos mots et jouez sans réseau. Les définitions et classements restent en ligne.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <span class="feat-tile" aria-hidden="true">2</span>
+        <div class="feat-body">
+          <h3 data-i18n="f2t">Défi, entraînement et compétition</h3>
+          <p data-i18n="f2">Entraîne-toi par longueur, joker ou lettres difficiles. En compétition, chaque langue a son classement hebdomadaire.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <span class="feat-tile" aria-hidden="true">3</span>
+        <div class="feat-body">
+          <h3 data-i18n="f3t">Mode débutant</h3>
+          <p data-i18n="f3">Des mots longs et faciles, comme CHEVAUX. Un mot de la liste suffit. Indice si besoin. Pas de classement adulte.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <span class="feat-tile" aria-hidden="true">4</span>
+        <div class="feat-body">
+          <h3 data-i18n="f4t">Français, anglais, espagnol et catalan</h3>
+          <p data-i18n="f4">Changez de langue et de liste dans les Options. Les listes et leurs sources sont détaillées dans l’app.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title" data-i18n="faq_title">Questions fréquentes</h2>
+      <details>
+        <summary><span data-i18n="faq1q">Verimots, c’est Scrabble ?</span></summary>
+        <p data-i18n="faq1a">Non. Verimots est un vérificateur de mots et un défi de lettres indépendant. Scrabble est une marque de Mattel et Hasbro. Aucune affiliation, aucun partenariat.</p>
+      </details>
+      <details>
+        <summary><span data-i18n="faq2q">C’est le dictionnaire officiel ?</span></summary>
+        <p data-i18n="faq2a">Non. La liste française est communautaire et n’est pas l’édition officielle ODS Larousse. L’anglais propose CSW (liste publique proche) et WGPO WOW24, l’espagnol RLA-ES. Le catalan est l’exception : le DISC est le vrai dictionnaire du Scrabble catalan, publié sous licence libre et repris tel quel.</p>
+      </details>
+      <details>
+        <summary><span data-i18n="faq3q">Ça marche hors ligne ?</span></summary>
+        <p data-i18n="faq3a">Oui, après le premier chargement des listes sur le web. Sur Android, elles sont incluses. Les définitions et classements demandent une connexion.</p>
+      </details>
+      <details>
+        <summary><span data-i18n="faq4q">Comment installer l’app Android ?</span></summary>
+        <p data-i18n="faq4a">Laisse ton email ci-dessus, puis ouvre le lien d’opt-in Play (test fermé). L’app n’est pas encore dans la recherche du magasin. Tu peux aussi jouer tout de suite dans le navigateur.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <p class="legal" data-i18n="legal">Verimots n’est pas affilié à Scrabble, Mattel, Hasbro, NASPA ni à l’ODS Larousse.</p>
+    <nav class="foot-links">
+      <a href="https://s.pfa87.cc/confidentialite.html" data-i18n="privacy">Confidentialité</a>
+      <a href="https://s.pfa87.cc/" data-i18n="open_app">Ouvrir l’app</a>
+      <a id="play-foot" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="play_store">Google Play</a>
+    </nav>
+    <p class="foot-apk">
+      <a id="apk-foot" href="/verimots.apk" download="verimots.apk">
+        <span data-i18n="apk">Télécharger l’APK</span><span id="apk-date"></span>
+      </a>
+    </p>
+  </footer>
+
+  <dialog class="info-dialog" id="beta-info-dialog" aria-labelledby="beta-info-title">
+    <div class="info-card">
+      <div class="info-bar">
+        <h3 id="beta-info-title" data-i18n="beta_info_title">Pourquoi un test fermé ?</h3>
+        <button type="button" class="info-close" id="beta-info-close">
+          <span aria-hidden="true">×</span>
+          <span class="sr" data-i18n="beta_info_close">Fermer</span>
+        </button>
+      </div>
+      <p data-i18n="beta_info_p1">Verimots est en test fermé sur Google Play avant sa première sortie publique.</p>
+      <p data-i18n="beta_info_p2">Inscrivez l’adresse de votre compte Google. Après confirmation de l’accès, ouvrez le lien Play avec ce même compte.</p>
+    </div>
+  </dialog>
+
+  <script src="app.js?v=41"></script>
+</body>
+</html>
