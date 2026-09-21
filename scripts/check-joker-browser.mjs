@@ -50,4 +50,3 @@ try {
  }
 } finally {await browser.close()}
 console.log(`${checks} joker browser scenarios passed`)
-
