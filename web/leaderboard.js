@@ -95,10 +95,10 @@ const EXTRA = {
 }
 
 const MORE = {
-  fr: { combined: 'Tous les types', activity: 'activité', activities: 'activités', combined_rule: '1 activité par mot vérifié, mot trouvé ou partie de Bingo.', checks_rule: 'Mots valides vérifiés après la saisie.', games_rule: 'Mots trouvés une fois par tirage, hors réponses dévoilées.', previous: 'Page précédente', next: 'Page suivante', checks_short: 'Vérifiés', find_short: 'Trouvés', training_short: 'Combinaisons', bingo_short: 'Bingo', kids_short: 'Débutant' },
-  en: { combined: 'All types', activity: 'activity', activities: 'activities', combined_rule: '1 activity per word checked, word found or Bingo game.', checks_rule: 'Valid words checked after typing.', games_rule: 'Words found once per rack, excluding revealed answers.', previous: 'Previous page', next: 'Next page', checks_short: 'Checked', find_short: 'Found', training_short: 'Combinations', bingo_short: 'Bingo', kids_short: 'Beginner' },
-  es: { combined: 'Todos los tipos', activity: 'actividad', activities: 'actividades', combined_rule: '1 actividad por palabra verificada, encontrada o partida de Bingo.', checks_rule: 'Palabras válidas verificadas tras escribir.', games_rule: 'Palabras encontradas una vez por atril, sin respuestas reveladas.', previous: 'Página anterior', next: 'Página siguiente', checks_short: 'Verificadas', find_short: 'Encontradas', training_short: 'Combinaciones', bingo_short: 'Bingo', kids_short: 'Principiante' },
-  ca: { combined: 'Tots els tipus', activity: 'activitat', activities: 'activitats', combined_rule: '1 activitat per mot verificat, trobat o partida de Bingo.', checks_rule: 'Mots vàlids verificats després d’escriure.', games_rule: 'Mots trobats un cop per faristol, sense respostes revelades.', previous: 'Pàgina anterior', next: 'Pàgina següent', checks_short: 'Verificats', find_short: 'Trobats', training_short: 'Combinacions', bingo_short: 'Bingo', kids_short: 'Principiant' },
+  fr: { combined: 'Toutes les activités', activity: 'activité', activities: 'activités', combined_rule: '1 activité par mot vérifié, mot trouvé ou partie de Bingo.', checks_rule: 'Mots valides vérifiés après la saisie.', games_rule: 'Mots trouvés une fois par tirage, hors réponses dévoilées.', previous: 'Page précédente', next: 'Page suivante', checks_short: 'Vérifiés', find_short: 'Trouvés', training_short: 'Combinaisons', bingo_short: 'Bingo', kids_short: 'Débutant' },
+  en: { combined: 'All activities', activity: 'activity', activities: 'activities', combined_rule: '1 activity per word checked, word found or Bingo game.', checks_rule: 'Valid words checked after typing.', games_rule: 'Words found once per rack, excluding revealed answers.', previous: 'Previous page', next: 'Next page', checks_short: 'Checked', find_short: 'Found', training_short: 'Combinations', bingo_short: 'Bingo', kids_short: 'Beginner' },
+  es: { combined: 'Todas las actividades', activity: 'actividad', activities: 'actividades', combined_rule: '1 actividad por palabra verificada, encontrada o partida de Bingo.', checks_rule: 'Palabras válidas verificadas tras escribir.', games_rule: 'Palabras encontradas una vez por atril, sin respuestas reveladas.', previous: 'Página anterior', next: 'Página siguiente', checks_short: 'Verificadas', find_short: 'Encontradas', training_short: 'Combinaciones', bingo_short: 'Bingo', kids_short: 'Principiante' },
+  ca: { combined: 'Totes les activitats', activity: 'activitat', activities: 'activitats', combined_rule: '1 activitat per mot verificat, trobat o partida de Bingo.', checks_rule: 'Mots vàlids verificats després d’escriure.', games_rule: 'Mots trobats un cop per faristol, sense respostes revelades.', previous: 'Pàgina anterior', next: 'Pàgina següent', checks_short: 'Verificats', find_short: 'Trobats', training_short: 'Combinacions', bingo_short: 'Bingo', kids_short: 'Principiant' },
 }
 
 // Both the app tab and the standalone page use this renderer directly. Keeping
@@ -118,6 +118,7 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
       <button type="button" class="lb-refresh" id="lb-refresh"><span aria-hidden="true">↻</span><span id="lb-refresh-label"></span></button>
     </div>
     <div class="lb-filters">
+      <label class="lb-filter"><span id="lb-board-label"></span><select id="lb-board-select"></select></label>
       <label class="lb-filter"><span id="lb-category-label"></span><select id="lb-category-select"></select></label>
       <label class="lb-filter"><span id="lb-scope-label"></span><select id="lb-scope-select"></select></label>
     </div>
@@ -127,10 +128,10 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   </article>`
   const find = id => root.querySelector(`#${id}`)
   const nf = new Intl.NumberFormat(ui)
-  const CATEGORIES = ['checks', 'combined', 'bingo', 'kids', 'find', 'training']
-  let category = CATEGORIES.includes(params.get('category')) ? params.get('category') : 'checks'
-  let scope = SCOPES.includes(params.get('scope')) ? params.get('scope') : 'week'
-  const board = standalone && SECTIONS.includes(params.get('board')) ? params.get('board') : ui
+  const CATEGORIES = ['combined', 'checks', 'bingo', 'kids', 'find', 'training']
+  let category = CATEGORIES.includes(params.get('category')) ? params.get('category') : 'combined'
+  let scope = SCOPES.includes(params.get('scope')) ? params.get('scope') : '7d'
+  let board = SECTIONS.includes(params.get('board')) ? params.get('board') : 'any'
   let request = 0
   let controller
   let page = 0
@@ -147,7 +148,7 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   for (const [id, text] of Object.entries({ 'lb-title': t.title, 'lb-play': t.play, 'lb-help': t.help, 'lb-privacy': t.privacy, 'lb-refresh-label': t.refresh })) {
     if (find(id)) find(id).textContent = text
   }
-  for (const [id, label] of Object.entries({ 'category': t.categories, 'scope': t.scope_filter })) {
+  for (const [id, label] of Object.entries({ 'board': t.lang_filter, 'category': t.categories, 'scope': t.scope_filter })) {
     find(`lb-${id}-label`).textContent = label
     find(`lb-${id}-select`).setAttribute('aria-label', label)
   }
@@ -167,6 +168,9 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   }
   function paintControls() {
     // Reuse the controls so keyboard focus survives filter changes.
+    const languages = find('lb-board-select')
+    if (!languages.children.length) languages.innerHTML = SECTIONS.map(value => `<option value="${value}">${esc(t[value])}</option>`).join('')
+    languages.value = board
     const cats = find('lb-category-select')
     if (!cats.children.length) cats.innerHTML = CATEGORIES.map(c => `<option value="${c}">${esc(t[c])}</option>`).join('')
     cats.value = category
@@ -235,12 +239,13 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
       if (ticket === request) box.setAttribute('aria-busy','false')
     }
   }
-  for (const attr of ['category', 'scope']) {
+  for (const attr of ['board', 'category', 'scope']) {
     find(`lb-${attr}-select`).addEventListener('change', e => {
       const value = e.target.value
-      const choices = attr === 'category' ? CATEGORIES : SCOPES
+      const choices = attr === 'board' ? SECTIONS : attr === 'category' ? CATEGORIES : SCOPES
       if (!choices.includes(value)) return
-      if (attr === 'category') category = value
+      if (attr === 'board') board = value
+      else if (attr === 'category') category = value
       else scope = value
       page = 0
       syncUrl(); paint()

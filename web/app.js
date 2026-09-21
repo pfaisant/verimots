@@ -1,4 +1,4 @@
-import { mountLeaderboard } from './leaderboard.js?v=20260921-periods'
+import { mountLeaderboard } from './leaderboard.js?v=20260921-filters'
 import { polishIcons, icon } from './icons.js?v=161'
 import { activityId, recordActivity } from './activity.js?v=161'
 import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=161'
@@ -2115,7 +2115,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=20260921-periods').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=20260921-filters').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

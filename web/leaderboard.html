@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#141e19" />
   <link rel="canonical" href="https://s.pfa87.cc/leaderboard.html" />
   <link rel="icon" href="favicon.svg?v=161" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=161" />
+  <link rel="stylesheet" href="app.css?v=20260921-filters" />
 
 </head>
 <body class="simple legal leaderboard-page">
@@ -32,8 +32,9 @@
         <button type="button" class="lb-refresh" id="lb-refresh"><span aria-hidden="true">↻</span><span id="lb-refresh-label">Actualiser</span></button>
       </div>
       <div class="lb-filters">
-        <label class="lb-filter"><span>Catégorie</span><select aria-label="Catégorie"><option>Mots vérifiés</option></select></label>
-        <label class="lb-filter"><span>Période</span><select aria-label="Période"><option>Semaine</option></select></label>
+        <label class="lb-filter"><span>Langue du classement</span><select aria-label="Langue du classement"><option>Toutes les langues</option></select></label>
+        <label class="lb-filter"><span>Catégorie</span><select aria-label="Catégorie"><option>Toutes les activités</option></select></label>
+        <label class="lb-filter"><span>Période</span><select aria-label="Période"><option>7 derniers jours</option></select></label>
       </div>
       <p class="board-rule" id="lb-rule"></p>
       <div class="lb-sections" id="lb-sections" aria-live="polite" aria-busy="true">
@@ -46,7 +47,7 @@
       </p>
     </article>
   </main>
-  <script type="module" src="leaderboard.js?v=20260921-periods"></script>
+  <script type="module" src="leaderboard.js?v=20260921-filters"></script>
 
 </body>
 </html>
