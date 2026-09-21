@@ -37,7 +37,6 @@
     <string name="encore">Següent</string>
     <string name="share">Comparteix</string>
     <string name="wiki">Obre al Viccionari</string>
-    <string name="see_lemma">Vegeu %1$s</string>
     <string name="clear">Esborra</string>
     <string name="rack_alpha">A–Z</string>
     <string name="about_title">Quant a Verimots</string>
@@ -276,7 +275,8 @@
     <string name="dict_name_wow24">WGPO WOW24</string>
     <string name="dict_name_es">RLA-ES</string>
     <string name="menu_back_short">‹ Torna</string>
-    <string name="daily_title">Una paraula per descobrir</string>
+    <string name="daily_title">Paraula del dia</string>
+    <string name="daily_random_title">Una paraula a l’atzar</string>
     <string name="daily_tap">Toca per comprovar</string>
     <string name="game_rules">Com funciona</string>
     <string name="bingo_rules_title">Bingo — com funciona</string>

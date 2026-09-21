@@ -8,14 +8,14 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#141e19" />
   <title>Verimots - Connexion</title>
-  <link rel="icon" href="favicon.svg?v=158" type="image/svg+xml" />
+  <link rel="icon" href="favicon.svg?v=160" type="image/svg+xml" />
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #141e19; color: #f4efe4; }
     body { margin: 0; }
     main { max-width: 420px; margin: 0 auto; padding: 48px 24px; }
     h1 { font-size: 24px; }
     p { line-height: 1.6; color: #b7c4b8; }
-    a { color: #e8c56b; display: inline-block; padding-block: 12px; }
+    a { color: #e8c56b; display: block; width: fit-content; min-height: 44px; box-sizing: border-box; padding-block: 12px; }
     button { padding: 12px 18px; border: 1px solid #e8c56b; border-radius: 8px; background: transparent; color: #e8c56b; font: inherit; cursor: pointer; }
     [hidden] { display: none; }
     :focus-visible { outline: 2px solid #e8c56b; outline-offset: 4px; }
@@ -28,8 +28,9 @@
     <div id="google-btn"></div>
     <p id="status" role="status"></p>
     <button id="retry" type="button" hidden>Réessayer</button>
+    <a id="update" href="https://downloads.pfa87.cc/verimots.apk" hidden>Mettre à jour Verimots</a>
     <a id="open" hidden>Ouvrir Verimots</a>
   </main>
-  <script type="module" src="android-auth.js?v=158"></script>
+  <script type="module" src="android-auth.js?v=20260918"></script>
 </body>
 </html>

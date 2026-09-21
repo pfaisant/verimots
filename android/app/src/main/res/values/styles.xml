@@ -46,8 +46,13 @@
         <item name="android:layout_width">wrap_content</item><item name="android:layout_height">48dp</item>
         <item name="android:minWidth">48dp</item><item name="android:gravity">center_vertical</item>
         <item name="android:fontFamily">sans-serif-medium</item><item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/gold</item><item name="android:visibility">gone</item>
+        <item name="android:textColor">@color/muted</item><item name="android:visibility">gone</item>
         <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
+    <style name="DefinitionLink" parent="DefinitionMore">
+        <item name="android:textColor">@color/ink</item><item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:focusable">true</item>
     </style>
     <style name="GameMenuItem">
         <item name="android:layout_width">match_parent</item>

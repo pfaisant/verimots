@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Verimots Tiles";
+  src: url("fonts/verimots-tiles.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --bg: #142018;
   --bg2: #1b2a21;
@@ -111,13 +119,13 @@ main { flex: 1 0 auto; width: 100%; max-width: 1024px; margin: 0 auto; position:
   transform-origin: 50% 60%;
   user-select: none;
 }
-.fly-tile b { font-weight: 700; translate: 0 -1px; }
+.fly-tile b { font-weight: 400; translate: 0 -1px; }
 /* Letter value in the corner, exactly like the app's tiles */
 .fly-tile .pts {
   position: absolute;
   right: calc(var(--size) * 0.09);
   bottom: calc(var(--size) * 0.06);
-  font: 700 calc(var(--size) * 0.21) / 1 var(--sans);
+  font: 400 calc(var(--size) * 0.21) / 1 "Verimots Tiles", Arial, sans-serif;
   font-style: normal;
   color: rgba(28, 20, 8, 0.72);
   letter-spacing: 0;
@@ -150,11 +158,11 @@ main { flex: 1 0 auto; width: 100%; max-width: 1024px; margin: 0 auto; position:
 }
 .kicker {
   margin: 0 0 8px;
-  color: var(--gold);
+  color: var(--muted);
   font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
 }
 .hero h2 {
   margin: 0 0 12px;
@@ -406,11 +414,11 @@ main { flex: 1 0 auto; width: 100%; max-width: 1024px; margin: 0 auto; position:
 }
 .signup-kicker {
   margin: 0 0 6px;
-  color: var(--gold);
+  color: var(--muted);
   font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
 }
 .info-btn {
   position: absolute;
@@ -714,7 +722,7 @@ footer a:hover { text-decoration: underline; }
 body { background: var(--bg); }
 .brand h1, .hero h2, .signup h3, .faq h2 { font-family: var(--sans); letter-spacing: -.03em; }
 .fly-rack { background: transparent; border: 0; box-shadow: none; padding: 12px 0; margin-bottom: 32px; }
-.fly-tile { --size: clamp(26px, 8vw, 56px); font-family: var(--sans); box-shadow: inset 0 -3px 0 var(--tile-edge); }
+.fly-tile { --size: clamp(26px, 8vw, 56px); font-family: "Verimots Tiles", Arial, sans-serif; font-weight: 400; font-synthesis: none; box-shadow: inset 0 -3px 0 var(--tile-edge); }
 .hero h2 { max-width: 20ch; font-size: clamp(30px, 5vw, 48px); line-height: 1.1; }
 .lead { max-width: 60ch; }
 .btn { box-shadow: none; }

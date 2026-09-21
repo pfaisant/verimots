@@ -5,7 +5,7 @@
  * each, so lengths, joker indexes and shuffles are tile-correct. Messages
  * come in and go out in display form.
  */
-import { dealKids, kidsAnagrams } from './kids.js?v=158'
+import { dealKids, kidsAnagrams } from './kids.js?v=160'
 import {
   tileSpec,
   encodeTiles,
@@ -16,7 +16,7 @@ import {
   usesHardTiles,
   unplayableWord,
   normalizeEsEdition,
-} from './tiles.js?v=158'
+} from './tiles.js?v=160'
 
 const LANGS = ['fr', 'en', 'es', 'ca']
 

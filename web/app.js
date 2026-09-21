@@ -1,12 +1,12 @@
-import { mountLeaderboard } from './leaderboard.js?v=158'
-import { polishIcons, icon } from './icons.js?v=158'
-import { activityId, recordActivity } from './activity.js?v=158'
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=158'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=158'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=158'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=158'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=158'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=158'
+import { mountLeaderboard } from './leaderboard.js?v=160'
+import { polishIcons, icon } from './icons.js?v=160'
+import { activityId, recordActivity } from './activity.js?v=160'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=160'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=160'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=160'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=160'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=160'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=160'
 
 function letterValues() {
   return tileValues(getLang())
@@ -66,7 +66,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=158', { type: 'module' })
+const worker = new Worker('worker.js?v=160', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -492,7 +492,7 @@ function recordWords(entries) {
   if (histSheet && !histSheet.hidden) renderHistory()
   const owner = getCurrentUser()?.sub
   if (owner) {
-    import('./competitive.js?v=158').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=160').then(({ saveHistoryWord }) => {
       if (getCurrentUser()?.sub !== owner || clearingHistory) return
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry, { owner })
     }).catch(() => {})
@@ -507,7 +507,7 @@ async function syncCloudHistory() {
   const owner = getCurrentUser().sub
   const revision = historyRevision
   try {
-    const { fetchHistory } = await import('./competitive.js?v=158')
+    const { fetchHistory } = await import('./competitive.js?v=160')
     const remote = await fetchHistory()
     if (!remote.ok || revision !== historyRevision || getCurrentUser()?.sub !== owner) return
     mergeHistory(remote.history)
@@ -923,7 +923,7 @@ async function renderDaily(random = dailySeen) {
   dailyEl.hidden = false
   dailyEl.innerHTML = `
     <div class="daily-head">
-      <p class="daily-kicker">${escapeHtml(t('daily_title'))}</p>
+      <p class="daily-kicker">${escapeHtml(t(daily.random ? 'daily_random_title' : 'daily_title'))}</p>
       <span class="daily-side">
         ${daily.random ? '' : `<span class="daily-date">${escapeHtml(when)}</span>`}
         <button type="button" class="daily-next" id="daily-next" aria-label="${escapeHtml(t('daily_next'))}" title="${escapeHtml(t('daily_next'))}">
@@ -1731,7 +1731,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (error) error.hidden = true
   try {
     if (owner) {
-      const { clearCloudHistory } = await import('./competitive.js?v=158')
+      const { clearCloudHistory } = await import('./competitive.js?v=160')
       if (getCurrentUser()?.sub !== owner) return
       const result = await clearCloudHistory({ owner })
       if (!result?.ok || getCurrentUser()?.sub !== owner) throw new Error('clear_failed')
@@ -2107,7 +2107,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=158').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=160').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

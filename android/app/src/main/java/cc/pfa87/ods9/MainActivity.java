@@ -1049,9 +1049,10 @@ public class MainActivity extends Activity {
             next.setVisibility(View.VISIBLE);
             next.setOnClickListener(v -> paintDailyWord(true));
         }
-        checkStatus.setText(random ? getString(R.string.daily_title) : getString(R.string.daily_title) + " · " + when);
-        checkStatus.setTextColor(getColor(R.color.gold));
-        checkStatus.setBackgroundResource(R.drawable.bg_lex_pill);
+        checkStatus.setText(random ? getString(R.string.daily_random_title) : getString(R.string.daily_title) + " · " + when);
+        checkStatus.setTextColor(getColor(R.color.muted));
+        checkStatus.setBackground(null);
+        checkStatus.setPadding(0, dp(4), 0, dp(4));
         checkWord.setVisibility(View.GONE);
         checkWordShown = word;
         if (checkFav != null) {
@@ -1137,6 +1138,7 @@ public class MainActivity extends Activity {
                 : getString(R.string.not_in_list, Dict.label(this)));
         checkStatus.setTextColor(getColor(ok ? R.color.ok : R.color.no));
         checkStatus.setBackgroundResource(ok ? R.drawable.bg_status_ok : R.drawable.bg_status_no);
+        checkStatus.setPadding(dp(10), dp(4), dp(10), dp(4));
         // Tiles already spell the word — the headline only shows when refused.
         checkWord.setText(Lexicon.display(word));
         checkWord.setVisibility(ok ? View.GONE : View.VISIBLE);
@@ -1986,9 +1988,7 @@ public class MainActivity extends Activity {
                 if (studyDefBody != null) studyDefBody.setText(defMessage(message));
                 if (studyDefLemma != null && home != null
                         && !Lexicon.normalize(root).equals(Lexicon.normalize(home))) {
-                    studyDefLemma.setVisibility(View.VISIBLE);
-                    studyDefLemma.setText("‹ " + home);
-                    studyDefLemma.setOnClickListener(v -> navigateStudyDef(home, home));
+                    setDefinitionLink(studyDefLemma, "‹ " + home, v -> navigateStudyDef(home, home));
                 }
             }
         }, Lang.get(this));
@@ -2021,7 +2021,7 @@ public class MainActivity extends Activity {
 
                             @Override
                             public void updateDrawState(TextPaint ds) {
-                                ds.setColor(getColor(R.color.gold));
+                                ds.setColor(getColor(R.color.ink));
                                 ds.setUnderlineText(true);
                             }
                         },
@@ -2035,13 +2035,9 @@ public class MainActivity extends Activity {
         }
         if (studyDefLemma == null) return;
         if (away) {
-            studyDefLemma.setVisibility(View.VISIBLE);
-            studyDefLemma.setText("‹ " + home);
-            studyDefLemma.setOnClickListener(v -> navigateStudyDef(home, home));
-        } else if (!form.isEmpty()) {
-            studyDefLemma.setVisibility(View.VISIBLE);
-            studyDefLemma.setText(getString(R.string.see_lemma, form));
-            studyDefLemma.setOnClickListener(v -> navigateStudyDef(form, home));
+            setDefinitionLink(studyDefLemma, "‹ " + home, v -> navigateStudyDef(home, home));
+        } else if (!form.isEmpty() && wholeWordIndex(text.toLowerCase(Locale.ROOT), form.toLowerCase(Locale.ROOT)) < 0) {
+            setDefinitionLink(studyDefLemma, form, v -> navigateStudyDef(form, home));
         } else {
             studyDefLemma.setVisibility(View.GONE);
         }
@@ -2408,7 +2404,7 @@ public class MainActivity extends Activity {
         java.util.List<int[]> ranges = new java.util.ArrayList<>();
         java.util.regex.Matcher m = SENSE_HEADER.matcher(span);
         while (m.find()) {
-            span.setSpan(new ForegroundColorSpan(getColor(R.color.gold)), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            span.setSpan(new ForegroundColorSpan(getColor(R.color.muted)), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             span.setSpan(new RelativeSizeSpan(0.8f), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             span.setSpan(new StyleSpan(Typeface.BOLD), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             ranges.add(new int[] {m.start(), m.end()});
@@ -2462,9 +2458,16 @@ public class MainActivity extends Activity {
         def.setHighlightColor(getColor(R.color.gold_soft));
     }
 
+    private void setDefinitionLink(TextView link, String word, View.OnClickListener onClick) {
+        link.setVisibility(View.VISIBLE);
+        link.setText(word);
+        link.setPaintFlags(link.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        link.setOnClickListener(onClick);
+    }
+
     // In-place definition navigation on the game result: tapping the root of
     // an inflection swaps the panel to that word's sense (the old behavior
-    // yanked the user to the Vérifier tab), and a back chip returns to the
+    // yanked the user to the Vérifier tab), and a back link returns to the
     // played word.
     private void paintGameDef(String text, String apiLemma, String current, String home) {
         if (gameDef == null) return;
@@ -2492,7 +2495,7 @@ public class MainActivity extends Activity {
 
                             @Override
                             public void updateDrawState(TextPaint ds) {
-                                ds.setColor(getColor(R.color.gold));
+                                ds.setColor(getColor(R.color.ink));
                                 ds.setUnderlineText(true);
                             }
                         },
@@ -2506,13 +2509,9 @@ public class MainActivity extends Activity {
         }
         if (gameLemma == null) return;
         if (away) {
-            gameLemma.setVisibility(View.VISIBLE);
-            gameLemma.setText("\u2039 " + home);
-            gameLemma.setOnClickListener(v -> showDef(home));
-        } else if (!form.isEmpty()) {
-            gameLemma.setVisibility(View.VISIBLE);
-            gameLemma.setText(getString(R.string.see_lemma, form));
-            gameLemma.setOnClickListener(v -> navigateGameDef(form, home));
+            setDefinitionLink(gameLemma, "\u2039 " + home, v -> showDef(home));
+        } else if (!form.isEmpty() && wholeWordIndex(text.toLowerCase(Locale.ROOT), form.toLowerCase(Locale.ROOT)) < 0) {
+            setDefinitionLink(gameLemma, form, v -> navigateGameDef(form, home));
         } else {
             gameLemma.setVisibility(View.GONE);
         }
@@ -2538,9 +2537,7 @@ public class MainActivity extends Activity {
                 gamePos.setText(defHeader(root, ""));
                 gameDef.setText(defMessage(message));
                 if (gameLemma != null && home != null) {
-                    gameLemma.setVisibility(View.VISIBLE);
-                    gameLemma.setText("\u2039 " + home);
-                    gameLemma.setOnClickListener(v -> showDef(home));
+                    setDefinitionLink(gameLemma, "\u2039 " + home, v -> showDef(home));
                 }
             }
         }, Lang.get(this));
@@ -2578,7 +2575,7 @@ public class MainActivity extends Activity {
 
                         @Override
                         public void updateDrawState(TextPaint ds) {
-                            ds.setColor(getColor(R.color.gold));
+                            ds.setColor(getColor(R.color.ink));
                             ds.setUnderlineText(true);
                         }
                     },
@@ -2590,9 +2587,8 @@ public class MainActivity extends Activity {
         def.setMovementMethod(LinkMovementMethod.getInstance());
         def.setHighlightColor(getColor(R.color.gold_soft));
         if (see != null) {
-            see.setVisibility(View.VISIBLE);
-            see.setText(getString(R.string.see_lemma, form));
-            see.setOnClickListener(v -> openLemma(form));
+            if (at < 0) setDefinitionLink(see, form, v -> openLemma(form));
+            else see.setVisibility(View.GONE);
         }
     }
 

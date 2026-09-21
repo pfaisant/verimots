@@ -128,7 +128,8 @@ final class Tiles {
             // A digraph (CH, LL, RR) is one tile carrying two letters: shrink the
             // glyph rather than let it clip or widen the tile.
             letter.setTextSize(TypedValue.COMPLEX_UNIT_PX, glyph.length() > 1 ? letterPx * 0.62f : letterPx);
-            letter.setTypeface(Typeface.create("serif", Typeface.BOLD));
+            // The bundled face also supplies the web tiles and launcher V.
+            letter.setTypeface(ctx.getResources().getFont(R.font.verimots_tiles));
             letter.setIncludeFontPadding(false);
             letter.setMaxLines(1);
             letter.setPadding(0, 0, 0, (int) (2 * d));
@@ -139,7 +140,7 @@ final class Tiles {
             pts.setText(blank ? "0" : String.valueOf(Lexicon.letterScore(ch)));
             pts.setTextColor(spent ? 0x803D3A32 : 0xB31A1408);
             pts.setTextSize(TypedValue.COMPLEX_UNIT_PX, ptsPx);
-            pts.setTypeface(Typeface.DEFAULT_BOLD);
+            pts.setTypeface(ctx.getResources().getFont(R.font.verimots_tiles));
             pts.setIncludeFontPadding(false);
             FrameLayout.LayoutParams pl = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
@@ -203,7 +204,7 @@ final class Tiles {
         tile.setLineSpacing(d, 1f);
         tile.setMaxLines(2);
         tile.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
-        tile.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        tile.setTypeface(ctx.getResources().getFont(R.font.verimots_tiles));
         // A three-tile word may display more letters (NY, QU, L·L, CH…).
         // Fit both the complete word and its separate, smaller points line.
         tile.setHorizontallyScrolling(false);
@@ -225,7 +226,6 @@ final class Tiles {
         android.text.SpannableString styled = new android.text.SpannableString(label);
         int start = shown.length() + 1;
         styled.setSpan(new android.text.style.AbsoluteSizeSpan(10, true), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        styled.setSpan(new android.text.style.TypefaceSpan("sans-serif"), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         styled.setSpan(new android.text.style.StyleSpan(Typeface.NORMAL), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         styled.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(selected ? R.color.muted : R.color.tile_used_ink)), start, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         tile.setSelected(selected);

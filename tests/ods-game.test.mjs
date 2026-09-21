@@ -47,7 +47,7 @@ import { loadHistory, rememberWord, historyLabel, historyDayLabel, clearHistory 
 import { kidsWords, kidsLong } from '../web/kids.js'
 import { tileCount, encodeTiles, decodeRack } from '../web/tiles.js'
 import { competeAccepted, fetchLeaderboard } from '../web/competitive.js'
-import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=158'
+import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=160'
 
 test('rack tile usage assigns unmatched letters to blanks', () => {
   assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])

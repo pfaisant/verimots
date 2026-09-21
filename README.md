@@ -8,6 +8,11 @@ The bundled word lists are community-maintained. Verimots is not Larousse, Matte
 
 English has two lists in Settings: a community list following CSW (YAWL, the closest public-domain match — not official Collins) and WGPO Official Words 2024 (WOW24). Official CSW is HarperCollins copyright and is not bundled. New English sessions default to WOW24.
 
+## Source synchronization
+
+See [the September 21 sync record](docs/source-sync-20260921.md) for the
+Windows/Mac paths, recovered release history and published/candidate versions.
+
 ## Layout
 
 - `web/` — static site (check, tiroir, défi, privacy)

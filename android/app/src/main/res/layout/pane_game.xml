@@ -296,7 +296,7 @@
         android:paddingTop="2dp"
         android:paddingBottom="8dp">
 
-        <!-- Kicker + fading gold hairline (web .game-kicker::after); the
+        <!-- Game context and quiet divider; the
              kicker shrinks first so Retour is never pushed off-screen. -->
         <LinearLayout
             android:layout_width="0dp"
@@ -311,11 +311,10 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.14"
+                android:letterSpacing="0"
                 android:maxLines="1"
                 android:text="@string/challenge"
-                android:textAllCaps="true"
-                android:textColor="@color/gold"
+                android:textColor="@color/muted"
                 android:textSize="12sp" />
 
             <View
@@ -324,7 +323,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_hairline_gold" />
+                android:background="@color/line" />
         </LinearLayout>
 
         <TextView
@@ -647,7 +646,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0"
                 android:maxLines="2"
-                android:textColor="@color/gold"
+                android:textColor="@color/muted"
                 android:textSize="13sp" />
 
             <ImageButton
@@ -670,16 +669,10 @@
                 <TextView android:id="@+id/training_def_more" style="@style/DefinitionMore" android:text="@string/definition_more" />
 
         <TextView
-            android:id="@+id/training_def_lemma"
+            android:id="@+id/training_def_lemma" style="@style/DefinitionLink"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_pill"
-            android:fontFamily="sans-serif-medium"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="8dp"
-            android:textColor="@color/gold"
-            android:textSize="14sp"
             android:visibility="gone" />
 
         <TextView
@@ -784,7 +777,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:letterSpacing="0"
                         android:maxLines="2"
-                        android:textColor="@color/gold"
+                        android:textColor="@color/muted"
                         android:textSize="13sp" />
 
                     <ImageButton
@@ -807,16 +800,10 @@
                 <TextView android:id="@+id/game_def_more" style="@style/DefinitionMore" android:text="@string/definition_more" />
 
                 <TextView
-                    android:id="@+id/game_lemma"
+                    android:id="@+id/game_lemma" style="@style/DefinitionLink"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_pill"
-                    android:fontFamily="sans-serif-medium"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp"
-                    android:textColor="@color/gold"
-                    android:textSize="14sp"
                     android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
@@ -959,7 +946,7 @@
                     android:fontFamily="sans-serif-medium" android:text="@string/menu_study" android:textColor="@color/ink"
                     android:textSize="22sp" android:textStyle="bold" android:includeFontPadding="false" />
                 <TextView android:id="@+id/game_study_when" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp" android:textColor="@color/gold" android:textSize="12sp" />
+                    android:layout_marginTop="5dp" android:textColor="@color/muted" android:textSize="12sp" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:layout_marginTop="6dp" android:text="@string/study_blurb" android:textColor="@color/muted"
                     android:textSize="13sp" android:lineSpacingMultiplier="1.12" />
@@ -980,16 +967,14 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
                         <TextView android:id="@+id/study_def_head" android:layout_width="0dp" android:layout_height="wrap_content"
                             android:layout_weight="1" android:maxLines="2" android:ellipsize="end"
-                            android:textColor="@color/gold" android:textSize="13sp" android:fontFamily="sans-serif-medium" />
+                            android:textColor="@color/muted" android:textSize="13sp" android:fontFamily="sans-serif-medium" />
                         <ImageButton android:id="@+id/study_fav" style="@style/IconAction"
                             android:contentDescription="@string/fav_add" android:src="@drawable/ic_star" />
                     </LinearLayout>
                     <TextView android:id="@+id/study_def_body" style="@style/DefinitionText"
                         android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" />
                     <TextView android:id="@+id/study_def_more" style="@style/DefinitionMore" android:text="@string/definition_more" />
-                    <TextView android:id="@+id/study_def_lemma" android:layout_width="wrap_content" android:layout_height="48dp"
-                        android:background="@drawable/bg_pill" android:gravity="center_vertical" android:paddingHorizontal="12dp"
-                        android:textColor="@color/gold" android:textSize="13sp" android:visibility="gone" />
+                    <TextView android:id="@+id/study_def_lemma" style="@style/DefinitionLink" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center_vertical" android:visibility="gone" />
                 </LinearLayout>
                 <TextView android:id="@+id/game_study_body" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
             </LinearLayout>

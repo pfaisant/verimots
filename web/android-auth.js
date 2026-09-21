@@ -5,6 +5,13 @@ const COPY = {
   ca: ['Inicia la sessió', 'Inicia la sessió amb Google i torna a Verimots.', 'Connectant...', 'No s’ha pogut iniciar la sessió. Torna-ho a provar.', 'Obre Verimots', 'Torna a Verimots per acabar d’iniciar la sessió.', 'Torna a iniciar la connexió des de Verimots.', 'Torna-ho a provar'],
 }
 const CLIENT = '617674779621-vu2iv3rjfcs08nrf5m6apn2ivnh9rim7.apps.googleusercontent.com'
+const UPDATE_COPY = {
+  fr: ['Mettez Verimots à jour, puis relancez la connexion depuis l’application.', 'Mettre à jour Verimots'],
+  en: ['Update Verimots, then start sign-in again from the app.', 'Update Verimots'],
+  es: ['Actualiza Verimots y vuelve a iniciar sesión desde la aplicación.', 'Actualizar Verimots'],
+  ca: ['Actualitza Verimots i torna a iniciar la sessió des de l’aplicació.', 'Actualitza Verimots'],
+}
+const APP_LAUNCH = 'intent://auth#Intent;scheme=verimots;package=cc.pfa87.verimots;end'
 export const validState = state => /^[A-Za-z0-9_-]{40,128}$/.test(state || '')
 export function handoffUrls(token, state, lang) {
   if (!token || token.length > 8192 || !validState(state)) throw new Error('invalid_handoff')
@@ -28,19 +35,38 @@ if (typeof document !== 'undefined') {
   const status = document.getElementById('status')
   const retry = document.getElementById('retry')
   const open = document.getElementById('open')
+  const update = document.getElementById('update')
+  function recover(legacy = false) {
+    message.textContent = legacy ? UPDATE_COPY[lang][0] : copy[6]
+    open.href = APP_LAUNCH
+    open.textContent = copy[4]
+    open.hidden = false
+    update.href = 'https://downloads.pfa87.cc/verimots.apk'
+    update.textContent = UPDATE_COPY[lang][1]
+    update.hidden = false
+  }
+  function ready(urls) {
+    open.href = urls.app
+    open.textContent = copy[4]
+    open.hidden = false
+    message.textContent = copy[5]
+    status.textContent = ''
+    retry.hidden = true
+    document.getElementById('google-btn').hidden = true
+  }
   if (document.body.dataset.auth === 'done') {
     const credentials = new URLSearchParams(location.hash.slice(1))
     // Scrub old query-based handoffs too, without accepting them as a new login.
     history.replaceState(null, '', `${location.pathname}?lang=${lang}`)
     try {
-      open.href = handoffUrls(credentials.get('token'), credentials.get('state'), lang).app
-      open.textContent = copy[4]
-      open.hidden = false
-      message.textContent = copy[5]
-    } catch { message.textContent = copy[6] }
+      ready(handoffUrls(credentials.get('token'), credentials.get('state'), lang))
+    } catch { recover() }
   } else {
     const state = params.get('state')
-    message.textContent = validState(state) ? copy[1] : copy[6]
+    // APKs through 4.7.0 never supplied a state. They need an update: creating
+    // one in the browser cannot bind the login to the app that requested it.
+    if (validState(state)) message.textContent = copy[1]
+    else recover(!state)
     retry.textContent = copy[7]
     let loading = false
     async function loadSignIn() {
@@ -69,8 +95,15 @@ if (typeof document !== 'undefined') {
             const data = await res.json()
             if (!res.ok || !data.ok) throw new Error('auth_failed')
             const urls = handoffUrls(data.sessionToken, state, lang)
-            location.href = urls.app
-            setTimeout(() => location.replace(urls.fallback), 500)
+            // Browsers may require another user gesture after the Google
+            // callback. Keep a working link even if automatic launch fails.
+            ready(urls)
+            setTimeout(() => {
+              if (document.visibilityState !== 'hidden') {
+                try { location.replace(urls.fallback) } catch { /* manual link remains */ }
+              }
+            }, 500)
+            try { location.href = urls.app } catch { /* manual link remains */ }
           } catch { status.textContent = copy[3]; retry.hidden = false }
         } })
         google.accounts.id.renderButton(document.getElementById('google-btn'), {

@@ -627,7 +627,7 @@ final class RemoteApi {
             if (glosses.isEmpty()) continue;
             if (out.length() > 0) {
                 out.append("\n\n").append(head).append(" · ")
-                        .append(senseLabel(sense, multiLemma, head).toUpperCase(Locale.ROOT)).append('\n');
+                        .append(senseLabel(sense, multiLemma, head)).append('\n');
             }
             for (int j = 0; j < glosses.size(); j++) {
                 if (j > 0) out.append('\n');

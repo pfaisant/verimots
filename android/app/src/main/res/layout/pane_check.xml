@@ -122,10 +122,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.14"
+                android:letterSpacing="0"
                 android:text="@string/rack_help_kicker"
-                android:textAllCaps="true"
-                android:textColor="@color/gold"
+                android:textColor="@color/muted"
                 android:textSize="12sp" />
 
             <TextView
@@ -321,9 +320,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06"
-                android:textAllCaps="true"
-                android:textColor="@color/gold"
+                android:letterSpacing="0"
+                android:textColor="@color/muted"
                 android:textSize="11sp" />
 
             <TextView
@@ -339,21 +337,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:gravity="center_vertical"
+                android:gravity="center_vertical|end"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/check_lemma"
+                    style="@style/DefinitionLink"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
-                    android:background="@drawable/bg_pill"
                     android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
                     android:maxLines="1"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp"
-                    android:textColor="@color/gold"
-                    android:textSize="13sp"
                     android:visibility="gone"
             android:layout_weight="1"
             android:gravity="center_vertical" />

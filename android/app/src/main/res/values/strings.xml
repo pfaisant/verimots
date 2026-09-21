@@ -37,7 +37,6 @@
     <string name="encore">Suivant</string>
     <string name="share">Partager</string>
     <string name="wiki">Ouvrir dans le Wiktionnaire</string>
-    <string name="see_lemma">Voir %1$s</string>
     <string name="clear">Effacer</string>
     <string name="rack_alpha">A–Z</string>
     <string name="about_title">À propos de Verimots</string>
@@ -276,7 +275,8 @@
     <string name="dict_name_wow24">WGPO WOW24</string>
     <string name="dict_name_es">RLA-ES</string>
     <string name="menu_back_short">‹ Retour</string>
-    <string name="daily_title">Mot à découvrir</string>
+    <string name="daily_title">Mot du jour</string>
+    <string name="daily_random_title">Un mot au hasard</string>
     <string name="daily_tap">Touchez pour vérifier</string>
     <string name="game_rules">Comment ça marche</string>
     <string name="bingo_rules_title">Bingo — comment ça marche</string>

@@ -261,22 +261,16 @@ final class CompetitiveMode {
                 .putLong(KEY_BROWSER_STARTED, System.currentTimeMillis()).apply();
         Uri uri = Uri.parse(RemoteApi.HOST + "/auth-android.html").buildUpon()
                 .appendQueryParameter("lang", lang).appendQueryParameter("state", state).build();
-        // The app claims https://s.pfa87.cc/* as an app link, so ACTION_VIEW
-        // routed this URL straight back into the app and sign-in silently did
-        // nothing. Target the default browser explicitly instead.
-        Intent i = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_BROWSER);
-        i.setData(uri);
-        i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        // Navigate to this attempt's URL. ACTION_MAIN can restore a browser's
+        // previous tab and ignore its data. Our app links exclude the auth
+        // start page, so ACTION_VIEW opens the browser without an app loop.
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         try {
-            activity.startActivity(i);
-        } catch (Exception first) {
-            try {
-                Intent view = new Intent(Intent.ACTION_VIEW, uri);
-                view.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                activity.startActivity(view);
-            } catch (Exception e) {
-                Toast.makeText(activity, activity.getString(R.string.google_unavailable), Toast.LENGTH_LONG).show();
-            }
+            activity.startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(activity, activity.getString(R.string.google_unavailable), Toast.LENGTH_LONG).show();
         }
     }
 

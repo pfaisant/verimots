@@ -1,4 +1,4 @@
-import { t, getLang } from './i18n.js?v=158'
+import { t, getLang } from './i18n.js?v=160'
 
 /** BCP 47 tag for number and date formatting in the active UI language. */
 function uiLocale() {
