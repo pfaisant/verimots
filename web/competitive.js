@@ -216,7 +216,7 @@ export async function fetchLeaderboard(trailId, lang, opts = {}) {
     if (trailId) p.set('trailId', trailId)
     p.set('lang', requestedLang)
     if (opts.kids) p.set('kids', '1')
-    if (opts.scope === 'all' || opts.scope === 'day') p.set('scope', opts.scope)
+    if (['all', 'day', '7d', '30d'].includes(opts.scope)) p.set('scope', opts.scope)
     const { data } = await requestJson(`/api/game/board?${p}`, opts)
     if (data?.ok) {
       return { ok: true, top: data.top || [], me: data.me || null, mine: data.mine || (data.me ? [data.me] : []), kids: !!data.kids, lang: boardLanguage(data.lang || requestedLang), trailId: data.trailId, scope: data.scope || opts.scope || 'week', weeks: data.weeks || 0, date: data.date || null }

@@ -4,7 +4,7 @@ const SHELL = [
   './index.html',
   './leaderboard.html',
   './leaderboard',
-  './leaderboard.js?v=161',
+  './leaderboard.js?v=20260921-periods',
   './icons.js?v=161',
   './activity.js?v=161',
   './app.css?v=161',

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   handleOdsGame, resetGameStatsForTests, seedUserForTests,
-  sessionCookieForTests, adoptGuestForTests, seedLeaderboardForTests, isoWeekTrailId,
+  sessionCookieForTests, adoptGuestForTests, seedLeaderboardForTests, isoWeekTrailId, boardDateRange,
 } from '../scripts/ods-game.mjs'
 
 const dir = await mkdtemp(join(tmpdir(), 'ods-activity-'))
@@ -283,4 +283,58 @@ test('combined reads remain consistent during concurrent check and Bingo writes'
   const board = (await request('GET', '/api/game/board?category=combined&lang=fr&scope=all', 'alice')).body
   assert.equal(board.me.count, 2)
   assert.deepEqual(board.me.breakdown, { checks: 1, find: 0, training: 0, bingo: 1, kids: 0 })
+})
+
+
+test('rolling board dates include today in Paris and survive DST and year boundaries', () => {
+  assert.deepEqual(boardDateRange('7d', new Date('2026-03-29T22:30:00Z')), { start: '2026-03-24', end: '2026-03-30' })
+  assert.deepEqual(boardDateRange('30d', new Date('2026-01-01T00:00:00Z')), { start: '2025-12-03', end: '2026-01-01' })
+})
+
+test('rolling filters cover every category, include boundary dates and exclude old/future days', async () => {
+  reset()
+  const today = boardDateRange('30d').end
+  const dateAt = offset => {
+    const d = new Date(`${today}T12:00:00Z`)
+    d.setUTCDate(d.getUTCDate() - offset)
+    return d.toISOString().slice(0, 10)
+  }
+  const activityDays = {}, weeks = new Map()
+  for (const offset of [0, 6, 7, 29, 30, -1]) {
+    const date = dateAt(offset), timestamp = `${date}T12:00:00Z`
+    activityDays[date] = Object.fromEntries(['checks','find','training'].map(category => [category, { fr: { count: 1, timestamp } }]))
+    const week = isoWeekTrailId(new Date(timestamp))
+    const days = weeks.get(week) || {}
+    days[date] = { plays: 1, sumPercent: 80, percent: 80, timestamp }
+    weeks.set(week, days)
+  }
+  seedUserForTests('alice', { name: 'Alice', activity: { version: 1, startedAt: `${dateAt(30)}T12:00:00Z`, totals: {}, days: activityDays, recent: [] } })
+  for (const [week, days] of weeks) {
+    for (const suffix of ['', '-kids']) seedLeaderboardForTests(week + suffix, [{ sub: 'alice', pseudo: 'Alice', plays: Object.keys(days).length, sumPercent: Object.keys(days).length * 80, days }])
+  }
+  for (const [scope, expected] of [['7d',2],['30d',4]]) {
+    for (const category of ['checks','find','training','bingo','kids','combined']) {
+      for (const lang of ['fr','any']) {
+        const { status, body } = await request('GET', `/api/game/board?category=${category}&lang=${lang}&scope=${scope}`, 'alice')
+        assert.equal(status,200)
+        assert.equal(body.scope,scope)
+        assert.equal(body.total,1)
+        assert.equal(body.me[category==='bingo'||category==='kids'?'plays':'count'],category==='combined'?expected*5:expected, `${scope}/${category}/${lang}`)
+        if(category==='bingo'||category==='kids') assert.equal(body.me.points,expected*80)
+      }
+    }
+  }
+})
+
+test('rolling ranked filters keep language standings separate and do not guess dates for legacy aggregates', async () => {
+  reset()
+  const timestamp = new Date().toISOString(), day = boardDateRange('7d').end
+  const week = isoWeekTrailId(new Date())
+  seedUserForTests('alice')
+  seedLeaderboardForTests(week, [{ sub:'alice',pseudo:'Alice',plays:1,percent:60,timestamp },{ sub:'legacy',pseudo:'Legacy',plays:4,sumPercent:400,timestamp }])
+  seedLeaderboardForTests(`${week}-en`, [{sub:'alice',pseudo:'Alice',plays:2,sumPercent:180,days:{[day]:{plays:2,sumPercent:180,timestamp}}}])
+  const {body} = await request('GET','/api/game/board?category=bingo&lang=any&scope=7d','alice')
+  assert.equal(body.total,2)
+  assert.deepEqual(body.mine.map(row=>row.lang),['en','fr'])
+  assert.deepEqual(body.mine.map(row=>row.points),[180,60])
 })

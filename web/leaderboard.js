@@ -2,10 +2,13 @@ import { flagSvg } from './flags.js?v=161'
 import { icon } from './icons.js?v=161'
 const LANGS = ['fr', 'en', 'es', 'ca']
 const SECTIONS = ['any', ...LANGS]
+const SCOPES = ['day', 'week', '7d', '30d', 'all']
     const I18N = {
       fr: {
         kicker: 'Classement', title: 'Classement complet', back: 'Retour', play: 'Jouer à Verimots',
-        day: 'Jour', week: 'Semaine', all: 'Général',
+        day: 'Jour', week: 'Semaine', '7d': '7 derniers jours', '30d': '30 derniers jours', all: 'Général',
+        rule_7d: 'Scores sur les 7 derniers jours, aujourd’hui inclus (fuseau de Paris).',
+        rule_30d: 'Scores sur les 30 derniers jours, aujourd’hui inclus (fuseau de Paris).',
         rule_day: 'Les scores du jour (fuseau de Paris), toutes les entrées publiées.',
         rule_week: 'Les scores de la semaine en cours (fuseau de Paris), toutes les entrées publiées.',
         rule_all: 'Le classement général : toutes les semaines confondues, un rang par joueur et par langue.',
@@ -23,7 +26,9 @@ const SECTIONS = ['any', ...LANGS]
       },
       en: {
         kicker: 'Leaderboard', title: 'Full leaderboard', back: 'Back', play: 'Play Verimots',
-        day: 'Day', week: 'Week', all: 'All-time',
+        day: 'Day', week: 'Week', '7d': 'Last 7 days', '30d': 'Last 30 days', all: 'All-time',
+        rule_7d: 'Scores over the last 7 days, including today (Paris time).',
+        rule_30d: 'Scores over the last 30 days, including today (Paris time).',
         rule_day: 'Today’s scores (Paris time), every published entry.',
         rule_week: 'This week’s scores (Paris time), every published entry.',
         rule_all: 'The all-time board: every week combined, one standing per player per language.',
@@ -41,7 +46,9 @@ const SECTIONS = ['any', ...LANGS]
       },
       es: {
         kicker: 'Clasificación', title: 'Clasificación completa', back: 'Volver', play: 'Jugar a Verimots',
-        day: 'Día', week: 'Semana', all: 'General',
+        day: 'Día', week: 'Semana', '7d': 'Últimos 7 días', '30d': 'Últimos 30 días', all: 'General',
+        rule_7d: 'Puntuaciones de los últimos 7 días, incluido hoy (hora de París).',
+        rule_30d: 'Puntuaciones de los últimos 30 días, incluido hoy (hora de París).',
         rule_day: 'Las puntuaciones de hoy (hora de París), todas las entradas publicadas.',
         rule_week: 'Las puntuaciones de esta semana (hora de París), todas las entradas publicadas.',
         rule_all: 'La clasificación general: todas las semanas juntas, un puesto por jugador e idioma.',
@@ -59,7 +66,9 @@ const SECTIONS = ['any', ...LANGS]
       },
       ca: {
         kicker: 'Classificació', title: 'Classificació completa', back: 'Torna', play: 'Juga a Verimots',
-        day: 'Dia', week: 'Setmana', all: 'General',
+        day: 'Dia', week: 'Setmana', '7d': 'Últims 7 dies', '30d': 'Últims 30 dies', all: 'General',
+        rule_7d: 'Puntuacions dels últims 7 dies, inclòs avui (hora de París).',
+        rule_30d: 'Puntuacions dels últims 30 dies, inclòs avui (hora de París).',
         rule_day: 'Les puntuacions d’avui (hora de París), totes les entrades publicades.',
         rule_week: 'Les puntuacions d’aquesta setmana (hora de París), totes les entrades publicades.',
         rule_all: 'La classificació general: totes les setmanes juntes, una posició per jugador i idioma.',
@@ -120,7 +129,7 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   const nf = new Intl.NumberFormat(ui)
   const CATEGORIES = ['checks', 'combined', 'bingo', 'kids', 'find', 'training']
   let category = CATEGORIES.includes(params.get('category')) ? params.get('category') : 'checks'
-  let scope = ['day', 'all'].includes(params.get('scope')) ? params.get('scope') : 'week'
+  let scope = SCOPES.includes(params.get('scope')) ? params.get('scope') : 'week'
   const board = standalone && SECTIONS.includes(params.get('board')) ? params.get('board') : ui
   let request = 0
   let controller
@@ -162,7 +171,7 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
     if (!cats.children.length) cats.innerHTML = CATEGORIES.map(c => `<option value="${c}">${esc(t[c])}</option>`).join('')
     cats.value = category
     const periods = find('lb-scope-select')
-    if (!periods.children.length) periods.innerHTML = ['day','week','all'].map(s => `<option value="${s}">${esc(t[s])}</option>`).join('')
+    if (!periods.children.length) periods.innerHTML = SCOPES.map(s => `<option value="${s}">${esc(t[s])}</option>`).join('')
     periods.value = scope
     find('lb-rule').textContent = category === 'combined' ? t.combined_rule : countMode() ? t[category === 'checks' ? 'checks_rule' : 'games_rule'] : t[`rule_${scope}`]
     if (find('lb-play')) find('lb-play').href = playUrl()
@@ -229,7 +238,7 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   for (const attr of ['category', 'scope']) {
     find(`lb-${attr}-select`).addEventListener('change', e => {
       const value = e.target.value
-      const choices = attr === 'category' ? CATEGORIES : ['day', 'week', 'all']
+      const choices = attr === 'category' ? CATEGORIES : SCOPES
       if (!choices.includes(value)) return
       if (attr === 'category') category = value
       else scope = value

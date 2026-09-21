@@ -1513,14 +1513,78 @@ async function recordActivity(sub, event) {
   })
 }
 
+// Calendar-day windows use Paris dates and UTC date arithmetic so DST does
+// not turn a seven-day range into six or eight calendar dates.
+export function boardDateRange(scope, now = new Date()) {
+  const days = scope === '7d' ? 7 : scope === '30d' ? 30 : 0
+  if (!days) return null
+  const end = parisDateString(now)
+  const start = new Date(`${end}T12:00:00Z`)
+  start.setUTCDate(start.getUTCDate() - days + 1)
+  return { start: start.toISOString().slice(0, 10), end }
+}
+
+function inBoardRange(day, range) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) && day >= range.start && day <= range.end
+}
+
+// Use dated counters, never attribute a whole weekly aggregate to its last
+// update. Legacy daily entries and single-play entries have a known date.
+function rangeSlices(entry, period, range) {
+  if (entry.days && Object.keys(entry.days).length) {
+    return Object.entries(entry.days).filter(([day, row]) => inBoardRange(day, range) && row?.plays > 0).map(([, row]) => row)
+  }
+  if (inBoardRange(period, range)) return [entry]
+  if (Number(entry.plays || 1) === 1 && entry.timestamp) {
+    const stamp = new Date(entry.timestamp)
+    if (Number.isFinite(stamp.getTime()) && inBoardRange(parisDateString(stamp), range)) return [entry]
+  }
+  return []
+}
+
+async function getRollingBoard(lang, kids, scope, sessionSub) {
+  return withBoardLock(async () => {
+    await loadLeaderboards()
+    const range = boardDateRange(scope)
+    const rows = new Map()
+    for (const [id, source] of Object.entries(leaderboards)) {
+      const rowLang = trailLang(id), period = trailPeriod(id)
+      if (!BOARD_LANGS.includes(rowLang) || trailKids(id) !== !!kids || (lang !== 'any' && rowLang !== lang)) continue
+      if (!isWeekPeriod(id) && !/^\d{4}-\d{2}-\d{2}$/.test(period)) continue
+      for (const entry of source?.entries || []) {
+        if (!entry.sub) continue
+        for (const slice of rangeSlices(entry, period, range)) {
+          const key = `${rowLang}\0${entry.sub}`
+          const row = rows.get(key) || { sub: entry.sub, pseudo: entry.pseudo, lang: rowLang, plays: 0, sumPercent: 0, timestamp: null }
+          const plays = Math.max(1, Number(slice.plays) || 1)
+          row.plays += plays
+          row.sumPercent += Number.isFinite(Number(slice.sumPercent)) ? Number(slice.sumPercent) : (Number(slice.percent) || 0) * plays
+          if (!row.timestamp || slice.timestamp > row.timestamp) {
+            row.timestamp = slice.timestamp
+            row.word = slice.word || null
+            row.pts = slice.pts || 0
+            row.pseudo = entry.pseudo
+          }
+          rows.set(key, row)
+        }
+      }
+    }
+    const entries = [...rows.values()].sort(compareBoardEntries)
+    const publish = (entry, index) => anyPublicEntry(entry, index + 1)
+    const mine = entries.flatMap((entry, index) => entry.sub === sessionSub ? [publish(entry, index)] : [])
+    return { ok: true, trailId: scope, scope, lang, kids, total: entries.length, top: entries.slice(0, 100).map(publish), me: mine[0] || null, mine, ...range }
+  })
+}
+
 function activitySlice(activity, category, lang, scope) {
   if (scope === 'all') return activity?.totals?.[category]?.[lang] || null
   const today = parisDateString()
+  const range = boardDateRange(scope)
   const week = todayTrailId()
   let count = 0
   let timestamp = null
   for (const [date, categories] of Object.entries(activity?.days || {})) {
-    if (scope === 'day' ? date !== today : isoWeekTrailId(new Date(`${date}T12:00:00Z`)) !== week) continue
+    if (range ? !inBoardRange(date, range) : scope === 'day' ? date !== today : isoWeekTrailId(new Date(`${date}T12:00:00Z`)) !== week) continue
     const row = categories?.[category]?.[lang]
     if (!row?.count) continue
     count += row.count
@@ -1568,6 +1632,7 @@ async function getCombinedBoard(lang, scope, sessionSub) {
   return withBoardLock(() => withAuthLock(async () => {
     await loadLeaderboards()
     await loadAuthDb()
+    const range = boardDateRange(scope)
     const entries = new Map()
     let trackingSince = null
     const day = parisDateString()
@@ -1604,6 +1669,12 @@ async function getCombinedBoard(lang, scope, sessionSub) {
       if (scope === 'week' && periodWeek !== week) continue
       const category = trailKids(id) ? 'kids' : 'bingo'
       for (const entry of board?.entries || []) {
+        if (range) {
+          for (const slice of rangeSlices(entry, period, range)) {
+            add(entry.sub, rowLang, category, Math.max(1, Number(slice.plays) || 1), slice.timestamp, entry.pseudo)
+          }
+          continue
+        }
         let slice = entry
         if (scope === 'day') {
           const savedDay = entry.days?.[day]
@@ -2085,16 +2156,21 @@ export async function handleOdsGame(req, res, url, helpers) {
     const sessionSub = await getSessionFromRequest(req)
     const scope = String(url.searchParams.get('scope') || '').toLowerCase()
     if (category === 'combined') {
-      const board = await getCombinedBoard(lang, ['all', 'day'].includes(scope) ? scope : 'week', sessionSub)
+      const board = await getCombinedBoard(lang, ['all', 'day', '7d', '30d'].includes(scope) ? scope : 'week', sessionSub)
       json(res, 200, board, { 'Cache-Control': 'no-store' }, req.method)
       return true
     }
     if (ACTIVITY_CATEGORIES.includes(category)) {
-      const board = await getActivityBoard(category, lang, ['all', 'day'].includes(scope) ? scope : 'week', sessionSub)
+      const board = await getActivityBoard(category, lang, ['all', 'day', '7d', '30d'].includes(scope) ? scope : 'week', sessionSub)
       json(res, 200, board, { 'Cache-Control': 'no-store' }, req.method)
       return true
     }
     const describe = (board) => Object.assign(board, { category: board.kids ? 'kids' : 'bingo', unit: 'points' })
+    if (boardDateRange(scope)) {
+      const board = await getRollingBoard(lang, kids, scope, sessionSub)
+      json(res, 200, describe(board), { 'Cache-Control': 'no-store' }, req.method)
+      return true
+    }
     if (scope === 'all') {
       const general = anyLanguage
         ? await getAnyGeneralBoard(kids, sessionSub)

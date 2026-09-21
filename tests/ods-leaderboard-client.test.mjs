@@ -136,3 +136,24 @@ test('play links stay in the app and disposing a board cancels late writes', asy
   ui.root.fire('click', link)
   assert.equal(plays.length, 1)
 })
+
+
+test('rolling period choices request the selected range and keep it on category changes', async t => {
+  const ui = setup(t, { lang: 'en', standalone: true })
+  assert.match(ui.select('scope').innerHTML, /Last 7 days/)
+  assert.match(ui.select('scope').innerHTML, /Last 30 days/)
+  ui.reply(0)
+  await ui.api.ready
+  for (const [index, scope] of [[1,'7d'],[2,'30d']]) {
+    ui.change('scope',scope)
+    assert.match(ui.requests[index].url,new RegExp(`scope=${scope}`))
+    ui.reply(index)
+    await flush()
+    assert.match(ui.urls.at(-1),new RegExp(`scope=${scope}`))
+  }
+  ui.change('category','bingo')
+  assert.match(ui.requests[3].url,/category=bingo&scope=30d/)
+  assert.match(ui.ids.get('lb-rule').textContent,/last 30 days/)
+  ui.reply(3)
+  await flush()
+})
