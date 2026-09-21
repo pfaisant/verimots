@@ -11,3 +11,6 @@ android/ods9/
 .idea/
 .env
 .local-state/
+
+# Local release artifacts and preserved historical work
+.local/

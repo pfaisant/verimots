@@ -14,8 +14,8 @@ Locations:
 - Mac deployed source: /Users/clawdbot/Dev/AiConglomerate
 - Windows existing worktree: D:/tmp/games-omarchy (AiConglomerate,
   games-omarchy-tab); it already contains both snapshots.
-- Windows D:/Perso/AiConglomerate is an older dirty checkout. Its unrelated
-  work is preserved; do not treat its Android version as the latest release.
+- Windows D:/Perso/AiConglomerate is a separate, actively edited shared
+  repository. Its work is preserved; Verimots development belongs here.
 
 Imported tracked source mappings: dashboard/s -> web,
 dashboard/verimots -> landing, android/ods9 -> android; shared backend
@@ -24,9 +24,31 @@ are included. Generator paths are adapted to the standalone layout.
 The Mac standalone auth regression tests are retained. Its four modified
 source files are represented by the newer deployment source (auth HTML also
 updates the favicon cache version). An archive of the original dirty files
-is retained at D:/_agent_work/verimots-dirty-20260921.tar.gz and
+is retained at D:/Perso/verimots/.local/archive/20260921/agent-work/verimots-dirty-20260921.tar.gz and
 /tmp/verimots-dirty-20260921.tar.gz on the Mac.
 
 Tests importing web modules now use cache version 160 to share the same
 language state as the deployed modules. Public web/apk.json deliberately
 remains 4.8.0 while package.json and Android source identify candidate 4.8.1.
+
+## Consolidation
+
+The verified release/sync history is merged into main. Windows and Mac
+standalone checkouts use main. The old joker-tile-picker experiment is
+preserved as archive/joker-tile-picker-20260921; its gameplay changes are
+not part of the verified 4.8.1 candidate.
+
+Windows has one active standalone checkout: D:/Perso/verimots.
+Historical standalone trees, review evidence, backups and 4.7.1 artifacts
+formerly under D:/_agent_work, D:/tmp/verimots-work and AiConglomerate's
+_agent_work are retained under .local/archive/20260921/ (Git ignored).
+The moves.json manifest records each original and new absolute path.
+The archive is historical evidence, not another development checkout.
+References in older review documents describe their original locations;
+use the move manifest to locate them now.
+
+AiConglomerate's tracked deployment mirrors remain in its two shared
+worktrees, because removing them would change unrelated dashboard work.
+Do not edit those as an independent Verimots source. Use this repository
+and scripts/sync-deployment.mjs when an actual deployment is requested.
+Consolidation does not deploy the 4.8.1 candidate or change public downloads.
