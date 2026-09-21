@@ -1,4 +1,4 @@
-const CACHE = 'verimots-v161'
+const CACHE = 'verimots-v162'
 const SHELL = [
   './',
   './index.html',
@@ -9,7 +9,7 @@ const SHELL = [
   './activity.js?v=161',
   './app.css?v=161',
   './analytics.js?v=161',
-  './app.js?v=161',
+  './app.js?v=20260921-periods',
   './competitive.js?v=161',
   './game.js?v=161',
   './flags.js?v=161',

@@ -2115,7 +2115,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=161').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=20260921-periods').catch(() => {})
 }
 
 window.addEventListener('resize', () => {
