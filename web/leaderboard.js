@@ -1,5 +1,5 @@
-import { flagSvg } from './flags.js?v=160'
-import { icon } from './icons.js?v=160'
+import { flagSvg } from './flags.js?v=161'
+import { icon } from './icons.js?v=161'
 const LANGS = ['fr', 'en', 'es', 'ca']
 const SECTIONS = ['any', ...LANGS]
     const I18N = {

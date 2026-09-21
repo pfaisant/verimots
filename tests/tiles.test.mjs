@@ -11,11 +11,11 @@ import {
   scoreTiles,
   unplayableWord,
 } from '../web/tiles.js'
-import { setLang, t } from '../web/i18n.js?v=160'
+import { setLang, t } from '../web/i18n.js?v=161'
 import { letterScore, playPoints, playScore, parseRack, usedTiles } from '../web/game.js'
 import { kidsAnagrams, dealKids } from '../web/kids.js'
-import { rememberWord, mergeHistory } from '../web/history.js?v=160'
-import { toggleFavorite, loadFavorites } from '../web/favorites.js?v=160'
+import { rememberWord, mergeHistory } from '../web/history.js?v=161'
+import { toggleFavorite, loadFavorites } from '../web/favorites.js?v=161'
 import { scorePlayOnRack } from '../scripts/ods-game.mjs'
 
 test('Spanish digraphs encode as single tiles', () => {
@@ -311,7 +311,7 @@ test('history and favourites keep Ç, L·L and the longest 15-tile words', () =>
 
 test('every module pins the same version of a shared import', () => {
   // A different ?v= is a different module URL, so it is a *separate* module
-  // instance with its own language state: history.js on i18n.js?v=160 while
+  // instance with its own language state: history.js on i18n.js?v=161 while
   // app.js was on ?v=140 left the history pane French in every language.
   const dir = new URL('../web/', import.meta.url)
   const pins = new Map()

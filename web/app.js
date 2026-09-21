@@ -1,12 +1,12 @@
-import { mountLeaderboard } from './leaderboard.js?v=160'
-import { polishIcons, icon } from './icons.js?v=160'
-import { activityId, recordActivity } from './activity.js?v=160'
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=160'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=160'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=160'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=160'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=160'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=160'
+import { mountLeaderboard } from './leaderboard.js?v=161'
+import { polishIcons, icon } from './icons.js?v=161'
+import { activityId, recordActivity } from './activity.js?v=161'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=161'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=161'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=161'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=161'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=161'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=161'
 
 function letterValues() {
   return tileValues(getLang())
@@ -66,7 +66,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=160', { type: 'module' })
+const worker = new Worker('worker.js?v=161', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -173,6 +173,9 @@ function normalize(value, opts = {}) {
 function tilesHtml(word, jokers = [], opts = {}) {
   const jk = new Set(jokers)
   const tap = opts.tap
+  // Letter each blank currently stands for, by rack index: the joker shows
+  // the letter it is playing rather than a bare '?'.
+  const stands = opts.stands instanceof Map ? opts.stands : new Map()
   const codes = [...encodeTiles(String(word || '').toUpperCase(), getLang(), getEsEdition())]
   const tokens = tileTokens(String(word || ''), getLang(), getEsEdition())
   const order = Array.isArray(opts.order) ? opts.order : tokens.map((_, i) => i)
@@ -182,10 +185,15 @@ function tilesHtml(word, jokers = [], opts = {}) {
     if (token == null) return ''
     const blank = jk.has(i) || token === '?'
     const pts = blank ? 0 : (values[codes[i]] || 0)
-    const glyph = blank ? '?' : token
+    const stood = blank ? stands.get(i) || '' : ''
+    const glyph = blank ? stood || '?' : token
     const tag = tap ? 'button' : 'span'
-    const extra = tap ? ` type="button" data-rack-i="${i}"` : ''
-    return `<${tag} class="tile${blank ? ' blank' : ''}${glyph.length > 1 ? ' tile-digraph' : ''}"${extra}>${glyph}<small>${pts}</small></${tag}>`
+    const label = blank ? (stood ? t('joker_tile_set', stood) : t('joker_tile_free')) : ''
+    const extra = tap
+      ? ` type="button" data-rack-i="${i}"${blank ? ` data-rack-blank="${i}" aria-controls="joker-pick" aria-expanded="false" aria-label="${escapeHtml(label)}"` : ''}`
+      : blank ? ` aria-label="${escapeHtml(label)}"` : ''
+    const cls = `tile${blank ? ' blank' : ''}${blank && stood ? ' blank-set' : ''}${glyph.length > 1 ? ' tile-digraph' : ''}`
+    return `<${tag} class="${cls}"${extra}>${glyph}<small>${pts}</small></${tag}>`
   }).join('')}</div>`
 }
 
@@ -492,7 +500,7 @@ function recordWords(entries) {
   if (histSheet && !histSheet.hidden) renderHistory()
   const owner = getCurrentUser()?.sub
   if (owner) {
-    import('./competitive.js?v=160').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=161').then(({ saveHistoryWord }) => {
       if (getCurrentUser()?.sub !== owner || clearingHistory) return
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry, { owner })
     }).catch(() => {})
@@ -507,7 +515,7 @@ async function syncCloudHistory() {
   const owner = getCurrentUser().sub
   const revision = historyRevision
   try {
-    const { fetchHistory } = await import('./competitive.js?v=160')
+    const { fetchHistory } = await import('./competitive.js?v=161')
     const remote = await fetchHistory()
     if (!remote.ok || revision !== historyRevision || getCurrentUser()?.sub !== owner) return
     mergeHistory(remote.history)
@@ -1731,7 +1739,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (error) error.hidden = true
   try {
     if (owner) {
-      const { clearCloudHistory } = await import('./competitive.js?v=160')
+      const { clearCloudHistory } = await import('./competitive.js?v=161')
       if (getCurrentUser()?.sub !== owner) return
       const result = await clearCloudHistory({ owner })
       if (!result?.ok || getCurrentUser()?.sub !== owner) throw new Error('clear_failed')
@@ -2107,7 +2115,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=160').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=161').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

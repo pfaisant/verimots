@@ -74,3 +74,9 @@ Candidate SHA-256:
 Web/test evidence is under
 `/Users/clawdbot/Dev/_agent_work/verimots-auth-20260918/`; native evidence is
 under `AiConglomerate/_agent_work/verimots-auth-20260918/`.
+
+## Source update on 21 September
+
+The candidate source now also includes the reviewed [joker picker](joker-picker.md).
+The September 18 artifact hashes above identify the earlier sign-in-only
+candidate and are not hashes of a build containing the picker.

@@ -23,6 +23,7 @@ import android.text.style.StyleSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.KeyEvent;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -41,6 +42,7 @@ import android.widget.ImageView;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.widget.LinearLayout;
+import android.widget.GridLayout;
 import android.widget.ScrollView;
 import android.widget.PopupWindow;
 import android.widget.PopupMenu;
@@ -220,6 +222,7 @@ public class MainActivity extends Activity {
     private TextView authPicFallback;
 
     private LinearLayout gameRack;
+    private TextView jokerNote;
     private LinearLayout gameForm;
     private EditText gameQ;
     private TextView gameLive;
@@ -2855,6 +2858,7 @@ public class MainActivity extends Activity {
         gameOptions = findViewById(R.id.game_options);
         gameOptions.setOnClickListener(v -> toggleGameActions());
         gameRack = findViewById(R.id.game_rack);
+        jokerNote = findViewById(R.id.joker_note);
         gameForm = findViewById(R.id.game_form);
         gameQ = findViewById(R.id.game_q);
         gameLive = findViewById(R.id.game_live);
@@ -3045,7 +3049,8 @@ public class MainActivity extends Activity {
             int use = -1;
             for (int p = prevPos; p < prev.size(); p++) {
                 Integer idx = prev.get(p);
-                if (idx != null && idx >= 0 && idx < rack.length() && !taken[idx] && rack.charAt(idx) == ch) {
+                if (idx != null && idx >= 0 && idx < rack.length() && !taken[idx]
+                        && rack.charAt(idx) == ch) {
                     use = idx;
                     prevPos = p + 1;
                     break;
@@ -3083,9 +3088,17 @@ public class MainActivity extends Activity {
         paintTrainingActions();
         HashSet<Integer> used = new HashSet<>();
         for (Integer idx : pickedTiles) if (idx != null && idx >= 0) used.add(idx);
+        if (jokerNote != null) {
+            jokerNote.setVisibility(!closed && rackHasBlank() ? View.VISIBLE : View.GONE);
+        }
         Tiles.fill(gameRack, deal.rack, closed ? null : used, closed ? null : v -> {
             int i = (Integer) v.getTag();
             char ch = deal.rack.charAt(i);
+            if (Tiles.isBlank(ch)) {
+                // The one tile you could not play by tapping. Now you can.
+                showJokerPicker(i);
+                return;
+            }
             String word = Lexicon.normalize(gameQ.getText().toString());
             syncPicks(word);
             int at = pickedTiles.indexOf(i);
@@ -3093,10 +3106,6 @@ public class MainActivity extends Activity {
                 // Deselect exactly the tapped tile — its own char leaves the word.
                 word = word.substring(0, at) + word.substring(at + 1);
                 pickedTiles.remove(at);
-            } else if (ch == '?') {
-                Toast.makeText(this, R.string.joker_type_letter, Toast.LENGTH_SHORT).show();
-                gameQ.requestFocus();
-                return;
             } else {
                 word = word + ch;
                 pickedTiles.add(i);
@@ -3104,7 +3113,117 @@ public class MainActivity extends Activity {
             String shown = Lexicon.display(word);
             gameQ.setText(shown);
             gameQ.setSelection(shown.length());
-        }, deal.bonusIndex, rackAlpha);
+        }, deal.bonusIndex, rackAlpha, jokerFaces(Lexicon.normalize(gameQ.getText().toString())));
+    }
+
+    private boolean rackHasBlank() {
+        if (deal == null) return false;
+        for (int i = 0; i < deal.rack.length(); i++) if (Tiles.isBlank(deal.rack.charAt(i))) return true;
+        return false;
+    }
+
+    /** The tile each joker is currently playing, by rack index. */
+    private Map<Integer, Character> jokerFaces(String word) {
+        HashMap<Integer, Character> faces = new HashMap<>();
+        if (deal == null) return faces;
+        for (int k = 0; k < pickedTiles.size() && k < word.length(); k++) {
+            Integer idx = pickedTiles.get(k);
+            if (idx == null || idx < 0 || idx >= deal.rack.length()) continue;
+            if (Tiles.isBlank(deal.rack.charAt(idx))) faces.put(idx, word.charAt(k));
+        }
+        return faces;
+    }
+
+    /**
+     * Tap a joker and pick its letter. Only tiles the bag holds are offered,
+     * so a FISE blank is never allowed to become a K or a W.
+     */
+    private void showJokerPicker(int rackIndex) {
+        if (closed || deal == null || lex == null) return;
+        final Lexicon.Deal pickerDeal = deal;
+        String codes = lex.blankLetters();
+        if (codes.isEmpty()) return;
+        float d = getResources().getDisplayMetrics().density;
+        String word = Lexicon.normalize(gameQ.getText().toString());
+        syncPicks(word);
+        int at = pickedTiles.indexOf(rackIndex);
+        // The face this joker already carries, so re-opening the picker shows
+        // what it is set to instead of making the player remember.
+        Character current = at >= 0 && at < word.length() ? word.charAt(at) : null;
+
+        GridLayout grid = new GridLayout(this);
+        grid.setPadding((int) (14 * d), (int) (10 * d), (int) (14 * d), (int) (6 * d));
+        int cell = (int) (48 * d);
+        // Fit the widest row the screen allows rather than assuming seven —
+        // 29 Spanish tiles at a fixed 7 across overflow a narrow phone.
+        int usable = getResources().getDisplayMetrics().widthPixels - (int) (76 * d);
+        grid.setColumnCount(Math.max(1, Math.min(8, usable / (cell + (int) (6 * d)))));
+        final AlertDialog[] box = new AlertDialog[1];
+        for (int i = 0; i < codes.length(); i++) {
+            char code = codes.charAt(i);
+            String glyph = Lexicon.tileGlyph(code);
+            TextView tile = new TextView(this);
+            tile.setText(glyph);
+            tile.setGravity(Gravity.CENTER);
+            tile.setTextColor(getColor(R.color.tile_ink));
+            tile.setTextSize(TypedValue.COMPLEX_UNIT_SP, glyph.length() > 1 ? 12 : 16);
+            tile.setTypeface(getResources().getFont(R.font.verimots_tiles));
+            tile.setFocusable(true);
+            boolean on = current != null && current == code;
+            tile.setBackgroundResource(on ? R.drawable.bg_tile_blank_set : R.drawable.bg_tile);
+            tile.setContentDescription(on
+                    ? getString(R.string.joker_tile_set, glyph)
+                    : glyph);
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+            lp.width = cell;
+            lp.height = (int) (cell * 1.12f);
+            lp.setMargins((int) (3 * d), (int) (3 * d), (int) (3 * d), (int) (3 * d));
+            tile.setLayoutParams(lp);
+            tile.setOnClickListener(v -> {
+                if (!closed && deal == pickerDeal) setJokerLetter(rackIndex, code);
+                if (box[0] != null) box[0].dismiss();
+            });
+            grid.addView(tile);
+        }
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(grid);
+
+        AlertDialog.Builder b = new AlertDialog.Builder(this)
+                .setTitle(R.string.joker_pick_title)
+                .setMessage(R.string.joker_pick_note)
+                .setView(scroll)
+                .setNegativeButton(android.R.string.cancel, null);
+        if (at >= 0) b.setPositiveButton(R.string.joker_pick_clear, (dlg, w) -> { if (!closed && deal == pickerDeal) clearJokerLetter(rackIndex); });
+        box[0] = b.show();
+    }
+
+    private void setJokerLetter(int rackIndex, char code) {
+        if (closed || deal == null || lex == null || lex.blankLetters().indexOf(code) < 0) return;
+        String word = Lexicon.normalize(gameQ.getText().toString());
+        syncPicks(word);
+        int at = pickedTiles.indexOf(rackIndex);
+        if (at >= 0) {
+            word = word.substring(0, at) + code + word.substring(at + 1);
+        } else {
+            word = word + code;
+            pickedTiles.add(rackIndex);
+        }
+        String shown = Lexicon.display(word);
+        gameQ.setText(shown);
+        gameQ.setSelection(shown.length());
+    }
+
+    private void clearJokerLetter(int rackIndex) {
+        String word = Lexicon.normalize(gameQ.getText().toString());
+        syncPicks(word);
+        int at = pickedTiles.indexOf(rackIndex);
+        if (at >= 0) {
+            word = word.substring(0, at) + word.substring(at + 1);
+            pickedTiles.remove(at);
+        }
+        String shown = Lexicon.display(word);
+        gameQ.setText(shown);
+        gameQ.setSelection(shown.length());
     }
 
     /** The A–Z pill above the rack: shown when the option is on (Réglages)

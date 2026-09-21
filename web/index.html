@@ -11,14 +11,14 @@
   <meta name="apple-mobile-web-app-title" content="Verimots" />
   <meta name="mobile-web-app-capable" content="yes" />
   <link rel="canonical" href="https://s.pfa87.cc/" />
-  <link rel="icon" href="favicon.svg?v=160" type="image/svg+xml" />
+  <link rel="icon" href="favicon.svg?v=161" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="manifest" href="manifest.webmanifest?v=160" />
+  <link rel="manifest" href="manifest.webmanifest?v=161" />
   <meta property="og:title" content="Verimots — Vérificateur de mots" />
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=160" />
+  <link rel="stylesheet" href="app.css?v=161" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#main" data-i18n="skip">Aller au contenu</a>
@@ -26,7 +26,7 @@
   <header class="top">
     <div class="brand">
       <a class="brand-home" id="brand-home" href="https://verimots.pfa87.cc/?lang=fr" data-i18n-aria="home" aria-label="Accueil">
-        <img class="mark" src="favicon.svg?v=160" width="44" height="44" alt="" />
+        <img class="mark" src="favicon.svg?v=161" width="44" height="44" alt="" />
         <h1>Verimots</h1>
       </a>
     </div>
@@ -334,6 +334,8 @@
       </div>
       <div class="play-table" id="play-table">
         <div id="game-rack" class="game-rack" aria-label="Lettres du tirage"></div>
+        <p class="joker-note" id="joker-note" hidden></p>
+        <div class="joker-pick" id="joker-pick" role="group" aria-labelledby="joker-pick-title" hidden></div>
         <form id="game-form" class="game-form">
           <label class="sr" for="game-q" data-i18n="play_label">Votre meilleur mot</label>
           <span class="game-field">
@@ -532,8 +534,8 @@
     </div>
   </aside>
 
-  <script src="analytics.js?v=160"></script>
-  <script src="app.js?v=160" type="module"></script>
+  <script src="analytics.js?v=161"></script>
+  <script src="app.js?v=161" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

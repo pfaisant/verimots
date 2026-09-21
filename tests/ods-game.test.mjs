@@ -47,7 +47,7 @@ import { loadHistory, rememberWord, historyLabel, historyDayLabel, clearHistory 
 import { kidsWords, kidsLong } from '../web/kids.js'
 import { tileCount, encodeTiles, decodeRack } from '../web/tiles.js'
 import { competeAccepted, fetchLeaderboard } from '../web/competitive.js'
-import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=160'
+import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=161'
 
 test('rack tile usage assigns unmatched letters to blanks', () => {
   assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
@@ -191,10 +191,10 @@ test('leaderboard client preserves the any-language board and all own rows', asy
   }
 })
 
-test('shared rack is letters only', () => {
+test('shared rack preserves letters and blank tiles', () => {
   assert.equal(parseRack('lie-irat!'), 'LIEIRAT')
   assert.equal(parseRack('abcdefghij'), 'ABCDEFG')
-  assert.equal(parseRack('año?'), 'AÑO')
+  assert.equal(parseRack('año?'), 'AÑO?')
 })
 
 test('WhatsApp défi does not reveal the answer', () => {

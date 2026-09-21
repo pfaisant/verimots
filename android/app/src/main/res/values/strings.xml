@@ -84,7 +84,6 @@
     <string name="training_eight">8 lettres</string>
     <string name="training_plus_one">7 + 1</string>
     <string name="training_joker">Joker</string>
-    <string name="joker_type_letter">Tapez la lettre que remplace le joker.</string>
     <string name="training_hard">Difficiles</string>
     <string name="training_progress">%1$d sur %2$d%3$s</string>
     <string name="training_reveal">Voir les réponses</string>
@@ -321,4 +320,10 @@
     <string name="privacy_link">Politique de confidentialité et suppression des données</string>
     <string name="browser_unavailable">Aucun navigateur disponible.</string>
     <string name="history_clear_failed">Impossible d’effacer l’historique du compte. Vérifie ta connexion et réessaie.</string>
+    <string name="joker_pick_title">Le joker remplace…</string>
+    <string name="joker_pick_note">Le joker vaut 0 point. Une tuile réelle disponible est utilisée en premier.</string>
+    <string name="joker_pick_clear">Enlever la lettre</string>
+    <string name="joker_tile_free">Joker — touchez pour choisir sa lettre</string>
+    <string name="joker_tile_set">Joker = %1$s · 0 point — touchez pour changer</string>
+    <string name="joker_rack_note">Ce tirage contient un joker : touchez-le pour choisir sa lettre.</string>
 </resources>

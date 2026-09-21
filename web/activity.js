@@ -1,4 +1,4 @@
-import { ensureGuestSession, getCurrentUser } from './competitive.js?v=160'
+import { ensureGuestSession, getCurrentUser } from './competitive.js?v=161'
 
 export const activityId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`
 const KEY = 'verimots-activity-queue-v1'

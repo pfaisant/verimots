@@ -84,7 +84,6 @@
     <string name="training_eight">8 fitxes</string>
     <string name="training_plus_one">7 + 1</string>
     <string name="training_joker">Escarràs</string>
-    <string name="joker_type_letter">Escriu la lletra que representa l’escarràs.</string>
     <string name="training_hard">Difícils</string>
     <string name="training_progress">%1$d de %2$d%3$s</string>
     <string name="training_reveal">Mostra les respostes</string>
@@ -321,4 +320,10 @@
     <string name="privacy_link">Privadesa i supressió de dades</string>
     <string name="browser_unavailable">No hi ha cap navegador disponible.</string>
     <string name="history_clear_failed">No s’ha pogut esborrar l’historial del compte. Comprova la connexió i torna-ho a provar.</string>
+    <string name="joker_pick_title">L’escarràs representa…</string>
+    <string name="joker_pick_note">L’escarràs val 0 punts. Si tens la fitxa real, es fa servir primer.</string>
+    <string name="joker_pick_clear">Treu la lletra</string>
+    <string name="joker_tile_free">Escarràs — toca per triar una lletra</string>
+    <string name="joker_tile_set">Escarràs = %1$s · 0 punts — toca per canviar</string>
+    <string name="joker_rack_note">Aquesta tirada té un escarràs: toca’l per triar una lletra.</string>
 </resources>

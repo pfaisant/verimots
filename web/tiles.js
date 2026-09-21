@@ -149,6 +149,23 @@ function isBlankChar(ch) {
   return ch === '?' || ch === '.' || ch === '*'
 }
 
+/** True for a rack tile that is a blank ('?', or the '.'/'*' typed forms). */
+export function isBlankTile(code) {
+  return isBlankChar(code)
+}
+
+/**
+ * Tile codes a blank may legally stand for, in display order. A blank can
+ * only become a tile the bag actually holds: that is what keeps K and W out
+ * of the FISE picker, since the international set has neither.
+ */
+export function blankTargets(lang = 'fr', edition = 'fise') {
+  const spec = tileSpec(lang, edition)
+  return spec.order.filter(
+    (code) => (spec.bag[code] || 0) > 0 && !(spec.blockedBlank && spec.blockedBlank.test(code))
+  )
+}
+
 /**
  * Display → encoded. Input is an uppercased display string (A–Z, Ñ, Ç, blanks
  * as ? . *, optional separators). Multi-character tiles fold into one tile,

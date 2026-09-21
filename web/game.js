@@ -1,9 +1,9 @@
-import { activityId, recordActivity } from './activity.js?v=160'
-import { getCurrentUser } from './competitive.js?v=160'
-import { t, getLang, getDict, getEsEdition, dictLabel, LANGS } from './i18n.js?v=160'
-import { flagSvg } from './flags.js?v=160'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=160'
-import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles } from './tiles.js?v=160'
+import { activityId, recordActivity } from './activity.js?v=161'
+import { getCurrentUser } from './competitive.js?v=161'
+import { t, getLang, getDict, getEsEdition, dictLabel, LANGS } from './i18n.js?v=161'
+import { flagSvg } from './flags.js?v=161'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=161'
+import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles, blankTargets, isBlankTile, tileGlyph } from './tiles.js?v=161'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -290,7 +290,7 @@ export function parseRack(raw, maxTiles = 7) {
     // Tile digits type a multi-character tile directly: 1/2/3 in Spanish,
     // 4/5/6 in Catalan. '·' belongs to the Catalan L·L tile and separates
     // two single tiles in Spanish, so it survives in both.
-    .replace(ca ? /[^A-ZÇ456·\-\s]/g : /[^A-ZÑ123·\-\s]/g, '')
+    .replace(ca ? /[^A-ZÇ456?·\-\s]/g : /[^A-ZÑ123?·\-\s]/g, '')
   const enc = encodeTiles(up, getLang(), getEsEdition()).slice(0, maxTiles)
   return decodeRack(enc, getLang(), getEsEdition())
 }
@@ -489,7 +489,9 @@ export function linkifyDef(text, escapeHtml) {
   })
 }
 
-function tileAssignments(tiles, word) {
+/** Match real letters first, as the scorer does. Picks only choose between
+ * blanks for letters that have no remaining real tile. */
+function tileAssignments(tiles, word, picks = null) {
   const rackCodes = [...encW(tiles)]
   const wordCodes = [...encW(word)]
   const assigned = new Map()
@@ -503,8 +505,11 @@ function tileAssignments(tiles, word) {
     else unmatched.push(wordIndex)
   }
   for (const wordIndex of unmatched) {
-    const rackIndex = rackCodes.findIndex((tile, index) =>
-      (tile === '?' || tile === '.' || tile === '*') && !assigned.has(index)
+    // Preserve a chosen blank only among the letters that need a blank.
+    const preferred = picks && [...picks].find(([index, code]) =>
+      isBlankTile(rackCodes[index]) && !assigned.has(index) && code === wordCodes[wordIndex])
+    const rackIndex = preferred ? preferred[0] : rackCodes.findIndex((tile, index) =>
+      isBlankTile(tile) && !assigned.has(index)
     )
     if (rackIndex < 0) break
     assigned.set(rackIndex, wordIndex)
@@ -512,8 +517,23 @@ function tileAssignments(tiles, word) {
   return assigned
 }
 
-export function usedTiles(tiles, word) {
-  return new Set(tileAssignments(tiles, word).keys())
+/** Redraw a blank tile as the letter it stands for, keeping its points chip. */
+function paintBlankTile(el, glyph) {
+  el.classList.toggle('blank-set', Boolean(glyph))
+  el.classList.toggle('tile-digraph', glyph.length > 1)
+  el.setAttribute('aria-label', glyph ? t('joker_tile_set', glyph) : t('joker_tile_free'))
+  const pts = el.querySelector('small')
+  el.textContent = glyph || '?'
+  if (pts) el.appendChild(pts)
+}
+
+export function usedTiles(tiles, word, picks = null) {
+  return new Set(tileAssignments(tiles, word, picks).keys())
+}
+
+/** Rack indexes of the blanks in a rack, in deal order. */
+export function blankIndexes(tiles) {
+  return [...encW(tiles)].flatMap((code, i) => (isBlankTile(code) ? [i] : []))
 }
 
 /** Display order for the rack. Official `tiles` string stays in deal order. */
@@ -628,6 +648,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     return comp ? t('menu_comp') : t('menu_find')
   }
   const rackEl = document.getElementById('game-rack')
+  const jokerPickEl = document.getElementById('joker-pick')
+  const jokerNoteEl = document.getElementById('joker-note')
   const catEl = document.getElementById('game-cat')
   const form = document.getElementById('game-form')
   const input = document.getElementById('game-q')
@@ -1304,18 +1326,129 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   let rackSig = ''
   let rackDealSig = ''
+  // Which tile the player told each joker to be, by rack index. Used to steer
+  // the rack highlight and the letter drawn on the tile; never the score.
+  let blankPicks = new Map()
+  let jokerPickIndex = -1
+
+  function closeJokerPick(back = false) {
+    const was = jokerPickIndex
+    jokerPickIndex = -1
+    if (jokerPickEl) {
+      jokerPickEl.hidden = true
+      jokerPickEl.innerHTML = ''
+    }
+    rackEl.querySelectorAll('.tile.is-open').forEach((el) => {
+      el.classList.remove('is-open')
+      el.setAttribute('aria-expanded', 'false')
+    })
+    // Dismissing with Escape or a tap outside must not strand the focus ring
+    // on a button that no longer exists.
+    if (back && was >= 0) rackEl.querySelector(`[data-rack-blank="${was}"]`)?.focus()
+  }
+
+  /** Letter each joker in the rack is currently playing, by rack index. */
+  function jokerStands(word) {
+    const assignments = tileAssignments(rack, word, blankPicks)
+    const wordTokens = tileTokens(word, getLang(), getEsEdition())
+    const stands = new Map()
+    for (const i of blankIndexes(rack)) {
+      const at = assignments.get(i)
+      const glyph = at == null ? '' : wordTokens[at] || ''
+      if (glyph && glyph !== '?') stands.set(i, glyph)
+    }
+    return stands
+  }
+
+  function openJokerPick(i) {
+    if (!jokerPickEl) return
+    if (jokerPickIndex === i) {
+      closeJokerPick()
+      return
+    }
+    closeJokerPick()
+    jokerPickIndex = i
+    // The letter this joker already carries, so re-opening the picker shows
+    // what it is set to instead of making the player remember.
+    const current = jokerStands(normalize(input.value)).get(i) || ''
+    const options = blankTargets(getLang(), getEsEdition()).map((code) => {
+      const glyph = tileGlyph(code)
+      const on = glyph === current
+      return `<button type="button" class="tile joker-opt${on ? ' is-current' : ''}${glyph.length > 1 ? ' tile-digraph' : ''}" aria-pressed="${on}" data-joker-letter="${escapeHtml(code)}">${escapeHtml(glyph)}<small>0</small></button>`
+    })
+    jokerPickEl.innerHTML = `<p class="joker-pick-title" id="joker-pick-title">${escapeHtml(t('joker_pick_title'))}</p>
+      <div class="joker-pick-grid">${options.join('')}</div>
+      <div class="joker-pick-foot">
+        <p class="joker-pick-note">${escapeHtml(t('joker_pick_note'))}</p>
+        ${current ? `<button type="button" class="joker-pick-clear" data-joker-clear>${escapeHtml(t('joker_pick_clear'))}</button>` : ''}
+      </div>`
+    jokerPickEl.hidden = false
+    const tile = rackEl.querySelector(`[data-rack-blank="${i}"]`)
+    tile?.classList.add('is-open')
+    tile?.setAttribute('aria-expanded', 'true')
+    ;(jokerPickEl.querySelector('.joker-opt.is-current') || jokerPickEl.querySelector('.joker-opt'))?.focus()
+  }
+
+  /** Arrow keys walk the picker grid; the row width comes from the layout. */
+  function moveJokerFocus(from, key) {
+    const opts = [...jokerPickEl.querySelectorAll('.joker-opt')]
+    const at = opts.indexOf(from)
+    if (at < 0) return false
+    const top = opts[0].offsetTop
+    let perRow = opts.findIndex((el) => el.offsetTop > top)
+    if (perRow < 0) perRow = opts.length
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -perRow, ArrowDown: perRow }[key]
+    if (!step) return false
+    const next = opts[Math.max(0, Math.min(opts.length - 1, at + step))]
+    next?.focus()
+    return true
+  }
+
+  function setJokerLetter(i, code) {
+    if (!blankTargets(getLang(), getEsEdition()).includes(code)) return
+    if (closed || dealPending || !blankIndexes(rack).includes(i)) return
+    const word = normalize(input.value)
+    const at = tileAssignments(rack, word, blankPicks).get(i)
+    const wordTokens = tileTokens(word, getLang(), getEsEdition())
+    if (at == null) wordTokens.push(tileGlyph(code))
+    else wordTokens[at] = tileGlyph(code)
+    blankPicks.set(i, code)
+    input.value = wordTokens.join('')
+    closeJokerPick()
+    preview()
+    setLive(jokerStands(normalize(input.value)).has(i) ? t('joker_now', tileGlyph(code)) : t('joker_real_used'))
+    input.focus()
+  }
+
+  function clearJokerLetter(i) {
+    if (closed || dealPending || !blankIndexes(rack).includes(i)) return
+    const word = normalize(input.value)
+    const at = tileAssignments(rack, word, blankPicks).get(i)
+    if (at != null) {
+      const wordTokens = tileTokens(word, getLang(), getEsEdition())
+      wordTokens.splice(at, 1)
+      input.value = wordTokens.join('')
+    }
+    blankPicks.delete(i)
+    closeJokerPick()
+    preview()
+    input.focus()
+  }
 
   function paintRack() {
-    const used = usedTiles(rack, normalize(input.value))
+    const word = normalize(input.value)
+    const used = usedTiles(rack, word, blankPicks)
+    const stands = jokerStands(word)
     const order = rackDisplayOrder(rack, rackAlpha)
     const tap = !closed && !dealPending
+    if (!tap && jokerPickIndex >= 0) closeJokerPick()
     const sig = JSON.stringify([rack, order, tap])
     rackEl.dataset.n = String(tlen(rack))
     // Only rebuild the tiles when the rack itself changes: typing just retags
     // them, so the used/unused states can animate instead of being replaced.
     if (sig !== rackSig || !rackEl.firstElementChild) {
       const dealSig = JSON.stringify(rack)
-      rackEl.innerHTML = tilesHtml(rack, [], { tap, order })
+      rackEl.innerHTML = tilesHtml(rack, [], { tap, order, stands })
       rackEl.classList.toggle('dealt', dealSig !== rackDealSig)
       rackDealSig = dealSig
       rackSig = sig
@@ -1323,11 +1456,16 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     rackEl.querySelectorAll('.tile').forEach((el) => {
       const i = Number(el.dataset.rackI)
       el.classList.toggle('used', used.has(i))
+      if (el.classList.contains('blank')) paintBlankTile(el, stands.get(i) || '')
       const bonus = i === trainingBonusIndex
       el.classList.toggle('training-extra', bonus)
       if (bonus) el.title = '+1'
       else el.removeAttribute('title')
     })
+    if (jokerNoteEl) {
+      jokerNoteEl.textContent = t('joker_rack_note')
+      jokerNoteEl.hidden = !tap || !blankIndexes(rack).length
+    }
     paintRackTools()
   }
 
@@ -1338,6 +1476,8 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
 
   function applyDeal(tiles, cat, groups, seed = '', trainingMeta = null) {
     stopTrainingTimer()
+    closeJokerPick()
+    blankPicks = new Map()
     dealPending = false
     rack = tiles
     catalog = catalogFrom(groups)
@@ -1810,7 +1950,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=160')
+        await import('./competitive.js?v=161')
       if (!context.official) return false
       // Finish this one submission even when the player has already moved
       // on. Next never waits for it or retries an uncertain network write.
@@ -2108,22 +2248,45 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     const tokens = tileTokens(rack, getLang(), getEsEdition())
     const glyph = tokens[i]
     if (!glyph) return
+    if (glyph === '?') {
+      openJokerPick(i)
+      return
+    }
     const word = normalize(input.value)
-    const assignments = tileAssignments(rack, word)
+    const assignments = tileAssignments(rack, word, blankPicks)
     if (assignments.has(i)) {
       const cut = assignments.get(i)
       const wordTokens = tileTokens(word, getLang(), getEsEdition())
       wordTokens.splice(cut, 1)
       input.value = wordTokens.join('')
-    } else if (glyph === '?') {
-      setLive(t('joker_type_letter'))
-      input.focus()
-      return
     } else {
       input.value = word + glyph
     }
     preview()
     input.focus()
+  })
+  jokerPickEl?.addEventListener('click', (e) => {
+    if (jokerPickIndex < 0) return
+    const opt = e.target.closest('[data-joker-letter]')
+    if (opt) {
+      setJokerLetter(jokerPickIndex, opt.dataset.jokerLetter)
+      return
+    }
+    if (e.target.closest('[data-joker-clear]')) clearJokerLetter(jokerPickIndex)
+  })
+  document.addEventListener('keydown', (e) => {
+    if (jokerPickIndex < 0) return
+    if (e.key === 'Escape') {
+      closeJokerPick(true)
+      return
+    }
+    const opt = e.target.closest?.('.joker-opt')
+    if (opt && moveJokerFocus(opt, e.key)) e.preventDefault()
+  })
+  document.addEventListener('click', (e) => {
+    if (jokerPickIndex < 0) return
+    if (e.target.closest('#joker-pick') || e.target.closest('[data-rack-blank]')) return
+    closeJokerPick()
   })
   function onTrainingChip(e, box) {
     const chip = e.target.closest('[data-training-def]')
@@ -2280,7 +2443,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (retry) retry.hidden = true
     if (account) container.setAttribute('aria-busy', 'true')
     try {
-      const { initGoogleSignIn, handleGoogleCallback } = await import('./competitive.js?v=160')
+      const { initGoogleSignIn, handleGoogleCallback } = await import('./competitive.js?v=161')
       await initGoogleSignIn()
       if (!window.google?.accounts?.id) throw new Error('Sign-in unavailable')
       window.google.accounts.id.initialize({
@@ -2316,7 +2479,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { checkSession, ensureGuestSession, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=160')
+    const { checkSession, ensureGuestSession, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=161')
     const lang = getLang()
     const current = () => requestId === modeSeq && activeMode === (kids ? 'kids' : 'competitive') && lang === getLang()
     setAuthGate(false)
@@ -2449,7 +2612,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadScopedBoard(kids, scope) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=160')
+    const { fetchLeaderboard } = await import('./competitive.js?v=161')
     const requestedLang = boardRequestLang()
     const data = await fetchLeaderboard(null, requestedLang, { kids, scope })
     if (boardRequestLang() !== requestedLang || data.lang !== requestedLang) return null
@@ -2458,7 +2621,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function refreshBoardPage() {
-    const { fetchLeaderboard } = await import('./competitive.js?v=160')
+    const { fetchLeaderboard } = await import('./competitive.js?v=161')
     const requestedLang = boardRequestLang()
     const [week, kidsWeek] = await Promise.all([
       fetchLeaderboard(null, requestedLang),

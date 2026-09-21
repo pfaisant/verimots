@@ -34,9 +34,10 @@ remains 4.8.0 while package.json and Android source identify candidate 4.8.1.
 ## Consolidation
 
 The verified release/sync history is merged into main. Windows and Mac
-standalone checkouts use main. The old joker-tile-picker experiment is
-preserved as archive/joker-tile-picker-20260921; its gameplay changes are
-not part of the verified 4.8.1 candidate.
+standalone checkouts use main. The old joker-tile-picker experiment was
+subsequently reviewed and integrated at the user’s request, with scoring,
+Catalan and accessibility fixes. Its branch is merged and removed; Git
+history retains the original commit 643a0f0. See joker-picker.md.
 
 Windows has one active standalone checkout: D:/Perso/verimots.
 Historical standalone trees, review evidence, backups and 4.7.1 artifacts
