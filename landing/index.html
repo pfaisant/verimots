@@ -79,11 +79,11 @@
           <h3 data-i18n="beta_title">Essayez l’app Android</h3>
           </div>
         </div>
-          <p class="signup-lead" data-i18n="beta_lead">Le test Google Play est sur invitation. Inscrivez l’adresse de votre compte Google ; ouvrez le lien du test une fois votre accès confirmé.</p>
+          <p class="signup-lead" data-i18n="beta_lead">Déjà sur la liste de testeurs ? Ouvrez le lien du test fermé ci-dessous pour installer. Pas encore inscrit ? Laissez votre adresse e-mail et on vous ajoute.</p>
         <div class="signup-checks">
           <label class="check">
             <input type="checkbox" id="signup-beta" name="beta" checked />
-            <span data-i18n="signup_beta">M’inviter au test Play et m’envoyer le lien</span>
+            <span data-i18n="signup_beta">M’ajouter à la liste de testeurs Play</span>
           </label>
           <label class="check">
             <input type="checkbox" id="signup-news" name="newsletter" />
@@ -93,16 +93,16 @@
         <label class="sr" for="signup-email" data-i18n="signup_email">Email</label>
         <div class="signup-row">
           <input id="signup-email" name="email" type="email" required maxlength="120" autocomplete="email" data-i18n-placeholder="signup_email" placeholder="Email" />
-          <button type="submit" class="btn gold" id="signup-send" data-i18n="signup_send">Demander l’accès</button>
+          <button type="submit" class="btn gold" id="signup-send" data-i18n="signup_send">M’ajouter à la liste</button>
         </div>
         <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <div class="signup-foot">
-          <p class="signup-note" data-i18n="signup_note">Email seulement pour l’invitation et/ou la newsletter. Pas de pub.</p>
-          <a class="btn join" id="play-join" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="beta_join">Rejoindre le test bêta</a>
+          <p class="signup-note" data-i18n="signup_note">Adresse e-mail seulement pour la liste de testeurs et/ou la newsletter. Pas de pub.</p>
+          <a class="btn join" id="play-join" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="beta_join">Rejoindre le test fermé</a>
         </div>
         <p class="signup-status" id="signup-status" role="status" hidden></p>
         <p class="signup-next" id="signup-next" hidden>
-          <a id="signup-optin" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="signup_optin">Ouvrir le lien d’opt-in Play</a>
+          <a id="signup-optin" href="https://play.google.com/apps/testing/cc.pfa87.verimots/join" rel="noopener" data-i18n="signup_optin">Ouvrir le lien du test fermé</a>
           <span aria-hidden="true"> · </span>
           <a href="https://s.pfa87.cc/" data-i18n="signup_play_now">Jouer maintenant dans le navigateur</a>
         </p>
@@ -156,7 +156,7 @@
       </details>
       <details>
         <summary><span data-i18n="faq4q">Comment installer l’app Android ?</span></summary>
-        <p data-i18n="faq4a">Laisse ton email ci-dessus, puis ouvre le lien d’opt-in Play (test fermé). L’app n’est pas encore dans la recherche du magasin. Tu peux aussi jouer tout de suite dans le navigateur.</p>
+        <p data-i18n="faq4a">Si vous êtes déjà sur la liste, ouvrez Rejoindre le test fermé puis Installez. Sinon, laissez votre adresse e-mail ci-dessus pour qu’on vous ajoute. L’app n’est pas encore dans la recherche du magasin. Vous pouvez aussi jouer tout de suite dans le navigateur.</p>
       </details>
     </section>
   </main>
@@ -185,10 +185,10 @@
         </button>
       </div>
       <p data-i18n="beta_info_p1">Verimots est en test fermé sur Google Play avant sa première sortie publique.</p>
-      <p data-i18n="beta_info_p2">Inscrivez l’adresse de votre compte Google. Après confirmation de l’accès, ouvrez le lien Play avec ce même compte.</p>
+      <p data-i18n="beta_info_p2">Si vous êtes déjà sur la liste de testeurs, ouvrez le lien Play ci-dessous avec le même compte Google. Sinon, laissez cette adresse e-mail pour qu’on vous ajoute.</p>
     </div>
   </dialog>
 
-  <script src="app.js?v=41"></script>
+  <script src="app.js?v=42"></script>
 </body>
 </html>
