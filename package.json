@@ -1,6 +1,6 @@
 {
   "name": "verimots",
-  "version": "4.8.1",
+  "version": "5.0.0",
   "private": true,
   "type": "module",
   "description": "Offline word checker and letter games in French, English, Spanish and Catalan.",
