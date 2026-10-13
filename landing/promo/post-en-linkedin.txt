@@ -1,0 +1,9 @@
+I built Verimots for letter-game players: settle a challenge, find the top play on a rack, practise. No ads.
+
+• Check a word in French, English, Spanish or Catalan, with its definition
+• Top play on a rack: tile points and the 50-point bonus for all seven tiles
+• Practice: the 7 + 1, blanks, expensive letters, a timer and a weekly leaderboard
+• Two- and three-letter words to revise each day
+• Works offline once the lists are loaded
+
+30 seconds of it above (in French). Free in the browser and on Android: https://verimots.pfa87.cc/

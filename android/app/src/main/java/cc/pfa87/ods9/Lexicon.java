@@ -469,7 +469,9 @@ public final class Lexicon {
         return pool.get(rng.nextInt(pool.size()));
     }
 
-    public String dailyWord(String key) {
+    /** Same pick as dailyWord() in dashboard/s/worker.js: FNV-1a of the key,
+     *  plus `step` candidates skipped for having no usable definition. */
+    public String dailyWord(String key, int step) {
         ArrayList<String> pool = discoverPool();
         if (pool.isEmpty()) return null;
         int h = 0x811c9dc5;
@@ -477,7 +479,7 @@ public final class Lexicon {
             h ^= key.charAt(i);
             h *= 16777619;
         }
-        int idx = (int) ((h & 0xffffffffL) % pool.size());
+        int idx = (int) (((h & 0xffffffffL) + Math.max(0, step)) % pool.size());
         return pool.get(idx);
     }
 

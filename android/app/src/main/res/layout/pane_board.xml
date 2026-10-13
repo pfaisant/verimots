@@ -94,7 +94,7 @@
                     android:id="@+id/board_chart_avg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="serif"
+                    android:fontFamily="sans-serif"
                     android:textColor="@color/gold"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -121,7 +121,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:fontFamily="serif"
+                android:fontFamily="sans-serif"
                 android:textColor="@color/gold"
                 android:textSize="20sp"
                 android:textStyle="bold" />

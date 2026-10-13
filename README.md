@@ -11,11 +11,13 @@ English has two lists in Settings: a community list following CSW (YAWL, the clo
 ## Source synchronization
 
 Canonical Windows checkout: `D:\Perso\verimots`, branch `main`.
-Current source is **4.8.1 (84), unpublished**; public downloads remain
-**4.8.0 (83)**. Local archives and release files belong in ignored `.local/`.
+Published web and Android: **5.1.1 (89)**. The source adds the unpublished
+joker picker on top. Local archives and release files belong in ignored
+`.local/`.
 
-See [the September 21 sync record](docs/source-sync-20260921.md) for the
-Windows/Mac paths, recovered release history and published/candidate versions.
+See [the October 13 sync record](docs/source-sync-20261013.md) for what came
+back from the AiConglomerate mirrors, and [the September 21 record](docs/source-sync-20260921.md)
+for the Windows/Mac paths and earlier release history.
 
 ## Layout
 

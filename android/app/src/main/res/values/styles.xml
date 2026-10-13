@@ -20,7 +20,7 @@
         <item name="android:breakStrategy">simple</item>
     </style>
     <style name="Display">
-        <item name="android:fontFamily">serif</item>
+        <item name="android:fontFamily">sans-serif</item><item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/ink</item>
     </style>
     <style name="IconAction">

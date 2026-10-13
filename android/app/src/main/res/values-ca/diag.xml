@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Technical log (DiagLog) and the sign-in way out after a failed attempt. -->
+<resources>
+    <string name="diag_title">Registre tècnic</string>
+    <string name="diag_help">Versió instal·lada, passos de l’inici de sessió i errors en segon pla. Es queda en aquest telèfon: sense testimoni ni adreça electrònica. Copia’l o comparteix-lo per informar d’un problema.</string>
+    <string name="diag_empty">Encara no s’ha registrat res.</string>
+    <string name="diag_copy">Copia</string>
+    <string name="diag_copied">Registre copiat</string>
+    <string name="diag_clear">Esborra</string>
+    <string name="diag_close">Tanca</string>
+    <string name="sign_in_failed">L’inici de sessió amb Google no ha acabat. Prova-ho al navegador o obre el registre per veure per què.</string>
+    <string name="auth_browser">Inicia la sessió al navegador</string>
+    <string name="google_browser_fallback">Google ha rebutjat l’inici de sessió a l’aplicació; continua al navegador.</string>
+</resources>

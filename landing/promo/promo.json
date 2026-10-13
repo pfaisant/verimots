@@ -1,0 +1,82 @@
+{
+  "schema": "verimots-promo/1",
+  "id": "verimots-promo-2026-09-26-v2",
+  "title": "Verimots en 30 secondes",
+  "product": "Verimots — vérificateur de mots et défi de lettres (FR, EN, ES, CA)",
+  "language": "fr",
+  "page": "https://verimots.pfa87.cc/promo/",
+  "homepage": "https://verimots.pfa87.cc/",
+  "play": "https://s.pfa87.cc/",
+  "video": {
+    "url": "https://verimots.pfa87.cc/promo/verimots-promo.mp4",
+    "countedUrl": "https://verimots.pfa87.cc/__pfa87/download?f=/promo/verimots-promo.mp4",
+    "mime": "video/mp4",
+    "codec": "H.264 High, AAC-LC 48 kHz stereo",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationSeconds": 30,
+    "loudnessLufs": -16.5,
+    "bytes": 5727720,
+    "sha256": "09bb7a3ead59429d605513c4d29c671fcaff01a620267e40e151edae05003e28"
+  },
+  "poster": {
+    "url": "https://verimots.pfa87.cc/promo/verimots-promo-poster.jpg",
+    "mime": "image/jpeg",
+    "width": 1920,
+    "height": 1080
+  },
+  "alt": {
+    "fr": "Promo Verimots de 30 secondes, en français, sur un tapis vert avec un chevalet en bois et des lettres qui portent leurs points. « Contestation ? » : KAWA se pose sur le chevalet, tampon VALABLE, avec sa définition « (familier) Café. » (Wiktionnaire) ; puis VOX, tampon NON VALABLE ; « Verimots tranche en une seconde. » « Quel est le top ? » : le tirage K O B X E U J, « À vous de chercher… », puis les lettres se rangent en JUKEBOX : 84 points, 34 points plus 50 de prime pour les 7 lettres ; ensuite JEUX 20, BOXE 15, BOX 14, KOB 14. « Entraînez-vous au 7 + 1. » : AEINRST plus un U doré, 14 mots de 8 lettres, d'ASTURIEN à URINATES ; et aussi joker, lettres chères, 7 ou 8 lettres, minuteur. « Les 81 mots de 2 lettres. » en grille de lettres, « Chaque jour, révisez les 2 et 3 lettres, avec leurs définitions. » « Quatre langues, même hors ligne. » : français 407 128 mots, anglais 257 218, espagnol 608 169, catalan 584 095 ; gratuit, sans publicité, sur le web et Android. VERIMOTS sur le chevalet, « Les mots, à vous de jouer. », « Jouer gratuitement », verimots.pfa87.cc ; indépendant, non affilié à Scrabble, Mattel ni Hasbro.",
+    "en": "30-second Verimots promo; the on-screen words are French. A green baize table, a wooden rack, letter tiles that carry their points. \"Contestation ?\" (a challenge): KAWA lands on the rack and is stamped VALABLE (valid), with its definition \"(familier) Café.\" (slang for coffee, from Wiktionary); then VOX is stamped NON VALABLE (not valid); \"Verimots settles it in a second.\" \"Quel est le top ?\" (what is the top play?): the rack K O B X E U J, \"your turn to look…\", then the tiles line up as JUKEBOX: 84 points, 34 points plus a 50-point bonus for using all 7 tiles; next JEUX 20, BOXE 15, BOX 14, KOB 14. \"Practise the 7 + 1\": AEINRST plus a gold U, 14 eight-letter words from ASTURIEN to URINATES; also blanks, expensive letters, 7 or 8 letters, a timer. \"The 81 two-letter words\" as a grid of tiles, \"Each day, revise the two- and three-letter words, with their definitions.\" \"Four languages, offline too\": French 407,128 words, English 257,218, Spanish 608,169, Catalan 584,095; free, no ads, web and Android. VERIMOTS on the rack, \"Les mots, à vous de jouer.\" (words, your move), \"Jouer gratuitement\" (play for free), verimots.pfa87.cc; independent, not affiliated with Scrabble, Mattel or Hasbro."
+  },
+  "posts": {
+    "fr": {
+      "x": "Contestation ? Le top du tirage ? Les 7 + 1 ?\n\nVerimots tranche en une seconde et vous entraîne : 407 128 mots, les points de chaque lettre, les 2 et 3 lettres à réviser. Gratuit, sans pub, hors ligne.\n\nhttps://verimots.pfa87.cc/",
+      "bluesky": "Contestation ? Le top du tirage ? Les 7 + 1 ?\n\nVerimots tranche en une seconde et vous entraîne : 407 128 mots, les points de chaque lettre, les 2 et 3 lettres à réviser. Gratuit, sans pub, hors ligne.\n\nhttps://verimots.pfa87.cc/",
+      "mastodon": "Pour les joueurs de lettres, gratuit et sans pub :\n• une contestation ? la réponse en une seconde (407 128 mots dans la liste française), avec la définition\n• le top du tirage, points et prime de 50 compris\n• entraînement au 7 + 1, joker, lettres chères, minuteur\n• chaque jour, les mots de 2 et 3 lettres à réviser, avec leurs définitions\n• français, anglais, espagnol et catalan, hors ligne\n\nNavigateur et Android.\n\nhttps://verimots.pfa87.cc/\n\n#JeuxDeLettres #Mots #Français",
+      "linkedin": "J'ai fait Verimots pour les joueurs de lettres : trancher une contestation, trouver le top d'un tirage, s'entraîner. Sans pub.\n\n• Vérifier un mot : 407 128 dans la liste française, avec sa définition\n• Le top du tirage : points des lettres et prime de 50 pour les 7 lettres\n• Entraînement au 7 + 1, joker, lettres chères, minuteur, classement de la semaine\n• Chaque jour, les mots de 2 et 3 lettres à réviser\n• Français, anglais, espagnol et catalan, hors ligne\n\n30 secondes ci-dessus. Gratuit, dans le navigateur et sur Android : https://verimots.pfa87.cc/",
+      "reddit": {
+        "title": "J'ai fait un outil gratuit et sans pub pour les joueurs de lettres : contestations, top du tirage, 7 + 1, hors ligne",
+        "body": "Démo de 30 secondes : https://verimots.pfa87.cc/promo/\n\nVerimots vérifie un mot (avec sa définition), trouve le top d'un tirage avec les points des lettres et la prime de 50 pour les 7 lettres, et propose un entraînement : 7 + 1, joker, lettres chères, 7 ou 8 lettres, minuteur, et les mots de 2 et 3 lettres. Français, anglais, espagnol et catalan, hors ligne après le premier chargement des listes.\n\nLa liste française est communautaire, ce n'est pas l'édition officielle ODS Larousse. Verimots est indépendant : aucune affiliation avec Scrabble, Mattel ou Hasbro.\n\nhttps://verimots.pfa87.cc/"
+      }
+    },
+    "en": {
+      "x": "A challenge at the table? The top play on your rack? The 7 + 1?\n\nVerimots settles it in a second and trains you: tile points, the 50-point bonus, blanks, two-letter words. French, English, Spanish, Catalan. Free, no ads, offline.\n\nhttps://verimots.pfa87.cc/",
+      "bluesky": "A challenge at the table? The top play on your rack? The 7 + 1?\n\nVerimots settles it in a second and trains you: tile points, the 50-point bonus, blanks, two-letter words. French, English, Spanish, Catalan. Free, no ads, offline.\n\nhttps://verimots.pfa87.cc/",
+      "mastodon": "For letter-game players, free and ad-free:\n• settle a challenge in a second, with the definition\n• the top play on a rack, tile points and the 50-point bonus included\n• practise the 7 + 1, blanks, expensive letters, with a timer\n• two- and three-letter words to revise each day, with definitions\n• French, English, Spanish and Catalan lists, offline once loaded\n\nBrowser and Android. The video is in French.\n\nhttps://verimots.pfa87.cc/\n\n#WordGames #Words",
+      "linkedin": "I built Verimots for letter-game players: settle a challenge, find the top play on a rack, practise. No ads.\n\n• Check a word in French, English, Spanish or Catalan, with its definition\n• Top play on a rack: tile points and the 50-point bonus for all seven tiles\n• Practice: the 7 + 1, blanks, expensive letters, a timer and a weekly leaderboard\n• Two- and three-letter words to revise each day\n• Works offline once the lists are loaded\n\n30 seconds of it above (in French). Free in the browser and on Android: https://verimots.pfa87.cc/",
+      "reddit": {
+        "title": "I built a free, ad-free tool for letter-game players: challenges, top play on a rack, 7 + 1 practice, offline",
+        "body": "30-second demo (in French): https://verimots.pfa87.cc/promo/\n\nVerimots checks a word (with its definition), finds the top play on a rack using tile points and the 50-point bonus for all seven tiles, and has practice modes: 7 + 1, blanks, expensive letters, 7 or 8 letters, a timer, and the two- and three-letter words. French, English, Spanish and Catalan, offline once the lists have loaded.\n\nThe French list is a community list, not the official ODS Larousse edition; English offers a CSW-style public list and WOW24. Verimots is independent and not affiliated with Scrabble, Mattel or Hasbro.\n\nhttps://verimots.pfa87.cc/"
+      }
+    }
+  },
+  "hashtags": {
+    "fr": [
+      "#JeuxDeLettres",
+      "#Mots",
+      "#Français"
+    ],
+    "en": [
+      "#WordGames",
+      "#Words"
+    ]
+  },
+  "notes": [
+    "The video's words are in French.",
+    "Word counts are those of the lists shipped with Verimots on 26 September 2026: French 407,128 (community list, not the official ODS Larousse edition; 81 two-letter and 639 three-letter words), English CSW-style 257,218, Spanish RLA-ES 608,169, Catalan DISC 584,095. The app's Petits Mots screen shows ten 2-letter and twelve 3-letter words a day; the full lists come from the search by length.",
+    "Every word shown was checked against the French list: KAWA is in it, VOX is not; the rack BEJKOUX's top is JUKEBOX (J8 U1 K10 E1 B3 O1 X10 = 34, plus the 50-point bonus for seven tiles = 84, the app's own scoring: face values, no board squares), then JEUX 20, BOXE 15, BOX 14, KOB 14; AEINRST + U makes exactly 14 eight-letter words (ASTURIEN, INSATURE, INSTAURE, RUINATES, RUSAIENT, SATINEUR, SATURNIE, SUINTERA, TAURINES, TISANEUR, TUNERAIS, URANISTE, URANITES, URINATES).",
+    "The KAWA definition shown is the app's own /api/define answer, from Wiktionnaire.",
+    "Verimots is not affiliated with Scrabble, Mattel, Hasbro, NASPA or ODS Larousse."
+  ],
+  "usage": "Free to repost unchanged, with a link to https://verimots.pfa87.cc/.",
+  "updated": "2026-09-26",
+  "playStore": {
+    "page": "https://verimots.pfa87.cc/promo/#google-play",
+    "manifest": "https://verimots.pfa87.cc/promo/play/play-store.json",
+    "brief": "https://verimots.pfa87.cc/promo/play/AGENT.md",
+    "archive": "https://verimots.pfa87.cc/promo/play/verimots-play-kit.tar.gz",
+    "note": "Google Play listing kit: texts in fr-FR, en-GB, en-US, es-ES and ca, icon, feature graphics, captioned APK screenshots (phone, 7-inch, 10-inch), prepared App content answers and the rules an agent must follow. Nothing is published from it."
+  }
+}

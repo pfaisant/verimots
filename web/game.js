@@ -1,9 +1,9 @@
-import { activityId, recordActivity } from './activity.js?v=161'
-import { getCurrentUser } from './competitive.js?v=161'
-import { t, getLang, getDict, getEsEdition, dictLabel, LANGS } from './i18n.js?v=161'
-import { flagSvg } from './flags.js?v=161'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=161'
-import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles, blankTargets, isBlankTile, tileGlyph } from './tiles.js?v=161'
+import { activityId, recordActivity } from './activity.js?v=163'
+import { getCurrentUser } from './competitive.js?v=163'
+import { t, getLang, getDict, getEsEdition, dictLabel, LANGS } from './i18n.js?v=163'
+import { flagSvg } from './flags.js?v=163'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=163'
+import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles, blankTargets, isBlankTile, tileGlyph } from './tiles.js?v=163'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -491,7 +491,7 @@ export function linkifyDef(text, escapeHtml) {
 
 /** Match real letters first, as the scorer does. Picks only choose between
  * blanks for letters that have no remaining real tile. */
-function tileAssignments(tiles, word, picks = null) {
+export function tileAssignments(tiles, word, picks = null) {
   const rackCodes = [...encW(tiles)]
   const wordCodes = [...encW(word)]
   const assigned = new Map()
@@ -637,7 +637,7 @@ export function rememberKidsFound(storage) {
   return n
 }
 
-export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, isKids, isTraining, onDeal, onPlayed }) {
+export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define, isCompetitive, isKids, isTraining, onDeal, onPlayed, onMissed }) {
   // One source of truth for the header title: the game the user picked,
   // nothing else. Deal categories ("hard letters", "long word"…) never leak
   // in — they read as the app hopping between games on every deal.
@@ -949,6 +949,25 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       && !!(typeof isCompetitive === 'function' && isCompetitive())
   }
 
+  // Révisions: a round that ended without the words that mattered goes to
+  // review.js. Kids rounds are not saved (any valid word wins there).
+  function bestTies() {
+    return best ? catalog.filter((w) => w.pts === best.pts).slice(0, 3) : []
+  }
+
+  function saveMiss(miss) {
+    if (!onMissed || kidsOn() || !rack || !miss.targets?.length) return false
+    try {
+      return !!onMissed({ rack, ...miss })
+    } catch {
+      return false
+    }
+  }
+
+  function missNoteHtml() {
+    return `<p class="review-saved"><button type="button" data-open-review>${escapeHtml(t('rev_saved'))}</button></p>`
+  }
+
   // "Find a word": peek at the best score, or give up to see the word.
   // Bingo: a hint (length + points of the top word) and "Passer" (scored 0 %).
   function paintFindTools() {
@@ -1054,6 +1073,9 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         </div>
       </div>
       ${resultPanelHtml(tops, 0, '')}`
+    if (saveMiss({ game: 'bingo', targets: bestTies(), played: null })) {
+      resultEl.querySelector('.game-score-words')?.insertAdjacentHTML('beforeend', missNoteHtml())
+    }
     paintShare(0)
     paintChart(rememberScore(0))
     nextAction = async () => {
@@ -1179,7 +1201,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     closeOptions()
     closed = on
     if (on) stopHintTimer()
-    document.body.classList.toggle('game-closed', on)
+    // Révisions shares the play classes: the closed-round look waits until
+    // the player is back on this screen (app.js showGameView restores it).
+    const review = document.getElementById('game-review')
+    document.body.classList.toggle('game-closed', on && (!review || review.hidden))
     paintTrainingControls()
     paintRackTools()
     paintFindTools()
@@ -1758,6 +1783,19 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
       </div>
       <div class="training-answers">${answers}</div>
       <div class="training-def-box" hidden></div>`
+    // Every word the player did not find alone (handed over in red included).
+    const missed = catalog.filter((entry) => !trainingFound.has(entry.word) || trainingRevealed.has(entry.word))
+    const lengths = catalog.map((entry) => tlen(entry.word))
+    if (missed.length && saveMiss({
+      game: 'combi',
+      targets: missed.slice(0, 12),
+      preset: trainingPreset,
+      min: Math.min(...lengths),
+      max: Math.max(...lengths),
+      bonus: trainingBonusIndex,
+    })) {
+      resultEl.querySelector('.training-summary')?.insertAdjacentHTML('beforeend', missNoteHtml())
+    }
     nextAction = () => deal()
     if (nextBtn) {
       nextBtn.hidden = false
@@ -1929,6 +1967,9 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         </div>
       </div>
       ${resultPanelHtml(tops, 0, '')}`
+    if (saveMiss({ game: 'find', targets: bestTies(), played: null })) {
+      resultEl.querySelector('.game-score-words')?.insertAdjacentHTML('beforeend', missNoteHtml())
+    }
     nextAction = () => deal()
     if (nextBtn) {
       nextBtn.hidden = false
@@ -1950,7 +1991,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=161')
+        await import('./competitive.js?v=163')
       if (!context.official) return false
       // Finish this one submission even when the player has already moved
       // on. Next never waits for it or retries an uncertain network write.
@@ -2123,6 +2164,13 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         </div>
       </div>
       ${resultPanelHtml(tops, start, hit.word)}`
+    if (!playKids && percent < 100 && saveMiss({
+      game: isCompetitive && isCompetitive() ? 'bingo' : 'find',
+      targets: bestTies(),
+      played: { word: hit.word, pts: hit.pts },
+    })) {
+      resultEl.querySelector('.game-score-words')?.insertAdjacentHTML('beforeend', missNoteHtml())
+    }
     setLive('')
     if (playKids) {
       rememberKidsFound()
@@ -2433,17 +2481,31 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     document.body.classList.toggle('auth-gate', !!on)
   }
 
+  // Each perk on the account card leads with its own first letter as a tile,
+  // scored in the current language's set (Classement C3, Leaderboard L1…).
+  function paintLoginTiles() {
+    document.querySelectorAll('#login-prompt [data-perk]').forEach((row) => {
+      const tile = row.querySelector('.login-tile')
+      const letter = t(row.dataset.perk).charAt(0).toUpperCase()
+      if (!tile || !letter) return
+      const points = document.createElement('small')
+      points.textContent = String(letterScore(letter))
+      tile.replaceChildren(letter, points)
+    })
+  }
+
   // Google's button rendered into `container`; a successful sign-in reloads
   // the ranked mode (the server adopts a guest session's standing on the spot).
   async function mountGoogleSignIn(container, kids, account = false) {
     if (!container) return
+    if (account) paintLoginTiles()
     const error = account ? document.getElementById('login-error') : null
     const retry = account ? document.getElementById('login-retry') : null
     if (error) error.hidden = true
     if (retry) retry.hidden = true
     if (account) container.setAttribute('aria-busy', 'true')
     try {
-      const { initGoogleSignIn, handleGoogleCallback } = await import('./competitive.js?v=161')
+      const { initGoogleSignIn, handleGoogleCallback } = await import('./competitive.js?v=163')
       await initGoogleSignIn()
       if (!window.google?.accounts?.id) throw new Error('Sign-in unavailable')
       window.google.accounts.id.initialize({
@@ -2463,8 +2525,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         }
       })
       container.innerHTML = ''
+      // Google's dark pill sits on the felt; its blue default fought the gold.
       window.google.accounts.id.renderButton(container, {
-        theme: 'filled_blue',
+        theme: 'filled_black',
+        shape: 'pill',
         size: 'large',
         text: 'signin_with',
         locale: getLang(),
@@ -2479,7 +2543,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { checkSession, ensureGuestSession, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=161')
+    const { checkSession, ensureGuestSession, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=163')
     const lang = getLang()
     const current = () => requestId === modeSeq && activeMode === (kids ? 'kids' : 'competitive') && lang === getLang()
     setAuthGate(false)
@@ -2612,7 +2676,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadScopedBoard(kids, scope) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=161')
+    const { fetchLeaderboard } = await import('./competitive.js?v=163')
     const requestedLang = boardRequestLang()
     const data = await fetchLeaderboard(null, requestedLang, { kids, scope })
     if (boardRequestLang() !== requestedLang || data.lang !== requestedLang) return null
@@ -2621,7 +2685,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function refreshBoardPage() {
-    const { fetchLeaderboard } = await import('./competitive.js?v=161')
+    const { fetchLeaderboard } = await import('./competitive.js?v=163')
     const requestedLang = boardRequestLang()
     const [week, kidsWeek] = await Promise.all([
       fetchLeaderboard(null, requestedLang),
@@ -2859,6 +2923,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     refresh,
     deal,
     switchMode,
+    isClosed: () => closed,
     setTrainingPreset,
     setUser: paintUserCard,
   }

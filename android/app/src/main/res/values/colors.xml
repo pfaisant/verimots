@@ -1,29 +1,30 @@
 <resources>
+    <!-- 5.0: surfaces, ink and tile values are the web tokens in dashboard/s/app.css :root -->
     <color name="felt">#1f3a2b</color>
-    <color name="felt_dark">#0e1711</color>
+    <color name="felt_dark">#141e19</color>
     <color name="felt_mid">#17241c</color>
-    <color name="felt_card">#1b2a21</color>
-    <color name="tile">#f6ead0</color>
-    <color name="tile_ink">#1a1408</color>
+    <color name="felt_card">#1d2922</color>
+    <color name="tile">#f3e5c2</color>
+    <color name="tile_ink">#1c1408</color>
     <color name="tile_used_ink">#3d3a32</color>
     <color name="tile_edge">#c9b27a</color>
     <color name="gold">#e8c56b</color>
     <color name="feedback">#4aa3b8</color>
     <color name="gold_soft">#33e8c56b</color>
-    <color name="ink">#f7f2e8</color>
+    <color name="ink">#f4efe4</color>
     <color name="muted">#b7c4b8</color>
-    <color name="dim">#7f9183</color>
+    <color name="dim">#9baa9e</color>
     <color name="ok">#3dce8a</color>
     <color name="ok_bg">#1a3dce8a</color>
     <color name="no">#f07171</color>
     <color name="no_bg">#1af07171</color>
-    <color name="line">#24f4efe4</color>
+    <color name="line">#1af4efe4</color>
     <color name="wa">#1f6b46</color>
     <color name="orange">#f0a04a</color>
     <color name="scroll_thumb">#2f5b40</color>
     <!-- Web parity: card-line / rim-gold and the translucent panel fills -->
-    <color name="card_line">#14f4efe4</color>
-    <color name="rim_gold">#59e8c56b</color>
+    <color name="card_line">#17f4efe4</color>
+    <color name="rim_gold">#4de8c56b</color>
     <color name="panel">#1d3125</color>
     <color name="panel_soft">#1c2f24</color>
     <color name="panel_deep">#15211a</color>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Révisions (ReviewScreen): same wording as dashboard/s/i18n.js rev_* keys. -->
+<resources>
+    <string name="menu_review">Repaso</string>
+    <string name="rev_menu_empty">Los atriles que fallas vuelven aquí</string>
+    <string name="rev_menu_due_one">1 atril por repasar</string>
+    <string name="rev_menu_due">%1$d atriles por repasar</string>
+    <string name="rev_menu_next">Próximo repaso %1$s</string>
+    <string name="rev_menu_clear">Todo dominado</string>
+    <string name="rev_how_title">¿Cómo funciona?</string>
+    <string name="rev_how">Cuando se te escapa la mejor palabra (Bingo, Palabra oculta) o te faltan palabras (Combinaciones), el atril llega aquí. Vuelve a encontrar las palabras sin ayuda: vuelve mañana, luego en 3, 7 y 21 días, y queda dominado.</string>
+    <string name="rev_stat_due">Por repasar</string>
+    <string name="rev_stat_later">Más tarde</string>
+    <string name="rev_stat_mastered">Dominados</string>
+    <string name="rev_start_one">Repasar el atril</string>
+    <string name="rev_start">Repasar %1$d atriles</string>
+    <string name="rev_none_due">Nada que repasar por ahora.</string>
+    <string name="rev_none_due_next">Nada que repasar por ahora · próximo repaso %1$s.</string>
+    <string name="rev_empty">Aún no hay atriles. Juega al Bingo, a Palabra oculta o a Combinaciones: cada atril fallado llegará aquí.</string>
+    <string name="rev_other_dicts_one">1 atril espera en otro diccionario.</string>
+    <string name="rev_other_dicts">%1$d atriles esperan en otros diccionarios.</string>
+    <string name="rev_synced">Sincronizado con tu cuenta</string>
+    <string name="rev_sync_failed">No se puede sincronizar ahora · tu lista se queda en este dispositivo</string>
+    <string name="rev_syncing">Sincronizando…</string>
+    <string name="rev_local">En este dispositivo · inicia sesión para tenerlos en todas partes</string>
+    <string name="rev_game_bingo">Bingo</string>
+    <string name="rev_game_find">Palabra oculta</string>
+    <string name="rev_game_combi">Combinaciones</string>
+    <string name="rev_targets_best" formatted="true">Mejor palabra: %1$d fichas · %2$d pts</string>
+    <string name="rev_targets_combi_one">1 palabra fallada</string>
+    <string name="rev_targets_combi">%1$d palabras falladas</string>
+    <string name="rev_missed_on">fallado el %1$s</string>
+    <string name="rev_mastered_short">dominado</string>
+    <string name="rev_when_now">por repasar</string>
+    <string name="rev_when_tomorrow">mañana</string>
+    <string name="rev_when_days">en %1$d días</string>
+    <string name="rev_play">Repetir</string>
+    <string name="rev_delete">Quitar</string>
+    <string name="rev_delete_aria">Quitar este atril del repaso</string>
+    <string name="rev_deleted">Atril quitado.</string>
+    <string name="rev_undo">Deshacer</string>
+    <string name="rev_progress" formatted="true">%1$d de %2$d</string>
+    <string name="rev_goal_best">Vuelve a encontrar la mejor palabra</string>
+    <string name="rev_goal_best_any">Encuentra una de las %1$d mejores palabras</string>
+    <string name="rev_goal_combi_one">Encuentra la palabra que se te escapó</string>
+    <string name="rev_goal_combi">Encuentra las %1$d palabras que se te escaparon</string>
+    <string name="rev_hint">Pista</string>
+    <string name="rev_show">Ver la respuesta</string>
+    <string name="rev_hint_first">Empieza por %1$s.</string>
+    <string name="rev_hint_len">%1$d fichas</string>
+    <string name="rev_found">%1$s: ¡encontrada!</string>
+    <string name="rev_already">%1$s ya está encontrada.</string>
+    <string name="rev_not_target" formatted="true">%1$s es válida (%2$d pts), pero no es una palabra por encontrar.</string>
+    <string name="rev_done_ok">Encontrada sin ayuda.</string>
+    <string name="rev_done_help">Encontrada con una pista.</string>
+    <string name="rev_done_miss">Esta vez no.</string>
+    <string name="rev_plan_next">Próximo repaso %1$s.</string>
+    <string name="rev_plan_tomorrow">Vuelve mañana.</string>
+    <string name="rev_plan_mastered">Dominado: ya no volverá.</string>
+    <string name="rev_plan_early">Jugado antes de tiempo: el repaso previsto %1$s no cambia.</string>
+    <string name="rev_played_was" formatted="true">Ese día jugaste %1$s (%2$d pts).</string>
+    <string name="rev_finish">Terminar</string>
+    <string name="rev_next">Siguiente</string>
+    <string name="rev_session_done" formatted="true">Sesión terminada: %1$d de %2$d encontrados sin ayuda.</string>
+    <string name="rev_saved">Añadido a tu repaso</string>
+</resources>

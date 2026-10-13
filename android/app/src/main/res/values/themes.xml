@@ -1,6 +1,8 @@
 <resources>
     <style name="Theme.Ods9" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <item name="android:windowBackground">#0e1711</item>
+        <item name="android:windowBackground">@color/felt_dark</item>
+        <item name="android:statusBarColor">@color/felt_dark</item>
+        <item name="android:navigationBarColor">@color/felt_dark</item>
         <item name="android:colorPrimary">#e8c56b</item>
         <item name="android:colorAccent">#e8c56b</item>
         <item name="android:windowLightStatusBar">false</item>

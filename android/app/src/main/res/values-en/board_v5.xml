@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 5.0 leaderboard: same labels and rules as dashboard/s/leaderboard.js -->
+<resources>
+    <string name="lb_filter_lang">Language</string>
+    <string name="lb_filter_category">Category</string>
+    <string name="lb_filter_period">Period</string>
+    <string name="lb_lang_any">All languages</string>
+    <string name="lb_lang_fr">French</string>
+    <string name="lb_lang_en">English</string>
+    <string name="lb_lang_es">Spanish</string>
+    <string name="lb_lang_ca">Catalan</string>
+    <string name="lb_scope_day">Day</string>
+    <string name="lb_scope_week">Week</string>
+    <string name="lb_scope_3d">Last 3 days</string>
+    <string name="lb_scope_7d">Last 7 days</string>
+    <string name="lb_scope_30d">Last 30 days</string>
+    <string name="lb_scope_all">All-time</string>
+    <string name="lb_combined">All activities</string>
+    <string name="lb_rule_3d">Scores over the last 3 days, including today (Paris time).</string>
+    <string name="lb_rule_7d">Scores over the last 7 days, including today (Paris time).</string>
+    <string name="lb_rule_30d">Scores over the last 30 days, including today (Paris time).</string>
+    <string name="lb_rule_day">Today’s scores (Paris time), every published entry.</string>
+    <string name="lb_rule_week">This week’s scores (Paris time), every published entry.</string>
+    <string name="lb_rule_all">The all-time board: every week combined, one standing per player per language.</string>
+    <string name="lb_rule_combined">1 activity per word checked, word found or Bingo game.</string>
+    <string name="lb_rule_checks">Valid words checked after typing.</string>
+    <string name="lb_rule_games">Words found once per rack, excluding revealed answers.</string>
+    <string name="lb_short_checks">Checked</string>
+    <string name="lb_short_find">Found</string>
+    <string name="lb_short_training">Combinations</string>
+    <string name="lb_short_bingo">Bingo</string>
+    <string name="lb_short_kids">Beginner</string>
+    <string name="lb_positions">standings</string>
+    <string name="lb_published">published standings</string>
+    <string name="lb_place" formatted="true">Your place: #%1$d · %2$s</string>
+    <string name="lb_empty_play">Start playing</string>
+    <string name="lb_title">Leaderboard</string>
+</resources>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Verimots en 30 secondes — vidéo, téléchargement et posts</title>
+  <meta name="description" content="La vidéo Verimots de 30 secondes : à regarder, à télécharger en MP4 (1920×1080, 30 i/s) et des posts prêts pour X, Bluesky, Mastodon, LinkedIn et Reddit, en français et en anglais. Lisible par les robots : /promo/promo.json." />
+  <meta name="theme-color" content="#142018" />
+  <link rel="canonical" href="https://verimots.pfa87.cc/promo/" />
+  <link rel="icon" href="../favicon.svg?v=43" type="image/svg+xml" />
+  <link rel="alternate" type="application/json" title="Promo manifest for bots" href="./promo.json" />
+  <link rel="alternate" type="application/json" title="Google Play publication kit" href="./play/play-store.json" />
+  <meta property="og:type" content="video.other" />
+  <meta property="og:site_name" content="Verimots" />
+  <meta property="og:url" content="https://verimots.pfa87.cc/promo/" />
+  <meta property="og:title" content="Verimots en 30 secondes" />
+  <meta property="og:description" content="Contestation, top du tirage, 7 + 1 : Verimots tranche en une seconde et vous entraîne. Français, anglais, espagnol et catalan. Gratuit, sans pub, hors ligne." />
+  <meta property="og:image" content="https://verimots.pfa87.cc/promo/verimots-promo-poster.jpg?v=33034491" />
+  <meta property="og:image:width" content="1920" />
+  <meta property="og:image:height" content="1080" />
+  <meta property="og:video" content="https://verimots.pfa87.cc/promo/verimots-promo.mp4" />
+  <meta property="og:video:secure_url" content="https://verimots.pfa87.cc/promo/verimots-promo.mp4" />
+  <meta property="og:video:type" content="video/mp4" />
+  <meta property="og:video:width" content="1920" />
+  <meta property="og:video:height" content="1080" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Verimots en 30 secondes" />
+  <meta name="twitter:description" content="Vérifiez un mot, trouvez quoi jouer avec vos lettres. Gratuit, sans pub, hors ligne." />
+  <meta name="twitter:image" content="https://verimots.pfa87.cc/promo/verimots-promo-poster.jpg?v=33034491" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoObject","name":"Verimots en 30 secondes","description":"Pour les joueurs de lettres : trancher une contestation, trouver le top d'un tirage (points et prime de 50 compris), s'entraîner au 7 + 1 et réviser les 2 et 3 lettres. Français, anglais, espagnol et catalan, gratuit, sans pub, hors ligne.","inLanguage":"fr","thumbnailUrl":"https://verimots.pfa87.cc/promo/verimots-promo-poster.jpg?v=33034491","uploadDate":"2026-09-26","duration":"PT30S","contentUrl":"https://verimots.pfa87.cc/promo/verimots-promo.mp4","embedUrl":"https://verimots.pfa87.cc/promo/","width":1920,"height":1080,"isPartOf":{"@type":"WebSite","name":"Verimots","url":"https://verimots.pfa87.cc/"}}</script>
+  <link rel="stylesheet" href="../app.css?v=47" />
+  <style>
+    .kit { padding-bottom: 48px; }
+    .kit h1 { margin: 8px 0 18px; font: 750 clamp(28px, 4.4vw, 40px)/1.1 var(--sans); letter-spacing: -.03em; color: var(--ink); }
+    .kit h2 { margin: 36px 0 12px; font: 700 20px/1.3 var(--sans); letter-spacing: -.02em; color: var(--ink); }
+    .kit video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 14px; background: #0c140f; }
+    .kit-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .kit-actions .btn { min-height: 42px; padding: 0 16px; }
+    .kit-note { margin: 10px 0 0; color: var(--dim); font: 12px/1.5 ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+    .posts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .post { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--bg2); }
+    .post header { display: flex; justify-content: space-between; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .post header small { color: var(--dim); font-size: 12px; }
+    .post pre { flex: 1; margin: 0; padding: 12px 14px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); font: 14px/1.55 var(--sans); }
+    .post footer { display: flex; gap: 14px; padding: 0 14px 12px; font-size: 13px; }
+    .post footer a, .post footer button { padding: 4px 0; border: 0; background: none; color: var(--gold); font: 600 13px/1.4 var(--sans); text-decoration: none; cursor: pointer; }
+    .bots { padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; color: var(--muted); font-size: 14px; }
+    .bots code, .bots pre { font: 13px/1.55 ui-monospace, Menlo, monospace; color: var(--ink); }
+    .bots pre { margin: 10px 0 0; padding: 12px 14px; overflow-x: auto; border-radius: 10px; background: rgba(0, 0, 0, .3); }
+    .bots a { color: var(--gold); }
+    .play-lead { margin: 0 0 4px; color: var(--muted); font-size: 15px; line-height: 1.55; }
+    .play h3 { margin: 26px 0 10px; font: 700 16px/1.3 var(--sans); color: var(--ink); }
+    .play-brief { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--rim-gold, var(--line)); border-radius: 14px; background: rgba(232, 197, 107, .05); color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .play-brief b { color: var(--ink); }
+    .play-brief ul { margin: 8px 0 0; padding-left: 18px; }
+    .play-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 22px 0 12px; }
+    .play-tabs button { min-height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--muted); font: 600 13px/1 var(--sans); cursor: pointer; }
+    .play-tabs button[aria-selected="true"] { border-color: var(--gold); color: var(--gold); background: rgba(232, 197, 107, .08); }
+    .play-field { margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg2); }
+    .play-field header { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--ink); }
+    .play-field header small { color: var(--dim); font: 12px/1 ui-monospace, Menlo, monospace; }
+    .play-field header button { padding: 4px 0; border: 0; background: none; color: var(--gold); font: 600 13px/1.4 var(--sans); cursor: pointer; }
+    .play-field pre { margin: 0; padding: 12px 14px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); font: 14px/1.55 var(--sans); max-height: 360px; overflow-y: auto; }
+    .play-shots { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 10px; }
+    .play-shots a { flex: 0 0 auto; display: block; }
+    .play-shots img { display: block; height: 260px; width: auto; border: 1px solid var(--line); border-radius: 10px; background: #0c140f; }
+    .play-shots.wide img { height: 180px; }
+    .play-label { margin: 14px 0 6px; color: var(--dim); font: 600 12px/1.4 var(--sans); letter-spacing: .04em; text-transform: uppercase; }
+    .play-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .play-table th, .play-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; color: var(--muted); overflow-wrap: anywhere; }
+    .play-table th { width: 26%; color: var(--ink); font-weight: 600; }
+    .play-table ul { margin: 4px 0 0; padding-left: 16px; }
+    .badge { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 999px; font: 700 11px/1.6 var(--sans); letter-spacing: .02em; }
+    .badge.answer { background: rgba(63, 191, 127, .15); color: #6fd6a2; }
+    .badge.check { background: rgba(232, 197, 107, .15); color: var(--gold); }
+    .badge.decision { background: rgba(226, 96, 76, .16); color: #f08b78; }
+    .play-open { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    @media (max-width: 760px) { .posts { grid-template-columns: minmax(0, 1fr); } .play-shots img { height: 200px; } .play-table th { width: 34%; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="../" style="text-decoration:none;color:inherit">
+      <img class="logo" src="../favicon.svg?v=43" width="44" height="44" alt="" />
+      <div><h1 style="margin:0">Verimots</h1></div>
+    </a>
+  </header>
+
+  <main class="kit">
+    <p class="kicker">Kit presse · media kit</p>
+    <h1>Verimots en 30 secondes</h1>
+    <video controls playsinline preload="metadata" width="1920" height="1080" poster="./verimots-promo-poster.jpg?v=33034491" aria-label="Verimots en 30 secondes">
+      <source src="./verimots-promo.mp4?v=09bb7a3e" type="video/mp4" />
+    </video>
+    <div class="kit-actions">
+      <a class="btn gold" href="/__pfa87/download?f=/promo/verimots-promo.mp4" download="verimots-promo.mp4">MP4 · 1920×1080 · 30 i/s ·&nbsp;<span data-bytes>5,7 Mo</span></a>
+      <a class="btn ghost" href="/__pfa87/download?f=/promo/verimots-promo-poster.jpg" download="verimots-promo-poster.jpg">Affiche JPG</a>
+      <a class="btn ghost" href="./promo.json">promo.json</a>
+    </div>
+    <p class="kit-note"><span data-sha256>SHA-256 dans promo.json</span> · Vidéo en français · Libre de reprise telle quelle avec un lien vers verimots.pfa87.cc.</p>
+
+    <h2>Posts · français</h2>
+    <div class="posts" data-lang="fr"></div>
+    <h2>Posts · English</h2>
+    <div class="posts" data-lang="en"></div>
+
+    <h2>Pour les robots · for bots</h2>
+    <div class="bots">
+      <p style="margin:0"><a href="./promo.json"><code>promo.json</code></a> : <code>video.url</code>, <code>video.sha256</code>, <code>alt.fr|en</code>, <code>posts.fr|en.&lt;platform&gt;</code>.</p>
+      <pre>curl -sO https://verimots.pfa87.cc/promo/verimots-promo.mp4
+curl -s  https://verimots.pfa87.cc/promo/promo.json | jq -r .video.sha256
+curl -s  https://verimots.pfa87.cc/promo/post-fr-x.txt
+curl -sO https://verimots.pfa87.cc/promo/play/verimots-play-kit.tar.gz   # Google Play kit, see below</pre>
+    </div>
+
+    <section class="play" id="google-play">
+      <h2>Google Play · kit de publication</h2>
+      <p class="play-lead">Tout ce qu’il faut à un agent pour polir la fiche Play Store de Verimots <b data-play-version>5.0.1 (86)</b> : textes en cinq langues, icône, bannière, captures de la vraie application (téléphone, tablettes 7 et 10 pouces), réponses préparées pour la Play Console et règles à respecter. Rien n’est publié depuis cette page.</p>
+      <div class="kit-actions">
+        <a class="btn gold" href="./play/verimots-play-kit.tar.gz" download="verimots-play-kit.tar.gz">Kit complet · .tar.gz<span data-play-bytes></span></a>
+        <a class="btn ghost" href="./play/AGENT.md">Consignes pour l’agent</a>
+        <a class="btn ghost" href="./play/play-store.json">play-store.json</a>
+      </div>
+      <p class="kit-note">Arborescence fastlane <code>supply</code> : <code>play/metadata/android/&lt;langue&gt;/</code> · captures sans légende : <code>play/raw/</code> · régénérer : <code>scripts/verimots-promo/play/</code></p>
+      <div class="play-brief" data-play-brief><b>Règles pour l’agent</b> : ne rien publier, ne toucher ni aux prix, ni aux pays, ni à la signature, ni aux canaux de test ; ne pas nommer Scrabble ; ne rien promettre que l’APK n’a pas. Détail dans AGENT.md.</div>
+      <div class="play-tabs" role="tablist" aria-label="Langue de la fiche" data-play-tabs></div>
+      <div data-play-locale><p class="play-lead">Chargement du kit…</p></div>
+      <h3>Play Console · contenu de l’application</h3>
+      <p class="play-lead"><span class="badge answer">answer</span>établi par la politique de confidentialité ou le code · <span class="badge check">check</span>à confirmer dans le formulaire · <span class="badge decision">decision</span>décision de Paul, pas de l’agent</p>
+      <table class="play-table" data-play-console></table>
+      <h3>Encore ouvert</h3>
+      <ul class="play-open" data-play-open></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p class="legal">Verimots n’est pas affilié à Scrabble, Mattel, Hasbro, NASPA ni à l’ODS Larousse.</p>
+  </footer>
+
+<script>
+/* Posts and file facts come from promo.json: one source for this page, the landing's copy button and the bots. */
+(function () {
+  'use strict';
+  var NAMES = { x: 'X', bluesky: 'Bluesky', mastodon: 'Mastodon', linkedin: 'LinkedIn', reddit: 'Reddit' };
+  var LIMITS = { x: 280, bluesky: 300, mastodon: 500 };
+  function text(post) { return typeof post === 'string' ? post : post.title + '\n\n' + post.body; }
+  // X counts every link as 23 characters.
+  function size(platform, s) { return platform === 'x' ? s.replace(/https?:\/\/\S+/g, new Array(24).join('x')).length : s.length; }
+  function el(tag, attrs, content) {
+    var node = document.createElement(tag);
+    for (var k in attrs) node.setAttribute(k, attrs[k]);
+    if (content != null) node.textContent = content;
+    return node;
+  }
+  fetch('./promo.json', { cache: 'no-cache', credentials: 'omit' })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(String(r.status))); })
+    .then(function (m) {
+      var grids = document.querySelectorAll('.posts[data-lang]');
+      for (var g = 0; g < grids.length; g++) {
+        var lang = grids[g].getAttribute('data-lang');
+        var posts = m.posts[lang] || {};
+        for (var platform in posts) {
+          var body = text(posts[platform]);
+          var card = el('article', { class: 'post' });
+          var head = el('header');
+          head.appendChild(el('b', {}, NAMES[platform] || platform));
+          head.appendChild(el('small', {}, LIMITS[platform] ? size(platform, body) + ' / ' + LIMITS[platform] : platform === 'reddit' ? 'titre + texte' : ''));
+          card.appendChild(head);
+          card.appendChild(el('pre', {}, body));
+          var foot = el('footer');
+          var copy = el('button', { type: 'button', 'data-text': body }, lang === 'fr' ? 'Copier' : 'Copy');
+          foot.appendChild(copy);
+          foot.appendChild(el('a', { href: './post-' + lang + '-' + platform + '.txt' }, '.txt'));
+          card.appendChild(foot);
+          grids[g].appendChild(card);
+        }
+      }
+      if (m.video && m.video.bytes) document.querySelector('[data-bytes]').textContent = (m.video.bytes / 1e6).toFixed(1).replace('.', ',') + ' Mo';
+      if (m.video && m.video.sha256) document.querySelector('[data-sha256]').textContent = 'SHA-256 ' + m.video.sha256;
+    })
+    .catch(function () {
+      var grids = document.querySelectorAll('.posts[data-lang]');
+      for (var g = 0; g < grids.length; g++) grids[g].textContent = 'Posts indisponibles — ouvrez promo.json.';
+    });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-text]');
+    if (!b) return;
+    var label = b.getAttribute('data-label') || b.textContent;
+    b.setAttribute('data-label', label);
+    navigator.clipboard.writeText(b.getAttribute('data-text'))
+      .then(function () { b.textContent = '✓'; }, function () { b.textContent = '✗'; })
+      .then(function () { setTimeout(function () { b.textContent = label; }, 1400); });
+  });
+})();
+</script>
+<script>
+/* Google Play kit: everything comes from play/play-store.json (built by scripts/verimots-promo/play/build-kit.mjs). */
+(function () {
+  'use strict';
+  function el(tag, attrs, content) {
+    var node = document.createElement(tag);
+    for (var k in attrs) node.setAttribute(k, attrs[k]);
+    if (content != null) node.textContent = content;
+    return node;
+  }
+  var LABELS = { title: 'Titre de l’application', short: 'Description courte', full: 'Description complète', changelog: 'Notes de version' };
+  var NAMES = { 'fr-FR': 'Français (par défaut)', 'en-GB': 'English (UK)', 'en-US': 'English (US)', 'es-ES': 'Español', 'ca': 'Català' };
+  function field(label, value, max) {
+    var box = el('article', { class: 'play-field' });
+    var head = el('header');
+    head.appendChild(el('b', {}, label));
+    var right = el('span');
+    right.appendChild(el('small', {}, Array.from(value).length + ' / ' + max));
+    right.appendChild(document.createTextNode('  '));
+    right.appendChild(el('button', { type: 'button', 'data-text': value }, 'Copier'));
+    head.appendChild(right);
+    box.appendChild(head);
+    box.appendChild(el('pre', {}, value));
+    return box;
+  }
+  function shots(list, wide) {
+    var row = el('div', { class: 'play-shots' + (wide ? ' wide' : '') });
+    (list || []).forEach(function (f) {
+      var a = el('a', { href: f.url, target: '_blank', rel: 'noopener', title: (f.caption || []).join(' — ') + ' · ' + f.width + '×' + f.height });
+      a.appendChild(el('img', { src: f.url, alt: (f.caption || [f.kind || '']).join(' — '), loading: 'lazy', decoding: 'async' }));
+      row.appendChild(a);
+    });
+    return row;
+  }
+  function renderLocale(m, loc) {
+    var L = m.locales[loc], box = document.querySelector('[data-play-locale]');
+    box.textContent = '';
+    box.appendChild(field(LABELS.title, L.title, m.limits.title));
+    box.appendChild(field(LABELS.short, L.short, m.limits.short));
+    box.appendChild(field(LABELS.full, L.full, m.limits.full));
+    var code = Object.keys(L.changelogs)[0];
+    box.appendChild(field(LABELS.changelog + ' · ' + m.app.build.versionName + ' (' + code + ')', L.changelogs[code], m.limits.changelog));
+    box.appendChild(el('p', { class: 'play-label' }, 'Icône 512 × 512 · bannière 1024 × 500'));
+    box.appendChild(shots([L.images.icon, L.images.featureGraphic], true));
+    box.appendChild(el('p', { class: 'play-label' }, 'Téléphone · 1080 × 1920 · ' + L.images.phoneScreenshots.length + ' captures'));
+    box.appendChild(shots(L.images.phoneScreenshots));
+    box.appendChild(el('p', { class: 'play-label' }, 'Tablette 7 pouces · 1200 × 1920 · ' + L.images.sevenInchScreenshots.length + ' captures'));
+    box.appendChild(shots(L.images.sevenInchScreenshots));
+    box.appendChild(el('p', { class: 'play-label' }, 'Tablette 10 pouces · 1600 × 2560 · ' + L.images.tenInchScreenshots.length + ' captures'));
+    box.appendChild(shots(L.images.tenInchScreenshots));
+    document.querySelectorAll('[data-play-tabs] button').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-loc') === loc ? 'true' : 'false'); });
+  }
+  function detail(v) {
+    var td = el('td');
+    if (v.status) td.appendChild(el('span', { class: 'badge ' + v.status }, v.status));
+    var main = v.value != null ? String(v.value) : v.expected ? 'Attendu : ' + v.expected : v.suggestion || '';
+    if (v.email) main = v.email + ' · ' + v.website;
+    td.appendChild(document.createTextNode(main));
+    var items = [].concat(v.facts || [], v.why ? [v.why] : [], v.note ? [v.note] : [], v.tags ? ['Tags : ' + v.tags.join(', ')] : []);
+    if (v.types) v.types.forEach(function (t) { items.push(t.type + (t.optional ? ' (facultatif)' : '') + ' — ' + t.purposes.join(', ') + '. ' + t.note); });
+    if (v.answers) Object.keys(v.answers).forEach(function (k) { items.push(k + ' : ' + v.answers[k]); });
+    if (v.deletionRequest) items.push('Suppression : ' + v.deletionRequest.how + ' · ' + v.deletionRequest.url);
+    if (v.shared) items.push('Partage : ' + (v.shared.value ? 'oui' : 'non') + ' — ' + v.shared.note);
+    if (v.notCollected) items.push('Non collecté : ' + v.notCollected.join(', '));
+    if (items.length) { var ul = el('ul'); items.forEach(function (i) { ul.appendChild(el('li', {}, i)); }); td.appendChild(ul); }
+    return td;
+  }
+  fetch('./play/play-store.json', { cache: 'no-cache', credentials: 'omit' })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(String(r.status))); })
+    .then(function (m) {
+      document.querySelector('[data-play-version]').textContent = m.app.build.versionName + ' (' + m.app.build.versionCode + ')';
+      // the archive holds play-store.json, so its size is read from the server, not the manifest
+      fetch('./play/verimots-play-kit.tar.gz', { method: 'HEAD', cache: 'no-cache', credentials: 'omit' }).then(function (r) {
+        var n = Number(r.headers.get('content-length'));
+        if (r.ok && n) document.querySelector('[data-play-bytes]').textContent = ' · ' + (n / 1e6).toFixed(1).replace('.', ',') + ' Mo';
+      }).catch(function () {});
+      var brief = document.querySelector('[data-play-brief]');
+      brief.textContent = '';
+      brief.appendChild(el('b', {}, 'Objectif : '));
+      brief.appendChild(document.createTextNode(m.agent.goal));
+      var ul = el('ul'); m.agent.rules.forEach(function (r) { ul.appendChild(el('li', {}, r)); }); brief.appendChild(ul);
+      var tabs = document.querySelector('[data-play-tabs]');
+      Object.keys(m.locales).forEach(function (loc) {
+        var b = el('button', { type: 'button', role: 'tab', 'data-loc': loc }, NAMES[loc] || loc);
+        b.addEventListener('click', function () { renderLocale(m, loc); });
+        tabs.appendChild(b);
+      });
+      renderLocale(m, m.defaultLocale);
+      var table = document.querySelector('[data-play-console]');
+      Object.keys(m.console).forEach(function (k) {
+        var tr = el('tr'); tr.appendChild(el('th', {}, k)); tr.appendChild(detail(m.console[k])); table.appendChild(tr);
+      });
+      var open = document.querySelector('[data-play-open]');
+      m.open.forEach(function (o) { open.appendChild(el('li', {}, o)); });
+    })
+    .catch(function () { document.querySelector('[data-play-locale]').textContent = 'Kit indisponible — ouvrez play/play-store.json.'; });
+})();
+</script>
+</body>
+</html>

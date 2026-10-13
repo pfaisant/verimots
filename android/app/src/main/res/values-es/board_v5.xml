@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 5.0 leaderboard: same labels and rules as dashboard/s/leaderboard.js -->
+<resources>
+    <string name="lb_filter_lang">Idioma</string>
+    <string name="lb_filter_category">Categoría</string>
+    <string name="lb_filter_period">Periodo</string>
+    <string name="lb_lang_any">Todos los idiomas</string>
+    <string name="lb_lang_fr">Francés</string>
+    <string name="lb_lang_en">Inglés</string>
+    <string name="lb_lang_es">Español</string>
+    <string name="lb_lang_ca">Catalán</string>
+    <string name="lb_scope_day">Día</string>
+    <string name="lb_scope_week">Semana</string>
+    <string name="lb_scope_3d">Últimos 3 días</string>
+    <string name="lb_scope_7d">Últimos 7 días</string>
+    <string name="lb_scope_30d">Últimos 30 días</string>
+    <string name="lb_scope_all">General</string>
+    <string name="lb_combined">Todas las actividades</string>
+    <string name="lb_rule_3d">Puntuaciones de los últimos 3 días, incluido hoy (hora de París).</string>
+    <string name="lb_rule_7d">Puntuaciones de los últimos 7 días, incluido hoy (hora de París).</string>
+    <string name="lb_rule_30d">Puntuaciones de los últimos 30 días, incluido hoy (hora de París).</string>
+    <string name="lb_rule_day">Las puntuaciones de hoy (hora de París), todas las entradas publicadas.</string>
+    <string name="lb_rule_week">Las puntuaciones de esta semana (hora de París), todas las entradas publicadas.</string>
+    <string name="lb_rule_all">La clasificación general: todas las semanas juntas, un puesto por jugador e idioma.</string>
+    <string name="lb_rule_combined">1 actividad por palabra verificada, encontrada o partida de Bingo.</string>
+    <string name="lb_rule_checks">Palabras válidas verificadas tras escribir.</string>
+    <string name="lb_rule_games">Palabras encontradas una vez por atril, sin respuestas reveladas.</string>
+    <string name="lb_short_checks">Verificadas</string>
+    <string name="lb_short_find">Encontradas</string>
+    <string name="lb_short_training">Combinaciones</string>
+    <string name="lb_short_bingo">Bingo</string>
+    <string name="lb_short_kids">Principiante</string>
+    <string name="lb_positions">posiciones</string>
+    <string name="lb_published">posiciones publicadas</string>
+    <string name="lb_place" formatted="true">Tu puesto: #%1$d · %2$s</string>
+    <string name="lb_empty_play">Empieza a jugar</string>
+    <string name="lb_title">Clasificación</string>
+</resources>

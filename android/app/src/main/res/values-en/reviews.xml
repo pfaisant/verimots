@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Révisions (ReviewScreen): same wording as dashboard/s/i18n.js rev_* keys. -->
+<resources>
+    <string name="menu_review">Review</string>
+    <string name="rev_menu_empty">Racks you miss come back here</string>
+    <string name="rev_menu_due_one">1 rack to review</string>
+    <string name="rev_menu_due">%1$d racks to review</string>
+    <string name="rev_menu_next">Next review %1$s</string>
+    <string name="rev_menu_clear">All mastered</string>
+    <string name="rev_how_title">How it works</string>
+    <string name="rev_how">When the best word gets away (Bingo, Find a word) or you miss words (Combinations), the rack lands here. Find the words again without help: it comes back tomorrow, then in 3, 7 and 21 days, and then it is mastered.</string>
+    <string name="rev_stat_due">To review</string>
+    <string name="rev_stat_later">Later</string>
+    <string name="rev_stat_mastered">Mastered</string>
+    <string name="rev_start_one">Review the rack</string>
+    <string name="rev_start">Review %1$d racks</string>
+    <string name="rev_none_due">Nothing to review right now.</string>
+    <string name="rev_none_due_next">Nothing to review right now · next review %1$s.</string>
+    <string name="rev_empty">No racks yet. Play Bingo, Find a word or Combinations: every rack you miss will land here.</string>
+    <string name="rev_other_dicts_one">1 rack is waiting in another dictionary.</string>
+    <string name="rev_other_dicts">%1$d racks are waiting in other dictionaries.</string>
+    <string name="rev_synced">Synced with your account</string>
+    <string name="rev_sync_failed">Can’t sync right now · your list stays on this device</string>
+    <string name="rev_syncing">Syncing…</string>
+    <string name="rev_local">On this device · sign in to have them everywhere</string>
+    <string name="rev_game_bingo">Bingo</string>
+    <string name="rev_game_find">Find a word</string>
+    <string name="rev_game_combi">Combinations</string>
+    <string name="rev_targets_best" formatted="true">Best word: %1$d letters · %2$d pts</string>
+    <string name="rev_targets_combi_one">1 missed word</string>
+    <string name="rev_targets_combi">%1$d missed words</string>
+    <string name="rev_missed_on">missed %1$s</string>
+    <string name="rev_mastered_short">mastered</string>
+    <string name="rev_when_now">due now</string>
+    <string name="rev_when_tomorrow">tomorrow</string>
+    <string name="rev_when_days">in %1$d days</string>
+    <string name="rev_play">Play again</string>
+    <string name="rev_delete">Remove</string>
+    <string name="rev_delete_aria">Remove this rack from review</string>
+    <string name="rev_deleted">Rack removed.</string>
+    <string name="rev_undo">Undo</string>
+    <string name="rev_progress" formatted="true">%1$d of %2$d</string>
+    <string name="rev_goal_best">Find the best word again</string>
+    <string name="rev_goal_best_any">Find one of the %1$d best words</string>
+    <string name="rev_goal_combi_one">Find the word you missed</string>
+    <string name="rev_goal_combi">Find the %1$d words you missed</string>
+    <string name="rev_hint">Hint</string>
+    <string name="rev_show">Show the answer</string>
+    <string name="rev_hint_first">It starts with %1$s.</string>
+    <string name="rev_hint_len">%1$d letters</string>
+    <string name="rev_found">%1$s: found!</string>
+    <string name="rev_already">%1$s is already found.</string>
+    <string name="rev_not_target" formatted="true">%1$s is valid (%2$d pts), but it isn’t a word to find.</string>
+    <string name="rev_done_ok">Found without help.</string>
+    <string name="rev_done_help">Found with a hint.</string>
+    <string name="rev_done_miss">Not this time.</string>
+    <string name="rev_plan_next">Next review %1$s.</string>
+    <string name="rev_plan_tomorrow">It comes back tomorrow.</string>
+    <string name="rev_plan_mastered">Mastered: it won’t come back.</string>
+    <string name="rev_plan_early">Played early: the review due %1$s stays as it was.</string>
+    <string name="rev_played_was" formatted="true">That day you played %1$s (%2$d pts).</string>
+    <string name="rev_finish">Finish</string>
+    <string name="rev_next">Next</string>
+    <string name="rev_session_done" formatted="true">Session done: %1$d of %2$d found without help.</string>
+    <string name="rev_saved">Added to your review list</string>
+</resources>

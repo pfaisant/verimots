@@ -18,7 +18,6 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.text.style.StyleSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
@@ -163,6 +162,9 @@ public class MainActivity extends Activity {
     private View gameMenu;
     private View gamePlay;
     private View gameStudy;
+    private View gameReview;
+    private ReviewScreen reviews;
+    private TextView gameReviewSaved;
     private TextView aboutLex;
     private TextView gameStudyBody;
     private TextView levelBeginner;
@@ -217,6 +219,7 @@ public class MainActivity extends Activity {
     private LinearLayout statsBody;
     private View gameLiveRow;
     private View authUserRow;
+    private View authHelpRow;
     private TextView authName;
     private ImageView authPic;
     private TextView authPicFallback;
@@ -260,6 +263,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DiagLog.init(this);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         WindowInsetsControllerCompat bars = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         bars.setAppearanceLightStatusBars(false);
@@ -301,7 +305,8 @@ public class MainActivity extends Activity {
             showTab(1);
             boolean playOn = gamePlay != null && gamePlay.getVisibility() == View.VISIBLE;
             boolean studyOn = gameStudy != null && gameStudy.getVisibility() == View.VISIBLE;
-            if (!playOn && !studyOn) showGameView("menu");
+            boolean reviewOn = reviews != null && reviews.visible();
+            if (!playOn && !studyOn && !reviewOn) showGameView("menu");
         };
         View mark = findViewById(R.id.mark);
         View brandTitle = findViewById(R.id.brand_title);
@@ -373,6 +378,7 @@ public class MainActivity extends Activity {
                     paintWordCount();
                     setEnabled(true);
                     paintStudy();
+                    if (reviews != null) reviews.paintMenu();
                     applyIntent(getIntent());
                     maybeOpenWelcomeCompetition();
                     // Empty checker → show the word to discover right away.
@@ -409,6 +415,8 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (competitiveMode != null) competitiveMode.refreshSession();
+        // Draws reviewed on another device show up in the badge on return.
+        if (reviews != null) reviews.syncIfStale();
     }
 
     @Override
@@ -524,8 +532,9 @@ public class MainActivity extends Activity {
         java.util.List<Integer> scores = ScoreStore.load(this, isKidsMode);
         boolean has = !isTrainingMode && scores != null && !scores.isEmpty();
         gameDock.setVisibility(View.VISIBLE);
-        gameDock.setBackgroundResource(has ? R.drawable.bg_card : android.R.color.transparent);
-        if (gameChart != null) gameChart.setVisibility(has ? View.VISIBLE : View.INVISIBLE);
+        boolean trend = has && scores.size() >= 2;
+        gameDock.setBackgroundResource(trend ? R.drawable.bg_card : android.R.color.transparent);
+        if (gameChart != null) gameChart.setVisibility(trend ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void paintBuildStamp() {
@@ -736,6 +745,11 @@ public class MainActivity extends Activity {
                     setEnabled(true);
                     paintStudy();
                     doCheck(false);
+                    // Révisions are per dictionary: a replay of the old list ends.
+                    if (reviews != null) {
+                        reviews.paintMenu();
+                        if (reviews.visible()) reviews.open(null, false);
+                    }
                     if (tab == 1 && gamePlay != null && gamePlay.getVisibility() == View.VISIBLE) {
                         requestDeal();
                     }
@@ -1021,6 +1035,9 @@ public class MainActivity extends Activity {
     /** Empty checker → the word of the day, with its definition, in the card. */
     private boolean discoverSeen;
 
+    private String dailyStepKey = "";
+    private int dailyStep;
+
     private void paintDailyWord() {
         paintDailyWord(discoverSeen);
     }
@@ -1032,9 +1049,18 @@ public class MainActivity extends Activity {
         SimpleDateFormat keyFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
         keyFmt.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
         String day = keyFmt.format(new Date());
+        // The web key is day|lang|dict|edition, the edition being the Spanish
+        // tile set and "fise" for every other language (worker.js dailyWord).
+        String lang = Lang.get(this);
+        String dailyKey = day + "|" + lang + "|" + Dict.get(this) + "|"
+                + (Lang.ES.equals(lang) ? Dict.esEdition(this) : Dict.ES_FISE);
+        if (!dailyKey.equals(dailyStepKey)) {
+            dailyStepKey = dailyKey;
+            dailyStep = 0;
+        }
         final String word = random
                 ? lex.randomWord()
-                : lex.dailyWord(day + "|" + Lang.get(this) + "|" + Dict.get(this));
+                : lex.dailyWord(dailyKey, dailyStep);
         discoverSeen = true;
         if (word == null) {
             checkCard.setVisibility(View.GONE);
@@ -1083,6 +1109,7 @@ public class MainActivity extends Activity {
             @Override
             public void ok(String pos, String text, String url, String lemma) {
                 if (seq != checkSeq) return;
+                if (!random && onlyInflections(text) && skipDailyWord()) return;
                 checkPos.setText(pos);
                 paintDef(checkDef, checkLemma, text, lemma, word);
                 checkWiki.setVisibility(View.VISIBLE);
@@ -1092,11 +1119,38 @@ public class MainActivity extends Activity {
             @Override
             public void empty(String message) {
                 if (seq != checkSeq) return;
+                if (!random && "missing".equals(message) && skipDailyWord()) return;
                 checkPos.setText("");
                 checkDef.setText(defMessage(message));
                 if (checkLemma != null) checkLemma.setVisibility(View.GONE);
             }
         }, Lang.get(this));
+    }
+
+    /** A word worth discovering has a definition of its own: like the web, step
+     *  past up to three undefined or inflection-only candidates for the day. */
+    private boolean skipDailyWord() {
+        if (dailyStep >= 3) return false;
+        dailyStep++;
+        paintDailyWord(false);
+        return true;
+    }
+
+    private static final java.util.regex.Pattern INFLECTION = java.util.regex.Pattern.compile(
+            "personne du|impératif de|participe |pluriel de|féminin de|masculin de|singulier de|forme de "
+                    + "|forma (?:verbal|flexiva|del)|plural de|femenino de|masculino de|participio de|conjugación de",
+            java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+
+    /** Same test as isInflectionDef() in game.js, applied to every sense line. */
+    static boolean onlyInflections(String text) {
+        if (text == null || text.trim().isEmpty()) return false;
+        boolean any = false;
+        for (String line : text.split("\n")) {
+            if (line.trim().isEmpty()) continue;
+            any = true;
+            if (!INFLECTION.matcher(line).find()) return false;
+        }
+        return any;
     }
 
     private void doCheck(boolean immediateDef) {
@@ -1221,6 +1275,14 @@ public class MainActivity extends Activity {
         if (menuTraining != null) menuTraining.setOnClickListener(v -> pickGame("training"));
         if (menuFind != null) menuFind.setOnClickListener(v -> pickGame("find"));
         if (menuStudy != null) menuStudy.setOnClickListener(v -> pickGame("study"));
+        gameReview = findViewById(R.id.game_review);
+        reviews = new ReviewScreen(this, new ReviewScreen.Host() {
+            @Override public Lexicon lexicon() { return lex; }
+            @Override public void leave() { showGameView("menu"); }
+            @Override public void hideKeyboard() { MainActivity.this.hideKeyboard(); }
+        });
+        View menuReview = findViewById(R.id.menu_review);
+        if (menuReview != null) menuReview.setOnClickListener(v -> pickGame("review"));
         View hubBack = findViewById(R.id.game_hub_back);
         if (hubBack != null) hubBack.setOnClickListener(v -> showTab(0));
         if (backPlay != null) backPlay.setOnClickListener(v -> showGameView("menu"));
@@ -1231,9 +1293,8 @@ public class MainActivity extends Activity {
         headerBack = findViewById(R.id.header_back);
         if (headerBack != null) headerBack.setOnClickListener(v -> {
             if (tab != 1) return;
-            boolean menuOn = gameMenu != null && gameMenu.getVisibility() == View.VISIBLE;
-            if (menuOn) showTab(0);
-            else showGameView("menu");
+            if (reviews != null && reviews.visible() && reviews.back()) return;
+            showGameView("menu");
         });
         if (levelBeginner != null) levelBeginner.setOnClickListener(v -> setLevel("beginner"));
         if (levelConfirmed != null) levelConfirmed.setOnClickListener(v -> setLevel("confirmed"));
@@ -1288,20 +1349,29 @@ public class MainActivity extends Activity {
         if (gameMenu != null) gameMenu.setVisibility("menu".equals(view) ? View.VISIBLE : View.GONE);
         if (gamePlay != null) gamePlay.setVisibility("play".equals(view) ? View.VISIBLE : View.GONE);
         if (gameStudy != null) gameStudy.setVisibility("study".equals(view) ? View.VISIBLE : View.GONE);
+        if (gameReview != null) gameReview.setVisibility("review".equals(view) ? View.VISIBLE : View.GONE);
+        if ("menu".equals(view) && reviews != null) reviews.paintMenu();
         syncPlayBoard();
         syncGameDock();
         syncHeaderBack();
     }
 
-    /** The top-bar "Retour" only makes sense on the Jouer tab. */
+    /** The top-bar "Retour" leads from a game back to the game menu, as on the
+     *  web; the menu itself is a tab root and keeps the brand mark. */
     private void syncHeaderBack() {
         if (headerBack == null) return;
-        headerBack.setVisibility(tab == 1 ? View.VISIBLE : View.GONE);
+        boolean inGame = tab == 1 && gameMenu != null && gameMenu.getVisibility() != View.VISIBLE;
+        headerBack.setVisibility(inGame ? View.VISIBLE : View.GONE);
         View mark = findViewById(R.id.mark);
-        if (mark != null) mark.setVisibility(tab == 1 ? View.GONE : View.VISIBLE);
+        if (mark != null) mark.setVisibility(inGame ? View.GONE : View.VISIBLE);
     }
 
     private void pickGame(String choice) {
+        if ("review".equals(choice)) {
+            showGameView("review");
+            if (reviews != null) reviews.open(null, false);
+            return;
+        }
         if ("study".equals(choice)) {
             paintStudy();
             showGameView("study");
@@ -1366,6 +1436,7 @@ public class MainActivity extends Activity {
 
     private void onSignedIn() {
         ActivityStore.flush(this);
+        if (reviews != null) ReviewStore.sync(this, () -> reviews.paintMenu());
         paintAuth();
         syncHistory();
         refreshBoards();
@@ -1448,6 +1519,13 @@ public class MainActivity extends Activity {
         authStats = findViewById(R.id.auth_stats);
         if (authStats != null) authStats.setOnClickListener(v -> showUserStatsDialog());
         if (authGoogle != null) authGoogle.setOnClickListener(v -> competitiveMode.signIn(this::onSignedIn));
+        authHelpRow = findViewById(R.id.auth_help_row);
+        View authBrowser = findViewById(R.id.auth_browser);
+        if (authBrowser != null) authBrowser.setOnClickListener(v -> competitiveMode.signInWithBrowser());
+        View authLog = findViewById(R.id.auth_log);
+        if (authLog != null) authLog.setOnClickListener(v -> showDiagDialog());
+        View aboutLogs = findViewById(R.id.about_logs);
+        if (aboutLogs != null) aboutLogs.setOnClickListener(v -> showDiagDialog());
         if (authLogout != null) authLogout.setOnClickListener(v -> signOutAndRebuild());
         histOpen = findViewById(R.id.hist_open);
         if (histOpen != null) histOpen.setOnClickListener(v -> showHistoryDialog());
@@ -1625,13 +1703,15 @@ public class MainActivity extends Activity {
         if (gameAuthWarn != null) {
             gameAuthWarn.setVisibility(View.GONE); // Account choices live in Options; play stays open.
         }
+        boolean trouble = !on && competitiveMode.signInTrouble();
         if (authStatus != null) {
             authStatus.setText(competitiveMode.sessionOffline()
                     ? (on ? R.string.account_saved_offline : R.string.play_offline)
-                    : R.string.sign_in_hint);
+                    : trouble ? R.string.sign_in_failed : R.string.sign_in_hint);
             authStatus.setVisibility(on && !competitiveMode.sessionOffline() ? View.GONE : View.VISIBLE);
         }
         if (authGoogle != null) authGoogle.setVisibility(on ? View.GONE : View.VISIBLE);
+        if (authHelpRow != null) authHelpRow.setVisibility(trouble ? View.VISIBLE : View.GONE);
         if (authUserRow != null) authUserRow.setVisibility(on ? View.VISIBLE : View.GONE);
         if (on) {
             String name = displayName();
@@ -1740,6 +1820,49 @@ public class MainActivity extends Activity {
         });
         dialog.show();
         if (msg != null) msg.requestFocus();
+    }
+
+    /** Options → "Technical log": the install's identity (version, installer,
+     *  signing certificate) and the last sign-in steps and failed calls, to
+     *  read, copy or share. Nothing leaves the phone without one of those taps. */
+    private void showDiagDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_diag, null);
+        TextView body = view.findViewById(R.id.diag_body);
+        ScrollView scroll = view.findViewById(R.id.diag_scroll);
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(view);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(R.color.felt_card);
+            int width = Math.round(getResources().getDisplayMetrics().widthPixels * 0.94f);
+            dialog.getWindow().setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        if (scroll != null) {
+            scroll.getLayoutParams().height = Math.round(getResources().getDisplayMetrics().heightPixels * 0.55f);
+        }
+        Runnable paint = () -> {
+            String report = DiagLog.report(this);
+            if (body != null) body.setText(DiagLog.empty() ? report + getString(R.string.diag_empty) : report);
+            if (scroll != null) scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+        };
+        paint.run();
+        View close = view.findViewById(R.id.diag_close);
+        if (close != null) close.setOnClickListener(v -> dialog.dismiss());
+        View copy = view.findViewById(R.id.diag_copy);
+        if (copy != null) copy.setOnClickListener(v -> {
+            android.content.ClipboardManager clip = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clip == null) return;
+            clip.setPrimaryClip(android.content.ClipData.newPlainText(getString(R.string.diag_title), DiagLog.report(this)));
+            // Android 13+ confirms clipboard writes itself.
+            if (Build.VERSION.SDK_INT < 33) Toast.makeText(this, R.string.diag_copied, Toast.LENGTH_SHORT).show();
+        });
+        View send = view.findViewById(R.id.diag_share);
+        if (send != null) send.setOnClickListener(v -> share(DiagLog.report(this)));
+        View clear = view.findViewById(R.id.diag_clear);
+        if (clear != null) clear.setOnClickListener(v -> {
+            DiagLog.clear();
+            paint.run();
+        });
+        dialog.show();
     }
 
     private void bindAdvanced() {
@@ -1871,6 +1994,17 @@ public class MainActivity extends Activity {
             android.text.StaticLayout full = android.text.StaticLayout.Builder.obtain(text, 0, text.length(), body.getPaint(), width)
                     .setLineSpacing(body.getLineSpacingExtra(), body.getLineSpacingMultiplier())
                     .setIncludePad(body.getIncludeFontPadding()).build();
+            if (!expanded && full.getLineCount() > lines) {
+                // Never end a preview on the next sense's "WORD · nom" header
+                // or the blank line before it: that header belongs to hidden text.
+                int shown = lines;
+                while (shown > 1) {
+                    String line = text.subSequence(full.getLineStart(shown - 1), full.getLineEnd(shown - 1)).toString().trim();
+                    if (!line.isEmpty() && !SENSE_HEADER.matcher(line).matches()) break;
+                    shown--;
+                }
+                body.setMaxLines(shown);
+            }
             more.setVisibility(full.getLineCount() > lines ? View.VISIBLE : View.GONE);
             more.setText(expanded ? R.string.definition_less : R.string.definition_more);
             more.setSelected(expanded);
@@ -2016,18 +2150,7 @@ public class MainActivity extends Activity {
             int at = wholeWordIndex(hay, form.toLowerCase(java.util.Locale.FRENCH));
             if (at >= 0) {
                 span.setSpan(
-                        new ClickableSpan() {
-                            @Override
-                            public void onClick(View widget) {
-                                navigateStudyDef(form, home);
-                            }
-
-                            @Override
-                            public void updateDrawState(TextPaint ds) {
-                                ds.setColor(getColor(R.color.ink));
-                                ds.setUnderlineText(true);
-                            }
-                        },
+                        new DefTextView.Link(() -> navigateStudyDef(form, home), true),
                         at,
                         at + form.length(),
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2439,18 +2562,7 @@ public class MainActivity extends Activity {
             String folded = Lexicon.normalize(word);
             if (folded.length() < 4 || DEF_STOP.contains(folded.toLowerCase(java.util.Locale.ROOT))) continue;
             span.setSpan(
-                    new ClickableSpan() {
-                        @Override
-                        public void onClick(View widget) {
-                            onWord.tap(word);
-                        }
-
-                        @Override
-                        public void updateDrawState(TextPaint ds) {
-                            ds.setColor(getColor(R.color.ink));
-                            ds.setUnderlineText(true);
-                        }
-                    },
+                    new DefTextView.Link(() -> onWord.tap(word), false),
                     m.start(),
                     m.end(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2490,18 +2602,7 @@ public class MainActivity extends Activity {
             int at = wholeWordIndex(hay, form.toLowerCase(java.util.Locale.FRENCH));
             if (at >= 0) {
                 span.setSpan(
-                        new ClickableSpan() {
-                            @Override
-                            public void onClick(View widget) {
-                                navigateGameDef(form, home);
-                            }
-
-                            @Override
-                            public void updateDrawState(TextPaint ds) {
-                                ds.setColor(getColor(R.color.ink));
-                                ds.setUnderlineText(true);
-                            }
-                        },
+                        new DefTextView.Link(() -> navigateGameDef(form, home), true),
                         at,
                         at + form.length(),
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2570,18 +2671,7 @@ public class MainActivity extends Activity {
         if (at >= 0) {
             final String go = form;
             span.setSpan(
-                    new ClickableSpan() {
-                        @Override
-                        public void onClick(View widget) {
-                            openLemma(go);
-                        }
-
-                        @Override
-                        public void updateDrawState(TextPaint ds) {
-                            ds.setColor(getColor(R.color.ink));
-                            ds.setUnderlineText(true);
-                        }
-                    },
+                    new DefTextView.Link(() -> openLemma(go), true),
                     at,
                     at + form.length(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2870,6 +2960,8 @@ public class MainActivity extends Activity {
         gamePct = findViewById(R.id.game_pct);
         gameBreak = findViewById(R.id.game_break);
         gameVs = findViewById(R.id.game_vs);
+        gameReviewSaved = findViewById(R.id.game_review_saved);
+        if (gameReviewSaved != null) gameReviewSaved.setOnClickListener(v -> pickGame("review"));
         gameTop = findViewById(R.id.game_top);
         gamePos = findViewById(R.id.game_pos);
         gameDef = findViewById(R.id.game_def);
@@ -3016,8 +3108,12 @@ public class MainActivity extends Activity {
         gameQ.setEnabled(true);
         gameForm.setVisibility(View.VISIBLE);
         gameLive.setVisibility(View.VISIBLE);
-        gameLive.setText("");
+        // Plain challenge: say the goal outright — every letter is optional (web game.js).
+        boolean plainFind = !isCompetitiveMode && !isTrainingMode && !isKidsMode;
+        gameLive.setText(plainFind ? getString(R.string.find_goal) : "");
+        gameLive.setTextColor(getColor(R.color.muted));
         gameResult.setVisibility(View.GONE);
+        if (gameReviewSaved != null) gameReviewSaved.setVisibility(View.GONE);
         if (gameAgain != null) gameAgain.setVisibility(View.GONE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.VISIBLE);
         gameCat.setText(kickerLabel(next.category));
@@ -3281,6 +3377,7 @@ public class MainActivity extends Activity {
             paintTops(tops, 0, "");
             showDef(tops.get(0).word);
         }
+        saveMiss("bingo", bestTies(), null);
         paintChart(ScoreStore.add(this, 0, false));
         paintShare(0);
         if (competitiveMode.ranked() && officialDeal) {
@@ -3415,7 +3512,7 @@ public class MainActivity extends Activity {
         title.setText(R.string.user_stats_title);
         title.setTextColor(getColor(R.color.ink));
         title.setTextSize(20);
-        title.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         title.setMaxLines(1);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         head.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
@@ -3482,7 +3579,7 @@ public class MainActivity extends Activity {
         fallback.setTextColor(getColor(R.color.tile_ink));
         fallback.setTextSize(20);
         fallback.setIncludeFontPadding(false);
-        fallback.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        fallback.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         avatar.addView(fallback, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         ImageView pic = new ImageView(this);
@@ -3641,7 +3738,7 @@ public class MainActivity extends Activity {
     }
 
     /** Web .user-stat: label (10.5sp dim uppercase, one line) over a 22sp
-     *  gold serif value, in a dark-green 14dp tile. */
+     *  gold bold value, in a dark-green 14dp tile. */
     private View statTile(String label, CharSequence value, int marginStart) {
         LinearLayout tile = new LinearLayout(this);
         tile.setOrientation(LinearLayout.VERTICAL);
@@ -3665,7 +3762,7 @@ public class MainActivity extends Activity {
         v.setText(value);
         v.setTextColor(getColor(R.color.gold));
         v.setTextSize(22);
-        v.setTypeface(Typeface.create("serif", Typeface.NORMAL));
+        v.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         v.setGravity(android.view.Gravity.CENTER);
         v.setMaxLines(1);
         v.setIncludeFontPadding(false);
@@ -3721,6 +3818,37 @@ public class MainActivity extends Activity {
         } else {
             gameLive.setText("");
         }
+    }
+
+    // ---- Révisions: a round that ended without the words that mattered ------
+
+    /** Every word tied with the best score (at most three). */
+    private List<Lexicon.Play> bestTies() {
+        ArrayList<Lexicon.Play> out = new ArrayList<>();
+        if (deal == null || deal.catalog.isEmpty()) return out;
+        int top = deal.catalog.get(0).pts();
+        for (Lexicon.Play p : deal.catalog) {
+            if (p.pts() != top || out.size() >= 3) break;
+            out.add(p);
+        }
+        return out;
+    }
+
+    private void saveMiss(String game, List<Lexicon.Play> targets, Lexicon.Play played) {
+        if (reviews == null || deal == null || isKidsMode) return;
+        boolean saved;
+        if ("combi".equals(game)) {
+            int min = 15;
+            int max = 2;
+            for (Lexicon.Play p : deal.catalog) {
+                min = Math.min(min, p.word.length());
+                max = Math.max(max, p.word.length());
+            }
+            saved = reviews.record(game, deal.rack, targets, null, trainingPreset, min, max, deal.bonusIndex);
+        } else {
+            saved = reviews.record(game, deal.rack, targets, played, "", 0, 0, -1);
+        }
+        if (gameReviewSaved != null) gameReviewSaved.setVisibility(saved ? View.VISIBLE : View.GONE);
     }
 
     private void submitPlay() {
@@ -3782,6 +3910,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < tops.size(); i++) if (tops.get(i).word.equals(hit.word)) start = i;
         paintTops(tops, start, hit.word);
         showDef(tops.get(start).word);
+        if (!isKidsMode && percent < 100) saveMiss(isCompetitiveMode ? "bingo" : "find", bestTies(), hit);
         List<Integer> scores = ScoreStore.add(this, percent, isKidsMode);
         paintChart(scores);
         if (isKidsMode) {
@@ -3833,6 +3962,7 @@ public class MainActivity extends Activity {
         paintRack();
         Lexicon.Play best = deal.catalog.isEmpty() ? null : deal.catalog.get(0);
         gamePct.setText("—");
+        saveMiss("find", bestTies(), null);
         gameBreak.setText(getString(R.string.skip_done));
         gameVs.setText(best != null
                 ? getString(R.string.skip_best) + " " + Lexicon.display(best.word) + " " + best.pts()
@@ -3958,7 +4088,16 @@ public class MainActivity extends Activity {
         if (gameAgain != null) gameAgain.setVisibility(View.VISIBLE);
         if (gameSpacer != null) gameSpacer.setVisibility(View.GONE);
         hideTrainingDef();
+        // Like the web: no definition until an answer is tapped (the panel
+        // otherwise still held the previous round's word).
+        if (gameDefPanel != null) gameDefPanel.setVisibility(View.GONE);
         paintTops(deal.catalog, -1, "");
+        // Every word the player did not find alone (handed over in red included).
+        ArrayList<Lexicon.Play> missed = new ArrayList<>();
+        for (Lexicon.Play p : deal.catalog) {
+            if (!trainingFound.contains(p.word) || trainingRevealed.contains(p.word)) missed.add(p);
+        }
+        if (!missed.isEmpty()) saveMiss("combi", missed, null);
         recordTraining(solved);
         paintTrainingProgress();
     }
@@ -3997,7 +4136,16 @@ public class MainActivity extends Activity {
         setDictPopOpen(false);
         hideKeyboard();
         if (boardDialog != null && boardDialog.isShowing()) return;
-        boardDialog = new LeaderboardDialog(this);
+        boardDialog = new LeaderboardDialog(this, category -> {
+            if (isFinishing() || isDestroyed()) return;
+            if ("checks".equals(category)) { showTab(0); return; }
+            showTab(1);
+            if ("bingo".equals(category)) pickGame("competitive");
+            else if ("training".equals(category)) pickGame("training");
+            else if ("kids".equals(category)) { setLevel("beginner"); pickGame("find"); }
+            else if ("find".equals(category)) pickGame("find");
+            else showGameView("menu");
+        });
         boardDialog.show();
         styleTab(tabBoard, true);
         styleTab(tabCheck, false);
@@ -4151,9 +4299,12 @@ public class MainActivity extends Activity {
     }
 
     private void paintChart(List<Integer> scores) {
-        boolean has = scores != null && !scores.isEmpty();
+        // Combinaisons has no percent score: never show the find-a-word history there.
+        if (isTrainingMode) scores = java.util.Collections.emptyList();
         boolean spark = scores != null && scores.size() >= 2;
-        String last = has ? String.valueOf(scores.get(scores.size() - 1)) : "";
+        // A lone last score only repeats the result card above it; it earns
+        // its place in the dock once there is a trend to read it against.
+        String last = spark ? String.valueOf(scores.get(scores.size() - 1)) : "";
         String avg = "";
         if (spark) {
             int sum = 0;
@@ -4162,8 +4313,9 @@ public class MainActivity extends Activity {
                     Math.round(10.0 * sum / scores.size()) / 10.0);
         }
         if (gameChart != null) {
-            gameChart.setScores(has ? scores : java.util.Collections.emptyList());
-            gameChart.setVisibility(has ? View.VISIBLE : View.INVISIBLE);
+            // One bar is not a trend: an empty pair of rails read as a broken chart.
+            gameChart.setScores(spark ? scores : java.util.Collections.emptyList());
+            gameChart.setVisibility(spark ? View.VISIBLE : View.INVISIBLE);
         }
         // Ranked players see the board's own numbers (points, rank) in the
         // dock rather than a device-local average that never matched them.
@@ -4182,7 +4334,7 @@ public class MainActivity extends Activity {
         if (gameChartAvg != null) gameChartAvg.setText(avg);
         if (gameChartAvgUnit != null) gameChartAvgUnit.setVisibility(spark || standing != null ? View.VISIBLE : View.GONE);
         if (gameLast != null) gameLast.setText(last);
-        if (gameLastUnit != null) gameLastUnit.setVisibility(has ? View.VISIBLE : View.GONE);
+        if (gameLastUnit != null) gameLastUnit.setVisibility(spark ? View.VISIBLE : View.GONE);
         syncGameDock();
     }
 
@@ -4224,6 +4376,8 @@ public class MainActivity extends Activity {
             dismissGameActions();
         } else if (dictPop != null) {
             setDictPopOpen(false);
+        } else if (tab == 1 && reviews != null && reviews.visible()) {
+            if (!reviews.back()) showGameView("menu");
         } else if (tab == 1 && ((gamePlay != null && gamePlay.getVisibility() == View.VISIBLE)
                 || (gameStudy != null && gameStudy.getVisibility() == View.VISIBLE))) {
             showGameView("menu");

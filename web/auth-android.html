@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#141e19" />
   <title>Verimots - Connexion</title>
-  <link rel="icon" href="favicon.svg?v=161" type="image/svg+xml" />
+  <link rel="icon" href="favicon.svg?v=163" type="image/svg+xml" />
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #141e19; color: #f4efe4; }
     body { margin: 0; }
@@ -19,6 +19,8 @@
     button { padding: 12px 18px; border: 1px solid #e8c56b; border-radius: 8px; background: transparent; color: #e8c56b; font: inherit; cursor: pointer; }
     [hidden] { display: none; }
     :focus-visible { outline: 2px solid #e8c56b; outline-offset: 4px; }
+    /* Google's button is a light-scheme iframe: without this, Chrome paints a white box behind it. */
+    #google-btn iframe { color-scheme: light; }
   </style>
 </head>
 <body data-auth="start">
@@ -31,6 +33,6 @@
     <a id="update" href="https://downloads.pfa87.cc/verimots.apk" hidden>Mettre à jour Verimots</a>
     <a id="open" hidden>Ouvrir Verimots</a>
   </main>
-  <script type="module" src="android-auth.js?v=20260918"></script>
+  <script type="module" src="android-auth.js?v=20261013"></script>
 </body>
 </html>

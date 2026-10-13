@@ -1,17 +1,17 @@
 {
-  "version": "4.8.0",
-  "versionCode": 83,
+  "version": "5.1.1",
+  "versionCode": 89,
   "packageName": "cc.pfa87.verimots",
-  "bytes": 5751787,
+  "bytes": 5845071,
   "minSdk": 26,
   "href": "verimots.apk",
-  "versioned": "verimots-4.8.0.apk",
-  "aab": "verimots-4.8.0-83.aab",
+  "versioned": "verimots-5.1.1.apk",
+  "aab": "verimots-5.1.1-89.aab",
   "aabLatest": "verimots.aab",
-  "builtAt": "2026-09-17 09:52",
-  "publishedAt": "2026-09-17T08:52:37Z",
+  "builtAt": "2026-10-09 15:40",
+  "publishedAt": "2026-10-09T14:40:44Z",
   "signerSha1": "60:14:D1:85:5A:98:EB:CF:09:1A:BA:BB:1A:5B:FD:08:09:55:69:D2",
   "signerSha256": "8f41eabd2c423d061abcc8e8545ce656094fd6d76745e64d0cd00e68208e25b2",
-  "apkSha256": "c01e52626fb31d4e490852f9d6a699de7d38a70043fe2e26787a383ebb8c9ef3",
-  "aabSha256": "d225293ad09afc58307baaace948e242b623aa01929c85119feddc4c5f830b33"
+  "apkSha256": "641bfc42a10385f2a13a4c4a7576d515ce37f32f2311dcf340df4c1c7ad7e274",
+  "aabSha256": "d90c9fb78a5a1fb953f6d4668057c9ab5609790d2e711bed59172cf308b35ef4"
 }

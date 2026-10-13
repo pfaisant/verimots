@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The web .game-menu-item svg: a cream tile face over a darker lip. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#a3853f" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <gradient android:angle="292" android:startColor="#fffaea" android:centerColor="#f3e5c2" android:endColor="#e7d3a6" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</layer-list>

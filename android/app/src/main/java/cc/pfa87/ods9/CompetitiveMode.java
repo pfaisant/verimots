@@ -69,6 +69,10 @@ final class CompetitiveMode {
     private int authGeneration;
     private boolean disposed;
     private CancellationSignal credentialCancellation;
+    /** A Google attempt is running (sheet, server or browser round trip). */
+    private boolean signInPending;
+    /** The last attempt ended without an account: Options offers the browser and the log. */
+    private boolean signInTrouble;
 
     private boolean active() {
         return !disposed && !activity.isFinishing() && !activity.isDestroyed();
@@ -140,7 +144,13 @@ final class CompetitiveMode {
                 sessionRefreshing = false;
                 if (!currentAuth(generation) || !requestedToken.equals(Session.token(activity))) return;
                 sessionCheckedAt = System.currentTimeMillis();
-                if ("not_logged_in".equals(message)) {
+                DiagLog.w("session", "saved session check failed: " + message);
+                if ("not_logged_in".equals(message) && signInPending) {
+                    // Closing the Google sheet resumes the activity and runs this
+                    // check; a full sign-out here would cancel the attempt in flight.
+                    Session.clear(activity);
+                    notifySessionChanged();
+                } else if ("not_logged_in".equals(message)) {
                     signOut();
                     notifySessionChanged();
                     ensureGuest(null);
@@ -179,6 +189,7 @@ final class CompetitiveMode {
             @Override
             public void error(String message) {
                 guestInFlight = false;
+                DiagLog.w("session", "guest identity failed: " + message);
                 if (!currentAuth(generation)) return;
                 sessionOffline = true;
                 notifySessionChanged();
@@ -194,16 +205,45 @@ final class CompetitiveMode {
         return Session.picture(activity);
     }
 
+    boolean signInTrouble() {
+        return signInTrouble;
+    }
+
     void signIn(Runnable onSuccess) {
         if (!active()) return;
         authGeneration++;
         if (credentialCancellation != null) credentialCancellation.cancel();
+        signInPending = true;
+        signInTrouble = false;
+        DiagLog.i("auth", "Google sign-in tapped (session: " + (loggedIn() ? "Google" : guest() ? "guest" : "none") + ")");
         requestGoogle(true, onSuccess);
+    }
+
+    /** "Sign in with the browser" under the Google button, after an attempt failed. */
+    void signInWithBrowser() {
+        if (!active()) return;
+        authGeneration++;
+        if (credentialCancellation != null) credentialCancellation.cancel();
+        DiagLog.i("auth", "browser sign-in tapped");
+        openWebSignIn();
+    }
+
+    /** The attempt ended without an account; repaint so Options shows the way out. */
+    private void signInFailed(String why) {
+        signInPending = false;
+        signInTrouble = true;
+        DiagLog.w("auth", why);
+        notifySessionChanged();
+    }
+
+    private void ignored(String step) {
+        DiagLog.w("auth", step + " ignored: a newer attempt, a sign-out or a closed screen replaced it");
     }
 
     private void requestGoogle(boolean buttonFlow, Runnable onSuccess) {
         if (!active()) return;
         final int generation = authGeneration;
+        final String flow = buttonFlow ? "Sign in with Google" : "Google account sheet";
         try {
             CredentialManager mgr = CredentialManager.create(activity);
             GetCredentialRequest.Builder req = new GetCredentialRequest.Builder();
@@ -222,6 +262,7 @@ final class CompetitiveMode {
                                 .build());
             }
             credentialCancellation = new CancellationSignal();
+            DiagLog.i("auth", flow + ": asking Google Play services");
             mgr.getCredentialAsync(
                     activity,
                     req.build(),
@@ -230,16 +271,34 @@ final class CompetitiveMode {
                     new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
                         @Override
                         public void onResult(GetCredentialResponse result) {
+                            DiagLog.i("auth", flow + ": Google returned a " + result.getCredential().getType());
                             if (currentAuth(generation)) handleResult(result, onSuccess, generation);
+                            else ignored("Google's answer");
                         }
 
                         @Override
                         public void onError(GetCredentialException e) {
-                            if (!currentAuth(generation)) return;
-                            if (e instanceof GetCredentialCancellationException) return;
-                            // Any button-flow failure (missing SHA-1 client, stale Play
-                            // services…) retries the account bottom sheet before falling
-                            // back to the browser.
+                            DiagLog.w("auth", flow + " failed: " + DiagLog.describe(e));
+                            if (!currentAuth(generation)) {
+                                ignored("Google's error");
+                                return;
+                            }
+                            boolean cancellation = e instanceof GetCredentialCancellationException;
+                            if (AuthDiag.userCancelled(cancellation, e.getMessage())) {
+                                signInFailed("closed before an account was chosen");
+                                return;
+                            }
+                            if (AuthDiag.googleRejectedApp(e.getMessage())) {
+                                // The account sheet would hit the same refusal: this copy's
+                                // certificate is not registered for the Verimots client.
+                                DiagLog.w("auth", "Google refused this copy of the app (certificate SHA-1 "
+                                        + DiagLog.signer(activity, "SHA-1") + "); continuing in the browser");
+                                Toast.makeText(activity, R.string.google_browser_fallback, Toast.LENGTH_LONG).show();
+                                openWebSignIn();
+                                return;
+                            }
+                            // Any other button-flow failure (stale Play services…) retries
+                            // the account bottom sheet before falling back to the browser.
                             if (buttonFlow) {
                                 requestGoogle(false, onSuccess);
                                 return;
@@ -248,6 +307,7 @@ final class CompetitiveMode {
                         }
                     });
         } catch (Exception e) {
+            DiagLog.error("auth", flow + " could not start", e);
             if (currentAuth(generation)) openWebSignIn();
         }
     }
@@ -267,10 +327,18 @@ final class CompetitiveMode {
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        // Until the browser hands back, the card offers the browser and the log
+        // again: a player who gives up there comes back to a way forward.
+        signInPending = true;
+        signInTrouble = true;
         try {
             activity.startActivity(intent);
+            DiagLog.i("auth", "browser sign-in opened (" + uri.getPath() + ", lang " + lang + ")");
+            notifySessionChanged();
         } catch (Exception e) {
+            DiagLog.error("auth", "no browser could open the sign-in page", e);
             Toast.makeText(activity, activity.getString(R.string.google_unavailable), Toast.LENGTH_LONG).show();
+            signInFailed("browser sign-in could not open");
         }
     }
 
@@ -286,26 +354,38 @@ final class CompetitiveMode {
 
     void finishWebSignIn(String token, String state, Runnable onSuccess) {
         if (!active() || token == null || token.isEmpty()) return;
+        DiagLog.i("auth", "browser handed the sign-in back to the app");
         if (!consumeBrowserState(state)) {
             Toast.makeText(activity, R.string.google_unavailable, Toast.LENGTH_SHORT).show();
+            signInFailed("browser hand-back refused: it does not match the last attempt started here, or is over 10 minutes old");
             return;
         }
         final int generation = ++authGeneration;
         RemoteApi.fetchMe(token, new RemoteApi.AuthCb() {
             @Override
             public void ok(JSONObject user, String sessionToken) {
-                if (!currentAuth(generation)) return;
+                if (!currentAuth(generation)) {
+                    ignored("browser sign-in");
+                    return;
+                }
                 Session.save(activity, sessionToken, user);
                 sessionOffline = false;
                 sessionCheckedAt = System.currentTimeMillis();
+                signInPending = false;
+                signInTrouble = false;
+                DiagLog.i("auth", "signed in through the browser");
                 Toast.makeText(activity, activity.getString(R.string.signed_in, user.optString("name")), Toast.LENGTH_SHORT).show();
                 if (onSuccess != null) onSuccess.run();
             }
 
             @Override
             public void error(String message) {
-                if (!currentAuth(generation)) return;
+                if (!currentAuth(generation)) {
+                    ignored("browser sign-in error");
+                    return;
+                }
                 Toast.makeText(activity, R.string.google_unavailable, Toast.LENGTH_SHORT).show();
+                signInFailed("browser sign-in: the server did not confirm the session (" + message + ")");
             }
         });
     }
@@ -315,6 +395,8 @@ final class CompetitiveMode {
     void signOut() {
         authGeneration++;
         guestInFlight = false;
+        signInPending = false;
+        signInTrouble = false;
         if (credentialCancellation != null) credentialCancellation.cancel();
         activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).edit()
                 .remove(KEY_BROWSER_STATE).remove(KEY_BROWSER_STARTED).apply();
@@ -342,27 +424,40 @@ final class CompetitiveMode {
                     google = GoogleIdTokenCredential.createFrom(cred.getData());
                 }
                 String idToken = google.getIdToken();
+                DiagLog.i("auth", "sending Google's ID token to the Verimots server");
                 RemoteApi.authGoogle(idToken, new RemoteApi.AuthCb() {
                     @Override
                     public void ok(JSONObject user, String sessionToken) {
-                        if (!currentAuth(generation)) return;
+                        if (!currentAuth(generation)) {
+                            ignored("server sign-in");
+                            return;
+                        }
                         activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).edit()
                                 .remove(KEY_BROWSER_STATE).remove(KEY_BROWSER_STARTED).apply();
                         Session.save(activity, sessionToken, user);
                         sessionOffline = false;
                         sessionCheckedAt = System.currentTimeMillis();
+                        signInPending = false;
+                        signInTrouble = false;
+                        DiagLog.i("auth", "signed in");
                         Toast.makeText(activity, activity.getString(R.string.signed_in, user.optString("name")), Toast.LENGTH_SHORT).show();
                         if (onSuccess != null) onSuccess.run();
                     }
 
                     @Override
                     public void error(String message) {
-                        if (!currentAuth(generation)) return;
+                        if (!currentAuth(generation)) {
+                            ignored("server sign-in error");
+                            return;
+                        }
                         Toast.makeText(activity, R.string.google_unavailable, Toast.LENGTH_SHORT).show();
+                        signInFailed("the Verimots server refused the Google token: " + message);
                     }
                 });
             } catch (Exception e) {
+                DiagLog.error("auth", "Google's answer held no usable ID token", e);
                 Toast.makeText(activity, activity.getString(R.string.google_bad_token), Toast.LENGTH_SHORT).show();
+                signInFailed("sign-in stopped: no ID token");
             }
         });
     }

@@ -1,0 +1,34 @@
+Verimots est le compagnon des joueurs de lettres : vérifier un mot en une seconde, trouver le top d’un tirage, s’entraîner aux combinaisons. Les listes de mots sont dans l’application et marchent hors ligne.
+
+VÉRIFIER UN MOT
+• Une contestation à table ? Tapez le mot : jouable ou non, sa valeur en points et, avec une connexion, sa définition (Wiktionnaire).
+• 407 128 mots en français, de 2 à 15 lettres, sans accents.
+• Mode avancé : tiroir avec jokers (?), mots qui commencent, finissent ou contiennent certaines lettres.
+• Favoris et historique.
+
+TROUVER LE TOP
+• Trouver un mot : un tirage de lettres, cherchez le mot qui rapporte le plus. Votre score est le pourcentage du meilleur coup, puis les meilleurs mots du tirage s’affichent avec leur définition.
+• Les points suivent la valeur des lettres, avec 50 points de prime pour un mot de 7 lettres.
+
+S’ENTRAÎNER
+• Combinaisons : Tous, 7 lettres, 8 lettres, 7 + 1, Joker, Difficiles (J, K, Q, W, X, Y, Z) et Petits mots.
+• Petits Mots : chaque jour, 10 mots de 2 lettres et 12 de 3 lettres à réviser, avec leur définition, et un mode défi.
+• Révisions : un tirage où le meilleur mot vous a échappé, ou une combinaison incomplète, est gardé tout seul. Retrouvez les mots sans aide : il revient le lendemain, puis à 3, 7 et 21 jours. Indices : première lettre, puis définition.
+• Niveau Débutant ou Confirmé.
+
+SE MESURER
+• Bingo : sept lettres, un seul mot, le plus payant gagne. Classement de la semaine.
+• Classements par catégorie, langue et période : jour, 3 jours, semaine, 7 jours, 30 jours, tout.
+• Compte Google facultatif, pour retrouver votre profil et vos classements sur le web et sur le téléphone.
+
+QUATRE LANGUES
+Français ; anglais (liste proche du CSW, ou WOW24) ; espagnol (RLA-ES, jetons internationaux ou nord-américains, CH, LL et RR comptés comme un seul jeton) ; catalan (DISC).
+
+SANS PUBLICITÉ
+Gratuit, sans publicité, sans achat intégré. Internet ne sert qu’aux définitions, aux classements, au compte et au partage ; tout le reste marche hors ligne.
+
+À SAVOIR
+Les listes sont communautaires : ce ne sont pas les ouvrages officiels et elles peuvent s’en écarter. Verimots est un projet indépendant, affilié à aucun éditeur, aucune fédération, ni à Mattel ou Hasbro.
+
+Confidentialité : https://s.pfa87.cc/confidentialite.html
+Aide : https://s.pfa87.cc/support.html

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
     <loc>https://verimots.pfa87.cc/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://verimots.pfa87.cc/?lang=fr"/>
@@ -11,5 +12,17 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://verimots.pfa87.cc/?lang=es"/>
     <xhtml:link rel="alternate" hreflang="ca" href="https://verimots.pfa87.cc/?lang=ca"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://verimots.pfa87.cc/"/>
+  </url>
+  <url>
+    <loc>https://verimots.pfa87.cc/promo/</loc>
+    <lastmod>2026-09-26</lastmod>
+    <video:video>
+      <video:thumbnail_loc>https://verimots.pfa87.cc/promo/verimots-promo-poster.jpg</video:thumbnail_loc>
+      <video:title>Verimots en 30 secondes</video:title>
+      <video:description>Pour les joueurs de lettres : trancher une contestation, trouver le top d'un tirage (points et prime de 50 compris), s'entraîner au 7 + 1 et réviser les 2 et 3 lettres. Français, anglais, espagnol et catalan, gratuit, sans pub, hors ligne.</video:description>
+      <video:content_loc>https://verimots.pfa87.cc/promo/verimots-promo.mp4</video:content_loc>
+      <video:duration>30</video:duration>
+      <video:publication_date>2026-09-26</video:publication_date>
+    </video:video>
   </url>
 </urlset>

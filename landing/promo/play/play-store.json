@@ -1,0 +1,3577 @@
+{
+  "schema": "verimots-play-kit/1",
+  "generated": "2026-10-09T14:43:45.682Z",
+  "page": "https://verimots.pfa87.cc/promo/#google-play",
+  "brief": "https://verimots.pfa87.cc/promo/play/AGENT.md",
+  "archive": "https://verimots.pfa87.cc/promo/play/verimots-play-kit.tar.gz",
+  "app": {
+    "packageName": "cc.pfa87.verimots",
+    "versionName": "5.1.1",
+    "versionCode": 89,
+    "category": "GAME_WORD",
+    "categoryLabel": "Games › Word",
+    "tagsSuggested": [
+      "Word",
+      "Puzzle",
+      "Offline",
+      "Single player",
+      "Board"
+    ],
+    "email": "pfanokif@gmail.com",
+    "website": "https://verimots.pfa87.cc/",
+    "privacy": {
+      "fr": "https://s.pfa87.cc/confidentialite.html",
+      "en": "https://s.pfa87.cc/privacy.html"
+    },
+    "deletion": "https://s.pfa87.cc/privacy.html#delete-account",
+    "support": "https://s.pfa87.cc/support.html",
+    "defaultLocale": "fr-FR",
+    "build": {
+      "versionName": "5.1.1",
+      "versionCode": 89,
+      "aab": "https://s.pfa87.cc/verimots-5.1.1-89.aab",
+      "aabSha256": "d90c9fb78a5a1fb953f6d4668057c9ab5609790d2e711bed59172cf308b35ef4",
+      "apk": "https://s.pfa87.cc/verimots-5.1.1.apk",
+      "apkSha256": "641bfc42a10385f2a13a4c4a7576d515ce37f32f2311dcf340df4c1c7ad7e274",
+      "signerSha256": "8f41eabd2c423d061abcc8e8545ce656094fd6d76745e64d0cd00e68208e25b2",
+      "minSdk": 26,
+      "targetSdk": 36
+    }
+  },
+  "limits": {
+    "title": 30,
+    "short": 80,
+    "full": 4000,
+    "changelog": 500
+  },
+  "defaultLocale": "fr-FR",
+  "locales": {
+    "fr-FR": {
+      "title": "Verimots",
+      "short": "Contestation, top du tirage, 7 + 1 : vérifiez et entraînez-vous hors ligne.",
+      "full": "Verimots est le compagnon des joueurs de lettres : vérifier un mot en une seconde, trouver le top d’un tirage, s’entraîner aux combinaisons. Les listes de mots sont dans l’application et marchent hors ligne.\n\nVÉRIFIER UN MOT\n• Une contestation à table ? Tapez le mot : jouable ou non, sa valeur en points et, avec une connexion, sa définition (Wiktionnaire).\n• 407 128 mots en français, de 2 à 15 lettres, sans accents.\n• Mode avancé : tiroir avec jokers (?), mots qui commencent, finissent ou contiennent certaines lettres.\n• Favoris et historique.\n\nTROUVER LE TOP\n• Trouver un mot : un tirage de lettres, cherchez le mot qui rapporte le plus. Votre score est le pourcentage du meilleur coup, puis les meilleurs mots du tirage s’affichent avec leur définition.\n• Les points suivent la valeur des lettres, avec 50 points de prime pour un mot de 7 lettres.\n\nS’ENTRAÎNER\n• Combinaisons : Tous, 7 lettres, 8 lettres, 7 + 1, Joker, Difficiles (J, K, Q, W, X, Y, Z) et Petits mots.\n• Petits Mots : chaque jour, 10 mots de 2 lettres et 12 de 3 lettres à réviser, avec leur définition, et un mode défi.\n• Révisions : un tirage où le meilleur mot vous a échappé, ou une combinaison incomplète, est gardé tout seul. Retrouvez les mots sans aide : il revient le lendemain, puis à 3, 7 et 21 jours. Indices : première lettre, puis définition.\n• Niveau Débutant ou Confirmé.\n\nSE MESURER\n• Bingo : sept lettres, un seul mot, le plus payant gagne. Classement de la semaine.\n• Classements par catégorie, langue et période : jour, 3 jours, semaine, 7 jours, 30 jours, tout.\n• Compte Google facultatif, pour retrouver votre profil et vos classements sur le web et sur le téléphone.\n\nQUATRE LANGUES\nFrançais ; anglais (liste proche du CSW, ou WOW24) ; espagnol (RLA-ES, jetons internationaux ou nord-américains, CH, LL et RR comptés comme un seul jeton) ; catalan (DISC).\n\nSANS PUBLICITÉ\nGratuit, sans publicité, sans achat intégré. Internet ne sert qu’aux définitions, aux classements, au compte et au partage ; tout le reste marche hors ligne.\n\nÀ SAVOIR\nLes listes sont communautaires : ce ne sont pas les ouvrages officiels et elles peuvent s’en écarter. Verimots est un projet indépendant, affilié à aucun éditeur, aucune fédération, ni à Mattel ou Hasbro.\n\nConfidentialité : https://s.pfa87.cc/confidentialite.html\nAide : https://s.pfa87.cc/support.html",
+      "changelogs": {
+        "89": "Nouveau : Révisions. Les tirages où le meilleur mot vous a échappé sont gardés et reviennent le lendemain, puis à 3, 7 et 21 jours, avec des indices. Avec un compte Google, la liste suit sur le web. Connexion Google plus fiable, avec un recours par le navigateur et un journal technique dans Options. Classements sur 3 jours, définitions plus lisibles."
+      },
+      "counts": {
+        "title": 8,
+        "short": 75,
+        "full": 2340,
+        "changelog": 352
+      },
+      "images": {
+        "icon": {
+          "path": "metadata/android/fr-FR/images/icon.png",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/icon.png",
+          "bytes": 19649,
+          "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+          "width": 512,
+          "height": 512,
+          "kind": "App icon (512 × 512 PNG)"
+        },
+        "featureGraphic": {
+          "path": "metadata/android/fr-FR/images/featureGraphic.jpg",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/featureGraphic.jpg",
+          "bytes": 67825,
+          "sha256": "4be9e4e8385b488cafe468ff9aec814685228c3d58c6ac2927560e7a7704d971",
+          "width": 1024,
+          "height": 500,
+          "kind": "Feature graphic (1024 × 500)",
+          "text": [
+            "Les mots, à vous de jouer.",
+            "Vérifier · Trouver le top · S’entraîner"
+          ]
+        },
+        "phoneScreenshots": [
+          {
+            "path": "metadata/android/fr-FR/images/phoneScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/1_1-top.jpg",
+            "bytes": 178240,
+            "sha256": "2ab5e32b2c0f07e044b315f754e224bf06fb74b13b4074a32b768b1b794ff188",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Quel est le top ?",
+              "Points des lettres et prime de 50 compris"
+            ],
+            "raw": "raw/phone/fr/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/phoneScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/2_2-check.jpg",
+            "bytes": 154883,
+            "sha256": "085f9d894a441f89d16b8ec54077d8ea6122b2f69a1e031b219024e9737662b6",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Contestation ?",
+              "Jouable ou non, points et définition"
+            ],
+            "raw": "raw/phone/fr/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/phoneScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/3_3-plus1.jpg",
+            "bytes": 185868,
+            "sha256": "d10b7921f394018446d665a8bb9063be7f41c3de5e98c57f3e4fb96dc86aa3b3",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Entraînez-vous au 7 + 1",
+              "Et au joker, aux lettres chères, aux 7 et 8 lettres"
+            ],
+            "raw": "raw/phone/fr/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/phoneScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/4_4-short.jpg",
+            "bytes": 229747,
+            "sha256": "45774125087a2e8411ae83903124ee0069808a43da62cbcb9994c650260101df",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Les 2 et 3 lettres du jour",
+              "À réviser chaque jour, avec leur définition"
+            ],
+            "raw": "raw/phone/fr/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/phoneScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/5_5-menu.jpg",
+            "bytes": 184723,
+            "sha256": "b64744cd85d3459af3815d26f8481240a5f6f0cc2d4a942b6070045630e37c74",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Quatre façons de jouer",
+              "Bingo, Trouver un mot, Combinaisons, Petits Mots"
+            ],
+            "raw": "raw/phone/fr/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/phoneScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/6_6-langs.jpg",
+            "bytes": 232127,
+            "sha256": "9156eeaf48545a6d8146ad836aab540edf8f8de61fa10a433b0283af277a25bc",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Quatre langues, hors ligne",
+              "Français, anglais, espagnol, catalan · sans pub"
+            ],
+            "raw": "raw/phone/fr/6-langs.jpg"
+          }
+        ],
+        "sevenInchScreenshots": [
+          {
+            "path": "metadata/android/fr-FR/images/sevenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/1_1-top.jpg",
+            "bytes": 195882,
+            "sha256": "f2b7e8b3e9794782a33e47272776308e41b51ddd6adba6f6534f19fb2f351f77",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Quel est le top ?",
+              "Points des lettres et prime de 50 compris"
+            ],
+            "raw": "raw/tab7/fr/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/sevenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/2_2-check.jpg",
+            "bytes": 150373,
+            "sha256": "3bbcd18f74f057d45daf8d5fcce0d638d4e43719b7799c7d62702702feee0d0e",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Contestation ?",
+              "Jouable ou non, points et définition"
+            ],
+            "raw": "raw/tab7/fr/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 183650,
+            "sha256": "3c1499f426099673e9989102fd67e9b1d67403071b64cee221257e36f014760f",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Entraînez-vous au 7 + 1",
+              "Et au joker, aux lettres chères, aux 7 et 8 lettres"
+            ],
+            "raw": "raw/tab7/fr/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/sevenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/4_4-short.jpg",
+            "bytes": 210446,
+            "sha256": "66125f8893ba2447be5acd2f89573eb0dabdd161a6e0043d43ce9e25d99190c8",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Les 2 et 3 lettres du jour",
+              "À réviser chaque jour, avec leur définition"
+            ],
+            "raw": "raw/tab7/fr/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/sevenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/5_5-menu.jpg",
+            "bytes": 177589,
+            "sha256": "55d6fa9e109774c1e7a49db4db8d7f830cd0080cb421ca452aca51004ccc3b16",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Quatre façons de jouer",
+              "Bingo, Trouver un mot, Combinaisons, Petits Mots"
+            ],
+            "raw": "raw/tab7/fr/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/sevenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/6_6-langs.jpg",
+            "bytes": 264458,
+            "sha256": "58bcee567851187a4ef130782a10d5843b08f12d243fde67e54b0a193a16ce4d",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Quatre langues, hors ligne",
+              "Français, anglais, espagnol, catalan · sans pub"
+            ],
+            "raw": "raw/tab7/fr/6-langs.jpg"
+          }
+        ],
+        "tenInchScreenshots": [
+          {
+            "path": "metadata/android/fr-FR/images/tenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/1_1-top.jpg",
+            "bytes": 258677,
+            "sha256": "725e5edf301d8ed21e00bee12e309966d85858f4b06b9ba730a4c773edb74f29",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Quel est le top ?",
+              "Points des lettres et prime de 50 compris"
+            ],
+            "raw": "raw/tab10/fr/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/tenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/2_2-check.jpg",
+            "bytes": 207122,
+            "sha256": "de94643c2d18bc7bfdc1e4dc45e6b070eac4cc348408148e64116e020ec07735",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Contestation ?",
+              "Jouable ou non, points et définition"
+            ],
+            "raw": "raw/tab10/fr/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/tenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 254732,
+            "sha256": "3e3936110637c0908db4c039a03d0f9993689decf26c4ac7d5cecbea6cfb1a62",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Entraînez-vous au 7 + 1",
+              "Et au joker, aux lettres chères, aux 7 et 8 lettres"
+            ],
+            "raw": "raw/tab10/fr/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/tenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/4_4-short.jpg",
+            "bytes": 268926,
+            "sha256": "e5038b66ee20054c6a5bfe82c68561f933c21b70f1a807b64a4152d85d8a1540",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Les 2 et 3 lettres du jour",
+              "À réviser chaque jour, avec leur définition"
+            ],
+            "raw": "raw/tab10/fr/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/tenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/5_5-menu.jpg",
+            "bytes": 241043,
+            "sha256": "dc52ec6780bc2d2656ee0ed77d84fc63960955c85fe9121861cf44f279ab810d",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Quatre façons de jouer",
+              "Bingo, Trouver un mot, Combinaisons, Petits Mots"
+            ],
+            "raw": "raw/tab10/fr/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/fr-FR/images/tenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/6_6-langs.jpg",
+            "bytes": 442277,
+            "sha256": "4eb215222700c3195f90d4175456cdbd9b17ba2e5598526f910a928fc0c17bc9",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Quatre langues, hors ligne",
+              "Français, anglais, espagnol, catalan · sans pub"
+            ],
+            "raw": "raw/tab10/fr/6-langs.jpg"
+          }
+        ]
+      }
+    },
+    "en-GB": {
+      "title": "Verimots",
+      "short": "Settle a challenge, find the top play, practise the 7 + 1. Works offline.",
+      "full": "Verimots is a companion for word-game players: check a word in a second, find the top play on a rack, practise anagrams. The word lists live inside the app and work offline.\n\nCHECK A WORD\n• A challenge at the table? Type the word: playable or not, its value in points and, when online, its definition (Wiktionary).\n• English lists: a community list following CSW (257,218 words) or WGPO WOW24 (195,383), from 2 to 15 letters.\n• Advanced mode: rack search with blanks (?), words that start with, end with or contain given letters.\n• Favourites and history.\n\nFIND THE TOP PLAY\n• Find a word: a rack of letters, look for the word that scores most. Your score is your percentage of the best play, then the rack’s best words appear with their definitions.\n• Points follow the tile values, with a 50-point bonus for a seven-letter word.\n\nPRACTISE\n• Combinations: All, 7 letters, 8 letters, 7 + 1, Blank, Hard letters (J, K, Q, W, X, Y, Z) and Short words.\n• Short Words: every day, 10 two-letter and 12 three-letter words to revise, with their definitions, plus a challenge mode.\n• Review: a rack where the best word got away, or a combination you did not finish, is saved for you. Find the words again without help: it comes back the next day, then in 3, 7 and 21 days. Hints: first letter, then the definition.\n• Beginner or Confirmed level.\n\nCOMPETE\n• Bingo: seven letters, one word, the highest score wins. Weekly leaderboard.\n• Leaderboards by category, language and period: day, 3 days, week, 7 days, 30 days, all time.\n• Optional Google account, to keep your profile and rankings on the web and on your phone.\n\nFOUR LANGUAGES\nEnglish, French (407,128 words), Spanish (RLA-ES, international or North American tiles, with CH, LL and RR as single tiles) and Catalan (DISC).\n\nNO ADS\nFree, no ads, no in-app purchases. The internet is only used for definitions, leaderboards, your account and sharing; everything else works offline.\n\nGOOD TO KNOW\nThe lists are community lists: they are not the official publications and may differ from them. Verimots is an independent project, not affiliated with any publisher, federation, Mattel or Hasbro.\n\nPrivacy: https://s.pfa87.cc/privacy.html\nHelp: https://s.pfa87.cc/support.html",
+      "changelogs": {
+        "89": "New: Review. Racks where the best word got away are saved and come back the next day, then in 3, 7 and 21 days, with hints. With a Google account the list follows you to the website. More reliable Google sign-in, with a browser fallback and a technical log in Options. 3-day leaderboards and easier-to-read definitions."
+      },
+      "counts": {
+        "title": 8,
+        "short": 73,
+        "full": 2219,
+        "changelog": 319
+      },
+      "images": {
+        "icon": {
+          "path": "metadata/android/en-GB/images/icon.png",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/icon.png",
+          "bytes": 19649,
+          "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+          "width": 512,
+          "height": 512,
+          "kind": "App icon (512 × 512 PNG)"
+        },
+        "featureGraphic": {
+          "path": "metadata/android/en-GB/images/featureGraphic.jpg",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/featureGraphic.jpg",
+          "bytes": 66678,
+          "sha256": "c42ace0af87f2d19a134c43c92cb3ef265c6ada7748ab45bd359e12208f4550b",
+          "width": 1024,
+          "height": 500,
+          "kind": "Feature graphic (1024 × 500)",
+          "text": [
+            "Your letters, your move.",
+            "Check · Find the top play · Practise"
+          ]
+        },
+        "phoneScreenshots": [
+          {
+            "path": "metadata/android/en-GB/images/phoneScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/1_1-top.jpg",
+            "bytes": 181082,
+            "sha256": "ed16405eb7f6d1213ba93229ff369d1bf4146e17aa5659a4602535741c9f7bd1",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "What is the top play?",
+              "Tile values and the 50-point bonus included"
+            ],
+            "raw": "raw/phone/en/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/phoneScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/2_2-check.jpg",
+            "bytes": 153560,
+            "sha256": "2b21de33cefac7e7dad5513899178135fdf447791047ca1d91a2300b506885ce",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "A challenge?",
+              "Playable or not, points and definition"
+            ],
+            "raw": "raw/phone/en/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/phoneScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/3_3-plus1.jpg",
+            "bytes": 180715,
+            "sha256": "f606ef4c2f4e3a43a0d238e29cd515ab08a4fa530163c4a5f8229a0cb8ab64ef",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Practise the 7 + 1",
+              "Blanks, hard letters, 7 and 8 letters too"
+            ],
+            "raw": "raw/phone/en/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/phoneScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/4_4-short.jpg",
+            "bytes": 233426,
+            "sha256": "19a436b646f06ad2f7ca82b691c1c089ee8427bdefb52e5e94d55a7974a07db8",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Today’s two- and three-letter words",
+              "Revise them daily, with definitions"
+            ],
+            "raw": "raw/phone/en/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/phoneScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/5_5-menu.jpg",
+            "bytes": 177364,
+            "sha256": "39ac8de91552a824a45e0043f72f31a1314c6fae61d2d1ead6c93c8d15cdfa6c",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Four ways to play",
+              "Bingo, Find a word, Combinations, Short Words"
+            ],
+            "raw": "raw/phone/en/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/phoneScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/6_6-langs.jpg",
+            "bytes": 225083,
+            "sha256": "c22179879b50119e207760917faebc1e5a8dbb8beed845d4a287819ed05921b4",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Four languages, offline",
+              "English, French, Spanish, Catalan · no ads"
+            ],
+            "raw": "raw/phone/en/6-langs.jpg"
+          }
+        ],
+        "sevenInchScreenshots": [
+          {
+            "path": "metadata/android/en-GB/images/sevenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/1_1-top.jpg",
+            "bytes": 209659,
+            "sha256": "9f1416ebce94bc5eea33888403aad6b61f1d684a322d132a30a14871bce92b7e",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "What is the top play?",
+              "Tile values and the 50-point bonus included"
+            ],
+            "raw": "raw/tab7/en/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/sevenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/2_2-check.jpg",
+            "bytes": 149478,
+            "sha256": "b352050aa458ad2d73dfd8fbe9ca23d7ba2a064478e0b43446f80ec6e3f48187",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "A challenge?",
+              "Playable or not, points and definition"
+            ],
+            "raw": "raw/tab7/en/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 169663,
+            "sha256": "ea4fa802182b066d0992905b15bcb8907351df7897c20b643dc286f1e34a232c",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Practise the 7 + 1",
+              "Blanks, hard letters, 7 and 8 letters too"
+            ],
+            "raw": "raw/tab7/en/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/sevenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/4_4-short.jpg",
+            "bytes": 212240,
+            "sha256": "b543c4c60bdf140ad65aebfa68184e0f40aa55d64964d380a9c351392b767362",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Today’s two- and three-letter words",
+              "Revise them daily, with definitions"
+            ],
+            "raw": "raw/tab7/en/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/sevenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/5_5-menu.jpg",
+            "bytes": 170052,
+            "sha256": "1ee865af0ac2174a4c13d9832784bdc2a4be6bdb80dcb19c7e9b793a99face03",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Four ways to play",
+              "Bingo, Find a word, Combinations, Short Words"
+            ],
+            "raw": "raw/tab7/en/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/sevenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/6_6-langs.jpg",
+            "bytes": 251380,
+            "sha256": "eccb85fa11cec15ae02f7817a357e20283151796e38e909a7328cd1dca13019a",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Four languages, offline",
+              "English, French, Spanish, Catalan · no ads"
+            ],
+            "raw": "raw/tab7/en/6-langs.jpg"
+          }
+        ],
+        "tenInchScreenshots": [
+          {
+            "path": "metadata/android/en-GB/images/tenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/1_1-top.jpg",
+            "bytes": 285342,
+            "sha256": "dafb0400d1d34b3c49b6c94a18663e8a9c8ab875adb4578bd39c015ac889f185",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "What is the top play?",
+              "Tile values and the 50-point bonus included"
+            ],
+            "raw": "raw/tab10/en/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/tenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/2_2-check.jpg",
+            "bytes": 205957,
+            "sha256": "9294bb11e51912972c23d7c12e3c31e6baa875b75e820d02542729fe31ba64ea",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "A challenge?",
+              "Playable or not, points and definition"
+            ],
+            "raw": "raw/tab10/en/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/tenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 209519,
+            "sha256": "c0b0d52c68fb6f239fb9438213dee70d10eca608bf3ef6ab7d6c5329143922a0",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Practise the 7 + 1",
+              "Blanks, hard letters, 7 and 8 letters too"
+            ],
+            "raw": "raw/tab10/en/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/tenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/4_4-short.jpg",
+            "bytes": 270256,
+            "sha256": "3c42b4c6ae287de2555bdbf26bc3d26bf5a88db121a50d045fa4e2e2377aca98",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Today’s two- and three-letter words",
+              "Revise them daily, with definitions"
+            ],
+            "raw": "raw/tab10/en/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/tenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/5_5-menu.jpg",
+            "bytes": 230529,
+            "sha256": "05ea5c7c1b935581b525d12b46a1ae7b7d19a3c47a79fb1a932979aff255ea0f",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Four ways to play",
+              "Bingo, Find a word, Combinations, Short Words"
+            ],
+            "raw": "raw/tab10/en/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/en-GB/images/tenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/6_6-langs.jpg",
+            "bytes": 439946,
+            "sha256": "b45583ec6d1d2533c79be24a66202eff8f0f796813412d3d96e74d47f3b1582f",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Four languages, offline",
+              "English, French, Spanish, Catalan · no ads"
+            ],
+            "raw": "raw/tab10/en/6-langs.jpg"
+          }
+        ]
+      }
+    },
+    "en-US": {
+      "title": "Verimots",
+      "short": "Settle a challenge, find the top play, practice the 7 + 1. Works offline.",
+      "full": "Verimots is a companion for word-game players: check a word in a second, find the top play on a rack, practice anagrams. The word lists live inside the app and work offline.\n\nCHECK A WORD\n• A challenge at the table? Type the word: playable or not, its value in points and, when online, its definition (Wiktionary).\n• English lists: a community list following CSW (257,218 words) or WGPO WOW24 (195,383), from 2 to 15 letters.\n• Advanced mode: rack search with blanks (?), words that start with, end with or contain given letters.\n• Favorites and history.\n\nFIND THE TOP PLAY\n• Find a word: a rack of letters, look for the word that scores most. Your score is your percentage of the best play, then the rack’s best words appear with their definitions.\n• Points follow the tile values, with a 50-point bonus for a seven-letter word.\n\nPRACTICE\n• Combinations: All, 7 letters, 8 letters, 7 + 1, Blank, Hard letters (J, K, Q, W, X, Y, Z) and Short words.\n• Short Words: every day, 10 two-letter and 12 three-letter words to revise, with their definitions, plus a challenge mode.\n• Review: a rack where the best word got away, or a combination you did not finish, is saved for you. Find the words again without help: it comes back the next day, then in 3, 7 and 21 days. Hints: first letter, then the definition.\n• Beginner or Confirmed level.\n\nCOMPETE\n• Bingo: seven letters, one word, the highest score wins. Weekly leaderboard.\n• Leaderboards by category, language and period: day, 3 days, week, 7 days, 30 days, all time.\n• Optional Google account, to keep your profile and rankings on the web and on your phone.\n\nFOUR LANGUAGES\nEnglish, French (407,128 words), Spanish (RLA-ES, international or North American tiles, with CH, LL and RR as single tiles) and Catalan (DISC).\n\nNO ADS\nFree, no ads, no in-app purchases. The internet is only used for definitions, leaderboards, your account and sharing; everything else works offline.\n\nGOOD TO KNOW\nThe lists are community lists: they are not the official publications and may differ from them. Verimots is an independent project, not affiliated with any publisher, federation, Mattel or Hasbro.\n\nPrivacy: https://s.pfa87.cc/privacy.html\nHelp: https://s.pfa87.cc/support.html",
+      "changelogs": {
+        "89": "New: Review. Racks where the best word got away are saved and come back the next day, then in 3, 7 and 21 days, with hints. With a Google account the list follows you to the website. More reliable Google sign-in, with a browser fallback and a technical log in Options. 3-day leaderboards and easier-to-read definitions."
+      },
+      "counts": {
+        "title": 8,
+        "short": 73,
+        "full": 2218,
+        "changelog": 319
+      },
+      "images": {
+        "icon": {
+          "path": "metadata/android/en-US/images/icon.png",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/icon.png",
+          "bytes": 19649,
+          "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+          "width": 512,
+          "height": 512,
+          "kind": "App icon (512 × 512 PNG)"
+        },
+        "featureGraphic": {
+          "path": "metadata/android/en-US/images/featureGraphic.jpg",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/featureGraphic.jpg",
+          "bytes": 66643,
+          "sha256": "38f019e4ae030b806455708b4b511a2abb0566d72f9bfa90bbcb35341e33352e",
+          "width": 1024,
+          "height": 500,
+          "kind": "Feature graphic (1024 × 500)",
+          "text": [
+            "Your letters, your move.",
+            "Check · Find the top play · Practice"
+          ]
+        },
+        "phoneScreenshots": [
+          {
+            "path": "metadata/android/en-US/images/phoneScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/1_1-top.jpg",
+            "bytes": 181082,
+            "sha256": "ed16405eb7f6d1213ba93229ff369d1bf4146e17aa5659a4602535741c9f7bd1",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "What is the top play?",
+              "Tile values and the 50-point bonus included"
+            ],
+            "raw": "raw/phone/en/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/phoneScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/2_2-check.jpg",
+            "bytes": 153560,
+            "sha256": "2b21de33cefac7e7dad5513899178135fdf447791047ca1d91a2300b506885ce",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "A challenge?",
+              "Playable or not, points and definition"
+            ],
+            "raw": "raw/phone/en/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/phoneScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/3_3-plus1.jpg",
+            "bytes": 180730,
+            "sha256": "6069d22e3c5b533361c411fce28ba164d7c9b1b06bf920c31b9b4b4156b6a605",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Practice the 7 + 1",
+              "Blanks, hard letters, 7 and 8 letters too"
+            ],
+            "raw": "raw/phone/en/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/phoneScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/4_4-short.jpg",
+            "bytes": 233426,
+            "sha256": "19a436b646f06ad2f7ca82b691c1c089ee8427bdefb52e5e94d55a7974a07db8",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Today’s two- and three-letter words",
+              "Revise them daily, with definitions"
+            ],
+            "raw": "raw/phone/en/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/phoneScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/5_5-menu.jpg",
+            "bytes": 177364,
+            "sha256": "39ac8de91552a824a45e0043f72f31a1314c6fae61d2d1ead6c93c8d15cdfa6c",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Four ways to play",
+              "Bingo, Find a word, Combinations, Short Words"
+            ],
+            "raw": "raw/phone/en/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/phoneScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/6_6-langs.jpg",
+            "bytes": 225083,
+            "sha256": "c22179879b50119e207760917faebc1e5a8dbb8beed845d4a287819ed05921b4",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Four languages, offline",
+              "English, French, Spanish, Catalan · no ads"
+            ],
+            "raw": "raw/phone/en/6-langs.jpg"
+          }
+        ],
+        "sevenInchScreenshots": [
+          {
+            "path": "metadata/android/en-US/images/sevenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/1_1-top.jpg",
+            "bytes": 209659,
+            "sha256": "9f1416ebce94bc5eea33888403aad6b61f1d684a322d132a30a14871bce92b7e",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "What is the top play?",
+              "Tile values and the 50-point bonus included"
+            ],
+            "raw": "raw/tab7/en/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/sevenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/2_2-check.jpg",
+            "bytes": 149478,
+            "sha256": "b352050aa458ad2d73dfd8fbe9ca23d7ba2a064478e0b43446f80ec6e3f48187",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "A challenge?",
+              "Playable or not, points and definition"
+            ],
+            "raw": "raw/tab7/en/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 169462,
+            "sha256": "115b0b5a4d41e720c1a6778b9024549a4f1cc46ead60b2604e9d3610a925f49e",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Practice the 7 + 1",
+              "Blanks, hard letters, 7 and 8 letters too"
+            ],
+            "raw": "raw/tab7/en/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/sevenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/4_4-short.jpg",
+            "bytes": 212240,
+            "sha256": "b543c4c60bdf140ad65aebfa68184e0f40aa55d64964d380a9c351392b767362",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Today’s two- and three-letter words",
+              "Revise them daily, with definitions"
+            ],
+            "raw": "raw/tab7/en/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/sevenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/5_5-menu.jpg",
+            "bytes": 170052,
+            "sha256": "1ee865af0ac2174a4c13d9832784bdc2a4be6bdb80dcb19c7e9b793a99face03",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Four ways to play",
+              "Bingo, Find a word, Combinations, Short Words"
+            ],
+            "raw": "raw/tab7/en/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/sevenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/6_6-langs.jpg",
+            "bytes": 251380,
+            "sha256": "eccb85fa11cec15ae02f7817a357e20283151796e38e909a7328cd1dca13019a",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Four languages, offline",
+              "English, French, Spanish, Catalan · no ads"
+            ],
+            "raw": "raw/tab7/en/6-langs.jpg"
+          }
+        ],
+        "tenInchScreenshots": [
+          {
+            "path": "metadata/android/en-US/images/tenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/1_1-top.jpg",
+            "bytes": 285342,
+            "sha256": "dafb0400d1d34b3c49b6c94a18663e8a9c8ab875adb4578bd39c015ac889f185",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "What is the top play?",
+              "Tile values and the 50-point bonus included"
+            ],
+            "raw": "raw/tab10/en/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/tenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/2_2-check.jpg",
+            "bytes": 205957,
+            "sha256": "9294bb11e51912972c23d7c12e3c31e6baa875b75e820d02542729fe31ba64ea",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "A challenge?",
+              "Playable or not, points and definition"
+            ],
+            "raw": "raw/tab10/en/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/tenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 209433,
+            "sha256": "b736310017a99daa668e3fde0769a896d43c1c73ea08c84467bf22a79c10db50",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Practice the 7 + 1",
+              "Blanks, hard letters, 7 and 8 letters too"
+            ],
+            "raw": "raw/tab10/en/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/tenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/4_4-short.jpg",
+            "bytes": 270256,
+            "sha256": "3c42b4c6ae287de2555bdbf26bc3d26bf5a88db121a50d045fa4e2e2377aca98",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Today’s two- and three-letter words",
+              "Revise them daily, with definitions"
+            ],
+            "raw": "raw/tab10/en/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/tenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/5_5-menu.jpg",
+            "bytes": 230529,
+            "sha256": "05ea5c7c1b935581b525d12b46a1ae7b7d19a3c47a79fb1a932979aff255ea0f",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Four ways to play",
+              "Bingo, Find a word, Combinations, Short Words"
+            ],
+            "raw": "raw/tab10/en/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/en-US/images/tenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/6_6-langs.jpg",
+            "bytes": 439946,
+            "sha256": "b45583ec6d1d2533c79be24a66202eff8f0f796813412d3d96e74d47f3b1582f",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Four languages, offline",
+              "English, French, Spanish, Catalan · no ads"
+            ],
+            "raw": "raw/tab10/en/6-langs.jpg"
+          }
+        ]
+      }
+    },
+    "es-ES": {
+      "title": "Verimots",
+      "short": "Resuelva dudas, halle la mejor jugada y entrene el 7 + 1. Funciona sin conexión.",
+      "full": "Verimots acompaña a los jugadores de palabras: comprobar una palabra en un segundo, encontrar la mejor jugada de un atril y entrenar las combinaciones. Las listas de palabras van dentro de la aplicación y funcionan sin conexión.\n\nCOMPROBAR UNA PALABRA\n• ¿Una duda en la partida? Escriba la palabra: válida o no, su valor en puntos y, con conexión, su definición (Wikcionario).\n• Español: lista RLA-ES de 608 169 palabras, de 2 a 15 fichas, con fichas internacionales (FISE) o norteamericanas; CH, LL y RR cuentan como una sola ficha.\n• Modo avanzado: búsqueda en el atril con comodines (?), palabras que empiezan, terminan o contienen ciertas letras.\n• Favoritos e historial.\n\nLA MEJOR JUGADA\n• Palabra oculta: un atril de letras, busque la palabra que más puntúa. Su resultado es el porcentaje de la mejor jugada; después aparecen las mejores palabras del atril con su definición.\n• Los puntos siguen el valor de las fichas, con 50 puntos de bonificación por una palabra de 7 fichas.\n\nENTRENAR\n• Combinaciones: Todas, 7 letras, 8 letras, 7 + 1, Comodín, Difíciles y Palabras cortas.\n• Palabras Cortas: cada día, 10 palabras de 2 letras y 12 de 3 letras para repasar, con su definición, y un modo reto.\n• Repaso: un atril en el que se te escapó la mejor palabra, o una combinación sin terminar, se guarda solo. Vuelve a encontrar las palabras sin ayuda: vuelve al día siguiente y luego a los 3, 7 y 21 días. Pistas: primera letra y después la definición.\n• Nivel Principiante o Confirmado.\n\nCOMPETIR\n• Bingo: siete letras, una sola palabra, gana la que más puntúa. Clasificación semanal.\n• Clasificaciones por categoría, idioma y periodo: día, 3 días, semana, 7 días, 30 días, todo.\n• Cuenta de Google opcional, para conservar su perfil y sus clasificaciones en la web y en el móvil.\n\nCUATRO IDIOMAS\nEspañol, francés (407 128 palabras), inglés (lista cercana al CSW, o WOW24) y catalán (DISC).\n\nSIN PUBLICIDAD\nGratis, sin publicidad y sin compras integradas. Internet solo se usa para las definiciones, las clasificaciones, la cuenta y compartir; todo lo demás funciona sin conexión.\n\nA TENER EN CUENTA\nLas listas son comunitarias: no son las obras oficiales y pueden diferir de ellas. Verimots es un proyecto independiente, sin relación con ningún editor, federación, Mattel ni Hasbro.\n\nPrivacidad: https://s.pfa87.cc/privacidad.html\nAyuda: https://s.pfa87.cc/support.html",
+      "changelogs": {
+        "89": "Nuevo: Repaso. Los atriles en los que se te escapó la mejor palabra se guardan y vuelven al día siguiente y luego a los 3, 7 y 21 días, con pistas. Con una cuenta de Google, la lista te sigue en la web. Inicio de sesión con Google más fiable, con alternativa en el navegador y un registro técnico en Opciones. Clasificaciones de 3 días y definiciones más legibles."
+      },
+      "counts": {
+        "title": 8,
+        "short": 80,
+        "full": 2373,
+        "changelog": 364
+      },
+      "images": {
+        "icon": {
+          "path": "metadata/android/es-ES/images/icon.png",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/icon.png",
+          "bytes": 19649,
+          "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+          "width": 512,
+          "height": 512,
+          "kind": "App icon (512 × 512 PNG)"
+        },
+        "featureGraphic": {
+          "path": "metadata/android/es-ES/images/featureGraphic.jpg",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/featureGraphic.jpg",
+          "bytes": 68673,
+          "sha256": "8271ff1a00c841610315040602e01daa56424264d8da6f67a9c75625cbb27910",
+          "width": 1024,
+          "height": 500,
+          "kind": "Feature graphic (1024 × 500)",
+          "text": [
+            "Las palabras, su jugada.",
+            "Comprobar · La mejor jugada · Entrenar"
+          ]
+        },
+        "phoneScreenshots": [
+          {
+            "path": "metadata/android/es-ES/images/phoneScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/1_1-top.jpg",
+            "bytes": 191950,
+            "sha256": "a668753dce40aac7224c66eab5a2ebc143dc5ac6c236978ebefe52c511d55fda",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "¿Cuál es la mejor jugada?",
+              "Con el valor de las fichas y la bonificación de 50"
+            ],
+            "raw": "raw/phone/es/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/phoneScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/2_2-check.jpg",
+            "bytes": 159082,
+            "sha256": "4ac094cd1ad05931476764fa4485c8d17bcdbe9d7ddfe5de103f2081c97aab39",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "¿Duda en la partida?",
+              "Válida o no, puntos y definición"
+            ],
+            "raw": "raw/phone/es/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/phoneScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/3_3-plus1.jpg",
+            "bytes": 183911,
+            "sha256": "2802404bc17127df6e989db10e62c8b68dd0800a48326dd493b6edb50ccc34e3",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Entrene el 7 + 1",
+              "Y el comodín, las fichas caras, 7 y 8 letras"
+            ],
+            "raw": "raw/phone/es/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/phoneScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/4_4-short.jpg",
+            "bytes": 238195,
+            "sha256": "9d45865421d53370d2a307b92ba9120c721b9c3405ea2d078491b49f7ff47813",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Las palabras cortas del día",
+              "De 2 y 3 letras, para repasar con su definición"
+            ],
+            "raw": "raw/phone/es/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/phoneScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/5_5-menu.jpg",
+            "bytes": 191036,
+            "sha256": "616225d03a8313c0bad1d222ec7654aa0ea982495b9d3549284cd29543828a09",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Cuatro formas de jugar",
+              "Bingo, Palabra oculta, Combinaciones, Palabras Cortas"
+            ],
+            "raw": "raw/phone/es/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/phoneScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/6_6-langs.jpg",
+            "bytes": 235078,
+            "sha256": "f8a80993d63abe8268c724bd6f41c543ba5565ceda7676be307a2ace3e99cf45",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Cuatro idiomas, sin conexión",
+              "Español, francés, inglés, catalán · sin anuncios"
+            ],
+            "raw": "raw/phone/es/6-langs.jpg"
+          }
+        ],
+        "sevenInchScreenshots": [
+          {
+            "path": "metadata/android/es-ES/images/sevenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/1_1-top.jpg",
+            "bytes": 211726,
+            "sha256": "e3e637e6dfb64537bdf4c2f6fa452e154b6bca16ac150cf32a42576b3a798f87",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "¿Cuál es la mejor jugada?",
+              "Con el valor de las fichas y la bonificación de 50"
+            ],
+            "raw": "raw/tab7/es/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/sevenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/2_2-check.jpg",
+            "bytes": 154910,
+            "sha256": "c775ade4279f2474abddc3c2415577e73d287ff1e2d2e1d54f10bf460deaa6c2",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "¿Duda en la partida?",
+              "Válida o no, puntos y definición"
+            ],
+            "raw": "raw/tab7/es/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 176877,
+            "sha256": "8e0d751b4c190daf5142416004aa3c6897f0f213a88fd2f8bd5f93dde5376a52",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Entrene el 7 + 1",
+              "Y el comodín, las fichas caras, 7 y 8 letras"
+            ],
+            "raw": "raw/tab7/es/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/sevenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/4_4-short.jpg",
+            "bytes": 217597,
+            "sha256": "ec39d14d0f2bb20bb46097bbcc09f70ac8a33919fbe2a616ff8794f856a8ec73",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Las palabras cortas del día",
+              "De 2 y 3 letras, para repasar con su definición"
+            ],
+            "raw": "raw/tab7/es/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/sevenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/5_5-menu.jpg",
+            "bytes": 181151,
+            "sha256": "4e6154542b20902bdfe204186a922ae0a23fac45840f8e9c23fec7d1e6f01b7a",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Cuatro formas de jugar",
+              "Bingo, Palabra oculta, Combinaciones, Palabras Cortas"
+            ],
+            "raw": "raw/tab7/es/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/sevenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/6_6-langs.jpg",
+            "bytes": 269852,
+            "sha256": "043eaba1deca3fbded25e9a7547793403579a4f67ec80b7f31196af7e21fc5d6",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Cuatro idiomas, sin conexión",
+              "Español, francés, inglés, catalán · sin anuncios"
+            ],
+            "raw": "raw/tab7/es/6-langs.jpg"
+          }
+        ],
+        "tenInchScreenshots": [
+          {
+            "path": "metadata/android/es-ES/images/tenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/1_1-top.jpg",
+            "bytes": 283146,
+            "sha256": "f7db79cd1caffd4def10dbb93c3124dc4d0c2f9ac941d43681202593ac314538",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "¿Cuál es la mejor jugada?",
+              "Con el valor de las fichas y la bonificación de 50"
+            ],
+            "raw": "raw/tab10/es/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/tenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/2_2-check.jpg",
+            "bytes": 211451,
+            "sha256": "527873c0f1eb5777f84e123541e6e525af4b29d8e65e26d77f89f22ca2345b37",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "¿Duda en la partida?",
+              "Válida o no, puntos y definición"
+            ],
+            "raw": "raw/tab10/es/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/tenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 252442,
+            "sha256": "2595de89296c9ce72b4098495164e20ce9d4866e82d450de38e0037ab99a889b",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Entrene el 7 + 1",
+              "Y el comodín, las fichas caras, 7 y 8 letras"
+            ],
+            "raw": "raw/tab10/es/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/tenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/4_4-short.jpg",
+            "bytes": 279704,
+            "sha256": "b70b0d67a2c5fe2223a9094777a83e48593d3911b9c44d4b04af1f268c70929c",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Las palabras cortas del día",
+              "De 2 y 3 letras, para repasar con su definición"
+            ],
+            "raw": "raw/tab10/es/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/tenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/5_5-menu.jpg",
+            "bytes": 244736,
+            "sha256": "d9a7d895ddc2dc57c407070ea7107027bb5508b8780b2580dff4b39281e79cb7",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Cuatro formas de jugar",
+              "Bingo, Palabra oculta, Combinaciones, Palabras Cortas"
+            ],
+            "raw": "raw/tab10/es/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/es-ES/images/tenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/6_6-langs.jpg",
+            "bytes": 444630,
+            "sha256": "54f7240c9f871af330c2f6e0bf290d74c189204f8de0605ff2d02fc18dafb4c7",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Cuatro idiomas, sin conexión",
+              "Español, francés, inglés, catalán · sin anuncios"
+            ],
+            "raw": "raw/tab10/es/6-langs.jpg"
+          }
+        ]
+      }
+    },
+    "ca": {
+      "title": "Verimots",
+      "short": "Resol dubtes, troba la millor jugada i entrena el 7 + 1. Sense connexió.",
+      "full": "Verimots acompanya els jugadors de paraules: comprovar una paraula en un segon, trobar la millor jugada d’un faristol i entrenar les combinacions. Les llistes de paraules són dins l’aplicació i funcionen sense connexió.\n\nCOMPROVAR UNA PARAULA\n• Un dubte a la partida? Escriu la paraula: vàlida o no, el seu valor en punts i, amb connexió, la definició (Viccionari).\n• Català: la llista DISC, 584 095 paraules de 2 a 15 fitxes, amb NY, QU i L·L com a fitxa única.\n• Mode avançat: cerca al faristol amb escarrassos (?), paraules que comencen, acaben o contenen certes lletres.\n• Preferits i historial.\n\nLA MILLOR JUGADA\n• Paraula oculta: un faristol de lletres, busca la paraula que puntua més. El resultat és el percentatge de la millor jugada; després apareixen les millors paraules del faristol amb la definició.\n• Els punts segueixen el valor de les fitxes, amb 50 punts de bonificació per una paraula de 7 fitxes.\n\nENTRENAR\n• Combinacions: Totes, 7 fitxes, 8 fitxes, 7 + 1, Escarràs, Difícils i Paraules curtes.\n• Paraules Curtes: cada dia, 10 paraules de 2 fitxes i 12 de 3 fitxes per repassar, amb la definició, i un mode repte.\n• Repàs: un faristol on se t’ha escapat la millor paraula, o una combinació sense acabar, es desa sol. Torna a trobar les paraules sense ajuda: torna l’endemà i després als 3, 7 i 21 dies. Pistes: primera lletra i després la definició.\n• Nivell Principiant o Avançat.\n\nCOMPETIR\n• Bingo: set lletres, una sola paraula, guanya la que puntua més. Classificació setmanal.\n• Classificacions per categoria, llengua i període: dia, 3 dies, setmana, 7 dies, 30 dies, tot.\n• Compte de Google opcional, per conservar el perfil i les classificacions al web i al mòbil.\n\nQUATRE LLENGÜES\nCatalà, francès (407 128 paraules), anglès (llista propera al CSW, o WOW24) i castellà (RLA-ES).\n\nSENSE PUBLICITAT\nGratuït, sense publicitat i sense compres integrades. Internet només serveix per a les definicions, les classificacions, el compte i compartir; tota la resta funciona sense connexió.\n\nCAL SABER\nLes llistes de francès, anglès i castellà són comunitàries: no són les obres oficials i en poden diferir. El DISC és el diccionari lliure del joc en català, reproduït tal qual. Verimots és un projecte independent, sense relació amb cap editor, federació, Mattel ni Hasbro.\n\nPrivadesa: https://s.pfa87.cc/privadesa.html\nAjuda: https://s.pfa87.cc/support.html",
+      "changelogs": {
+        "89": "Nou: Repàs. Els faristols on se t’ha escapat la millor paraula es desen i tornen l’endemà i després als 3, 7 i 21 dies, amb pistes. Amb un compte de Google, la llista et segueix al web. Inici de sessió amb Google més fiable, amb alternativa al navegador i un registre tècnic a Opcions. Classificacions de 3 dies i definicions més llegibles."
+      },
+      "counts": {
+        "title": 8,
+        "short": 72,
+        "full": 2375,
+        "changelog": 340
+      },
+      "images": {
+        "icon": {
+          "path": "metadata/android/ca/images/icon.png",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/icon.png",
+          "bytes": 19649,
+          "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+          "width": 512,
+          "height": 512,
+          "kind": "App icon (512 × 512 PNG)"
+        },
+        "featureGraphic": {
+          "path": "metadata/android/ca/images/featureGraphic.jpg",
+          "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/featureGraphic.jpg",
+          "bytes": 69850,
+          "sha256": "3fe1e6b20f82897c839fcd9d54bafa8678273251e771b538a73b93b533c62d4e",
+          "width": 1024,
+          "height": 500,
+          "kind": "Feature graphic (1024 × 500)",
+          "text": [
+            "Les paraules, la teva jugada.",
+            "Comprovar · La millor jugada · Entrenar"
+          ]
+        },
+        "phoneScreenshots": [
+          {
+            "path": "metadata/android/ca/images/phoneScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/1_1-top.jpg",
+            "bytes": 193394,
+            "sha256": "4326bc6ca9f80284e299c6fcf53b2fd804881a2c3b13a547644118acfeab4641",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Quina és la millor jugada?",
+              "Amb el valor de les fitxes i la bonificació de 50"
+            ],
+            "raw": "raw/phone/ca/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/phoneScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/2_2-check.jpg",
+            "bytes": 172362,
+            "sha256": "70b3977d6e28ad4b3566ed2b6e86688d38ccd172884fca15e209d519df1261e8",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Dubte a la partida?",
+              "Vàlida o no, punts i definició"
+            ],
+            "raw": "raw/phone/ca/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/phoneScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/3_3-plus1.jpg",
+            "bytes": 180867,
+            "sha256": "62767cfc026ec85fe0062800efd303e394d1f6dfbcb715a53433aae139a82aea",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Entrena el 7 + 1",
+              "I l’escarràs, les fitxes cares, 7 i 8 fitxes"
+            ],
+            "raw": "raw/phone/ca/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/phoneScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/4_4-short.jpg",
+            "bytes": 244239,
+            "sha256": "b0f2416d5e1c8a185b8877147296979a9a2ea590e40cf348cae2b9fa4ff1d056",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Les paraules curtes del dia",
+              "De 2 i 3 fitxes, per repassar amb la definició"
+            ],
+            "raw": "raw/phone/ca/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/phoneScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/5_5-menu.jpg",
+            "bytes": 188102,
+            "sha256": "63d022b60e12db158bd1e0b2ee9234f86160e298e1da5807aee7a179f2e45e03",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Quatre maneres de jugar",
+              "Bingo, Paraula oculta, Combinacions, Paraules Curtes"
+            ],
+            "raw": "raw/phone/ca/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/phoneScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/6_6-langs.jpg",
+            "bytes": 228810,
+            "sha256": "79e88add8cfedecbd09519e98a18def7323fe9b4fa5b591d9a0307d9031bc708",
+            "width": 1080,
+            "height": 1920,
+            "caption": [
+              "Quatre llengües, sense connexió",
+              "Català, francès, anglès, castellà · sense anuncis"
+            ],
+            "raw": "raw/phone/ca/6-langs.jpg"
+          }
+        ],
+        "sevenInchScreenshots": [
+          {
+            "path": "metadata/android/ca/images/sevenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/1_1-top.jpg",
+            "bytes": 204083,
+            "sha256": "f879d1e62274796ebb5f419f9a0b535a1af90b77f8c4bad75f1ea4902fdd7fca",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Quina és la millor jugada?",
+              "Amb el valor de les fitxes i la bonificació de 50"
+            ],
+            "raw": "raw/tab7/ca/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/sevenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/2_2-check.jpg",
+            "bytes": 160789,
+            "sha256": "200d8e336e6c479acb159056172a0d8907cb3590086ca24537bbb49eb3bd57f9",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Dubte a la partida?",
+              "Vàlida o no, punts i definició"
+            ],
+            "raw": "raw/tab7/ca/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 176905,
+            "sha256": "8120f7c75698591d58468d6a21a2a6e105742fce5c9316b01a529800070df564",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Entrena el 7 + 1",
+              "I l’escarràs, les fitxes cares, 7 i 8 fitxes"
+            ],
+            "raw": "raw/tab7/ca/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/sevenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/4_4-short.jpg",
+            "bytes": 220582,
+            "sha256": "73627e25bc61b503e16dccf2fa667a104d4e45b056859ef28fc57a1f0c374394",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Les paraules curtes del dia",
+              "De 2 i 3 fitxes, per repassar amb la definició"
+            ],
+            "raw": "raw/tab7/ca/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/sevenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/5_5-menu.jpg",
+            "bytes": 181382,
+            "sha256": "2ee0187c8d51cd2dbbfaaa936bf5acdc1f3f2174baacee8d413bdfbdb5c9af04",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Quatre maneres de jugar",
+              "Bingo, Paraula oculta, Combinacions, Paraules Curtes"
+            ],
+            "raw": "raw/tab7/ca/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/sevenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/6_6-langs.jpg",
+            "bytes": 271170,
+            "sha256": "bc8bd7ebd56d12e10cf6317e136bbadfafb7ccf7697d1bf4332897670ea98721",
+            "width": 1200,
+            "height": 1920,
+            "caption": [
+              "Quatre llengües, sense connexió",
+              "Català, francès, anglès, castellà · sense anuncis"
+            ],
+            "raw": "raw/tab7/ca/6-langs.jpg"
+          }
+        ],
+        "tenInchScreenshots": [
+          {
+            "path": "metadata/android/ca/images/tenInchScreenshots/1_1-top.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/1_1-top.jpg",
+            "bytes": 272983,
+            "sha256": "44e7d665f7cae8f9a4864c5b90462cbfa9d722445801770d099753264386aad5",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Quina és la millor jugada?",
+              "Amb el valor de les fitxes i la bonificació de 50"
+            ],
+            "raw": "raw/tab10/ca/1-top.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/tenInchScreenshots/2_2-check.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/2_2-check.jpg",
+            "bytes": 217672,
+            "sha256": "1220fe07ad7b2fb1b5579be0f2fa01088af590e5992001989e0848d7762aabcd",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Dubte a la partida?",
+              "Vàlida o no, punts i definició"
+            ],
+            "raw": "raw/tab10/ca/2-check.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/tenInchScreenshots/3_3-plus1.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/3_3-plus1.jpg",
+            "bytes": 238679,
+            "sha256": "41a13941f9556b80286cf0feeab5887e4aa61f0f500b6a1affc0f480de2f350d",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Entrena el 7 + 1",
+              "I l’escarràs, les fitxes cares, 7 i 8 fitxes"
+            ],
+            "raw": "raw/tab10/ca/3-plus1.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/tenInchScreenshots/4_4-short.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/4_4-short.jpg",
+            "bytes": 281100,
+            "sha256": "89488bc065773a43edc83efd6e5d70f858224fb44e816abb416f5da780843690",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Les paraules curtes del dia",
+              "De 2 i 3 fitxes, per repassar amb la definició"
+            ],
+            "raw": "raw/tab10/ca/4-short.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/tenInchScreenshots/5_5-menu.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/5_5-menu.jpg",
+            "bytes": 246404,
+            "sha256": "c18946c91c7f5eefcad2f6e70250a655645a309590f94921806c1ff5f516fbeb",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Quatre maneres de jugar",
+              "Bingo, Paraula oculta, Combinacions, Paraules Curtes"
+            ],
+            "raw": "raw/tab10/ca/5-menu.jpg"
+          },
+          {
+            "path": "metadata/android/ca/images/tenInchScreenshots/6_6-langs.jpg",
+            "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/6_6-langs.jpg",
+            "bytes": 444223,
+            "sha256": "b0284a4cd3a6508e2ecf53a00faf8c6b21e8cd4bfeffb3b5f707465f25575a8e",
+            "width": 1600,
+            "height": 2560,
+            "caption": [
+              "Quatre llengües, sense connexió",
+              "Català, francès, anglès, castellà · sense anuncis"
+            ],
+            "raw": "raw/tab10/ca/6-langs.jpg"
+          }
+        ]
+      }
+    }
+  },
+  "video": {
+    "youtubeUrl": null,
+    "mp4": "https://verimots.pfa87.cc/promo/verimots-promo.mp4",
+    "mp4Sha256": "09bb7a3ead59429d605513c4d29c671fcaff01a620267e40e151edae05003e28",
+    "durationSeconds": 30,
+    "language": "fr",
+    "note": "Paul uploads it to YouTube (public or unlisted, no ads, not \"made for kids\" unless the audience answer changes) and pastes the URL into each locale's video field. Leave the field empty until then."
+  },
+  "console": {
+    "privacyPolicy": {
+      "status": "answer",
+      "value": "https://s.pfa87.cc/privacy.html",
+      "alt": {
+        "fr": "https://s.pfa87.cc/confidentialite.html"
+      }
+    },
+    "appAccess": {
+      "status": "answer",
+      "value": "All functionality is available without special access.",
+      "why": "Every game works as a guest (a generated name such as user100001); Google sign-in is optional and only syncs the profile across devices."
+    },
+    "ads": {
+      "status": "answer",
+      "value": "No, the app does not contain ads."
+    },
+    "inAppPurchases": {
+      "status": "answer",
+      "value": "None (free app, no billing library)."
+    },
+    "government": {
+      "status": "answer",
+      "value": "No"
+    },
+    "financialFeatures": {
+      "status": "answer",
+      "value": "None of the above"
+    },
+    "health": {
+      "status": "answer",
+      "value": "No health features"
+    },
+    "news": {
+      "status": "answer",
+      "value": "No, not a news app"
+    },
+    "category": {
+      "status": "answer",
+      "value": "Game › Word",
+      "tags": [
+        "Word",
+        "Puzzle",
+        "Offline",
+        "Single player",
+        "Board"
+      ],
+      "note": "Pick tags from the Console list; the five above are suggestions."
+    },
+    "contact": {
+      "status": "answer",
+      "email": "pfanokif@gmail.com",
+      "website": "https://verimots.pfa87.cc/",
+      "phone": null
+    },
+    "targetAudience": {
+      "status": "decision",
+      "facts": [
+        "The privacy policy says Verimots is not directed at children under 13.",
+        "Paul answered \"18 and over only\" before (dashboard/s/play-console.html, August).",
+        "The app has a Beginner level and a Débutants mode with very simple words (Kids.java), which the \"Appeals to children\" question looks at."
+      ],
+      "suggestion": "Keep 18+ (or 13+) and answer No to \"appeals to children\"; choosing any under-13 age group brings in the Families policy and its requirements."
+    },
+    "contentRating": {
+      "status": "check",
+      "expected": "PEGI 3 / Everyone",
+      "answers": {
+        "category": "Game (puzzle / word)",
+        "violence": "No",
+        "fear": "No",
+        "sexuality": "No",
+        "language": "No",
+        "controlledSubstances": "No",
+        "gambling": "No, no simulated gambling",
+        "userInteraction": "Check: leaderboards publicly show display names (guest names or Google names) and scores; there is no chat and no user-to-user messaging. Players can share a word or result through the Android share sheet.",
+        "location": "No",
+        "digitalPurchases": "No"
+      },
+      "note": "Definitions come from Wiktionary unfiltered; a rare entry may be crude (e.g. a slang sense). Answer the questionnaire for the app's own content."
+    },
+    "dataSafety": {
+      "status": "check",
+      "collects": true,
+      "encryptedInTransit": true,
+      "deletionRequest": {
+        "how": "By email to pfanokif@gmail.com (guest and Google accounts)",
+        "url": "https://s.pfa87.cc/privacy.html#delete-account"
+      },
+      "sold": false,
+      "types": [
+        {
+          "type": "Personal info › Name",
+          "optional": true,
+          "purposes": [
+            "App functionality",
+            "Account management"
+          ],
+          "note": "Google display name when the player signs in; guests get a generated name."
+        },
+        {
+          "type": "Personal info › User IDs",
+          "optional": false,
+          "purposes": [
+            "App functionality",
+            "Account management"
+          ],
+          "note": "Guest identifier and, when signed in, the Google account id (sub). Check whether the Console wants the guest id here."
+        },
+        {
+          "type": "Personal info › Email address",
+          "optional": true,
+          "purposes": [
+            "Developer communications"
+          ],
+          "note": "Only if typed into the feedback form (\"Email (si vous voulez une réponse)\")."
+        },
+        {
+          "type": "Photos and videos › Photos",
+          "optional": true,
+          "purposes": [
+            "App functionality"
+          ],
+          "note": "Check: only the URL of the Google profile photo is stored, not an image from the device. Paul listed it before; the agent may decide it is not a user photo."
+        },
+        {
+          "type": "App activity › App interactions",
+          "optional": false,
+          "purposes": [
+            "App functionality"
+          ],
+          "note": "Words played, racks, scores and activity counts for leaderboards and synced history (online use). Since 5.1.0, with a Google account only: the Révisions list (missed racks, the words to find, the word played, review dates; at most 300 racks), synced through /api/game/reviews."
+        },
+        {
+          "type": "App activity › In-app search history",
+          "optional": false,
+          "purposes": [
+            "App functionality"
+          ],
+          "note": "Checked words may be kept in the account history (the 80 most recent distinct words)."
+        },
+        {
+          "type": "Messages › Other in-app messages",
+          "optional": true,
+          "purposes": [
+            "Developer communications"
+          ],
+          "note": "Text typed into the feedback form."
+        }
+      ],
+      "notCollected": [
+        "Location",
+        "Contacts",
+        "Files and docs",
+        "Calendar",
+        "Health",
+        "Financial info",
+        "Audio",
+        "Device or other IDs (no advertising id; the session token is not a device id)"
+      ],
+      "shared": {
+        "value": false,
+        "note": "Check: the looked-up word (alone, no identity) goes to Wiktionary for definitions; Cloudflare fronts the server as a processor. Neither is \"sharing\" in Play's sense if the agent agrees."
+      },
+      "onDeviceOnly": [
+        "Local word history and favourites",
+        "Révisions list for guests and signed-out players",
+        "Score chart and Combinations statistics",
+        "Language, mode and interface preferences",
+        "Definition cache (≤ 80 entries, ≤ 7 days)"
+      ]
+    },
+    "releaseTrack": {
+      "status": "check",
+      "facts": [
+        "The app is in closed testing (landing FAQ: \"Rejoindre le test fermé\").",
+        "Opt-in URL: https://play.google.com/apps/testing/cc.pfa87.verimots",
+        "Superseded 5 Oct 2026: the app is public on Google Play (the landing card links the store listing, not the testing URL). Confirm the track in the Console before uploading."
+      ],
+      "note": "Check in the Console dashboard whether production access still needs a closed test with a minimum number of testers over a minimum period (personal developer accounts). Do not promote a release without Paul."
+    },
+    "promoVideo": {
+      "status": "decision",
+      "facts": [
+        "Play takes a YouTube URL, not a file.",
+        "The 30 s reel is https://verimots.pfa87.cc/promo/verimots-promo.mp4 (French on-screen text).",
+        "It mentions a timer, which only the website has: the APK has none."
+      ],
+      "note": "Paul uploads it to YouTube (public or unlisted, no ads, not \"made for kids\" unless the audience answer changes) and pastes the URL into each locale's video field. Leave the field empty until then."
+    }
+  },
+  "agent": {
+    "goal": "Polish and complete the Verimots store listing in Play Console: texts, graphics, translations and the App content forms. Leave it saved as a draft for Paul to review.",
+    "rules": [
+      "Do not publish, promote a release, change pricing, countries, signing, the package or the testing tracks.",
+      "Do not name Scrabble or another product's trademark in the listing; do not claim the lists are official (ODS, CSW, NWL, FILE).",
+      "Do not add a timer, multiplayer or any feature the APK does not have; every number here was counted from the bundled lists.",
+      "Keep French (fr-FR) as the default listing. Use the other locales as given, or improve their wording without changing facts.",
+      "Screenshots: upload the captioned ones in their order (1 = top play). The raw/ screens are there if a caption must change: re-render with build-kit.mjs instead of editing images by hand.",
+      "Answers marked \"decision\" are Paul's (target audience, promo video). Answers marked \"check\" must be confirmed in the Console form, then reported.",
+      "Stop and report what was saved, what the Console rejected (with the message) and every \"check\" you resolved."
+    ],
+    "fastlane": "fastlane supply --package_name cc.pfa87.verimots --metadata_path metadata/android --json_key <service-account.json> --skip_upload_apk true --skip_upload_aab true --skip_upload_changelogs true --validate_only true   (dry run first; check the option names with `fastlane supply --help`; the service-account key is not in this kit and must come from Paul)"
+  },
+  "sources": {
+    "checkedOn": "2026-09-27",
+    "apk": "Verimots 5.0.1 (86), captured on an Android 16 emulator, 1080 × 1920 at 420 dpi (phone), 1200 × 1920 at 320 dpi (7\"), 1600 × 2560 at 320 dpi (10\"); the status bar is cropped off (28 dp)",
+    "words": {
+      "fr": "KAWA (valid, 22 pts, Wiktionnaire \"(familier) Café.\"); rack KOBXEUJ → JUKEBOX 84 = 34 + 50, the top of the rack",
+      "en": "ZAX (valid, \"A tool, similar to a hatchet, used to prepare slate for roofing.\"); rack KOBXEUJ → JUKEBOX 77 = 27 + 50, the top of the rack (English tile values)",
+      "es": "OXEAR (valid, \"Ahuyentar aves o insectos voladores.\"); rack JDEZARE → AJEDREZ 74 = 24 + 50, the top of the rack",
+      "ca": "ZEL (valid, \"Esforç curós aplicat a la feina…\"); rack XONGAHE → HEXAGON 75 = 25 + 50, the top of the rack",
+      "counts": "assets/data in the APK: ods9 407,128 · yawl 257,218 · wow24 195,383 · rla-es 608,169 · disc-ca 584,095",
+      "plus1": "the 7 + 1 rack is whatever the app dealt; capture.sh typed every answer the list gives for it"
+    },
+    "rebuild": "bash scripts/verimots-promo/play/capture.sh <raw> phone|tab7|tab10 (emulator only: it clears app data) → node scripts/verimots-promo/play/build-kit.mjs <raw> → node scripts/verimots-promo/play/verify-kit.mjs"
+  },
+  "open": [
+    "check: Data safety and Content rating answers against the live Console forms (see console.*.status).",
+    "decision (Paul): target audience; YouTube upload of the promo video.",
+    "check: the en-US listing is a copy of en-GB with US spelling; keep it only if Play needs it.",
+    "check: the APK has no tablet layout. The 7-inch screens (600 dp) read well; the 10-inch ones (800 dp) show the phone layout with wide empty margins. Tablet screenshots are optional: upload the 10-inch set only if the listing should target tablets."
+  ],
+  "files": [
+    {
+      "path": "metadata/android/fr-FR/title.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/title.txt",
+      "bytes": 9,
+      "sha256": "bcc1f292684259f15dcf157e60f68e0c9ff70f0fde31158491c9c9b64f267521"
+    },
+    {
+      "path": "metadata/android/fr-FR/short_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/short_description.txt",
+      "bytes": 78,
+      "sha256": "67196949b1cd320a3a7099bc67aa6b288d5bfc1b4866c4e6e0cca0db48e8de41"
+    },
+    {
+      "path": "metadata/android/fr-FR/full_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/full_description.txt",
+      "bytes": 2428,
+      "sha256": "cfefba75d1087571c9accb2c37c5a63213f57e373c623900e052ae809632e7fc"
+    },
+    {
+      "path": "metadata/android/fr-FR/changelogs/89.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/changelogs/89.txt",
+      "bytes": 360,
+      "sha256": "460239e9fe7c2a1d1515deb9e9f180647eff8051a58e3d53897d8181219da17b"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/icon.png",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/icon.png",
+      "bytes": 19649,
+      "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+      "width": 512,
+      "height": 512,
+      "kind": "App icon (512 × 512 PNG)"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/featureGraphic.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/featureGraphic.jpg",
+      "bytes": 67825,
+      "sha256": "4be9e4e8385b488cafe468ff9aec814685228c3d58c6ac2927560e7a7704d971",
+      "width": 1024,
+      "height": 500,
+      "kind": "Feature graphic (1024 × 500)",
+      "text": [
+        "Les mots, à vous de jouer.",
+        "Vérifier · Trouver le top · S’entraîner"
+      ]
+    },
+    {
+      "path": "metadata/android/fr-FR/images/phoneScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/1_1-top.jpg",
+      "bytes": 178240,
+      "sha256": "2ab5e32b2c0f07e044b315f754e224bf06fb74b13b4074a32b768b1b794ff188",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Quel est le top ?",
+        "Points des lettres et prime de 50 compris"
+      ],
+      "raw": "raw/phone/fr/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/phoneScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/2_2-check.jpg",
+      "bytes": 154883,
+      "sha256": "085f9d894a441f89d16b8ec54077d8ea6122b2f69a1e031b219024e9737662b6",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Contestation ?",
+        "Jouable ou non, points et définition"
+      ],
+      "raw": "raw/phone/fr/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/phoneScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/3_3-plus1.jpg",
+      "bytes": 185868,
+      "sha256": "d10b7921f394018446d665a8bb9063be7f41c3de5e98c57f3e4fb96dc86aa3b3",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Entraînez-vous au 7 + 1",
+        "Et au joker, aux lettres chères, aux 7 et 8 lettres"
+      ],
+      "raw": "raw/phone/fr/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/phoneScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/4_4-short.jpg",
+      "bytes": 229747,
+      "sha256": "45774125087a2e8411ae83903124ee0069808a43da62cbcb9994c650260101df",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Les 2 et 3 lettres du jour",
+        "À réviser chaque jour, avec leur définition"
+      ],
+      "raw": "raw/phone/fr/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/phoneScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/5_5-menu.jpg",
+      "bytes": 184723,
+      "sha256": "b64744cd85d3459af3815d26f8481240a5f6f0cc2d4a942b6070045630e37c74",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Quatre façons de jouer",
+        "Bingo, Trouver un mot, Combinaisons, Petits Mots"
+      ],
+      "raw": "raw/phone/fr/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/phoneScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/phoneScreenshots/6_6-langs.jpg",
+      "bytes": 232127,
+      "sha256": "9156eeaf48545a6d8146ad836aab540edf8f8de61fa10a433b0283af277a25bc",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Quatre langues, hors ligne",
+        "Français, anglais, espagnol, catalan · sans pub"
+      ],
+      "raw": "raw/phone/fr/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/sevenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/1_1-top.jpg",
+      "bytes": 195882,
+      "sha256": "f2b7e8b3e9794782a33e47272776308e41b51ddd6adba6f6534f19fb2f351f77",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Quel est le top ?",
+        "Points des lettres et prime de 50 compris"
+      ],
+      "raw": "raw/tab7/fr/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/sevenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/2_2-check.jpg",
+      "bytes": 150373,
+      "sha256": "3bbcd18f74f057d45daf8d5fcce0d638d4e43719b7799c7d62702702feee0d0e",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Contestation ?",
+        "Jouable ou non, points et définition"
+      ],
+      "raw": "raw/tab7/fr/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 183650,
+      "sha256": "3c1499f426099673e9989102fd67e9b1d67403071b64cee221257e36f014760f",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Entraînez-vous au 7 + 1",
+        "Et au joker, aux lettres chères, aux 7 et 8 lettres"
+      ],
+      "raw": "raw/tab7/fr/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/sevenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/4_4-short.jpg",
+      "bytes": 210446,
+      "sha256": "66125f8893ba2447be5acd2f89573eb0dabdd161a6e0043d43ce9e25d99190c8",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Les 2 et 3 lettres du jour",
+        "À réviser chaque jour, avec leur définition"
+      ],
+      "raw": "raw/tab7/fr/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/sevenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/5_5-menu.jpg",
+      "bytes": 177589,
+      "sha256": "55d6fa9e109774c1e7a49db4db8d7f830cd0080cb421ca452aca51004ccc3b16",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Quatre façons de jouer",
+        "Bingo, Trouver un mot, Combinaisons, Petits Mots"
+      ],
+      "raw": "raw/tab7/fr/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/sevenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/sevenInchScreenshots/6_6-langs.jpg",
+      "bytes": 264458,
+      "sha256": "58bcee567851187a4ef130782a10d5843b08f12d243fde67e54b0a193a16ce4d",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Quatre langues, hors ligne",
+        "Français, anglais, espagnol, catalan · sans pub"
+      ],
+      "raw": "raw/tab7/fr/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/tenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/1_1-top.jpg",
+      "bytes": 258677,
+      "sha256": "725e5edf301d8ed21e00bee12e309966d85858f4b06b9ba730a4c773edb74f29",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Quel est le top ?",
+        "Points des lettres et prime de 50 compris"
+      ],
+      "raw": "raw/tab10/fr/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/tenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/2_2-check.jpg",
+      "bytes": 207122,
+      "sha256": "de94643c2d18bc7bfdc1e4dc45e6b070eac4cc348408148e64116e020ec07735",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Contestation ?",
+        "Jouable ou non, points et définition"
+      ],
+      "raw": "raw/tab10/fr/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/tenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 254732,
+      "sha256": "3e3936110637c0908db4c039a03d0f9993689decf26c4ac7d5cecbea6cfb1a62",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Entraînez-vous au 7 + 1",
+        "Et au joker, aux lettres chères, aux 7 et 8 lettres"
+      ],
+      "raw": "raw/tab10/fr/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/tenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/4_4-short.jpg",
+      "bytes": 268926,
+      "sha256": "e5038b66ee20054c6a5bfe82c68561f933c21b70f1a807b64a4152d85d8a1540",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Les 2 et 3 lettres du jour",
+        "À réviser chaque jour, avec leur définition"
+      ],
+      "raw": "raw/tab10/fr/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/tenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/5_5-menu.jpg",
+      "bytes": 241043,
+      "sha256": "dc52ec6780bc2d2656ee0ed77d84fc63960955c85fe9121861cf44f279ab810d",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Quatre façons de jouer",
+        "Bingo, Trouver un mot, Combinaisons, Petits Mots"
+      ],
+      "raw": "raw/tab10/fr/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/fr-FR/images/tenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/fr-FR/images/tenInchScreenshots/6_6-langs.jpg",
+      "bytes": 442277,
+      "sha256": "4eb215222700c3195f90d4175456cdbd9b17ba2e5598526f910a928fc0c17bc9",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Quatre langues, hors ligne",
+        "Français, anglais, espagnol, catalan · sans pub"
+      ],
+      "raw": "raw/tab10/fr/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/title.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/title.txt",
+      "bytes": 9,
+      "sha256": "bcc1f292684259f15dcf157e60f68e0c9ff70f0fde31158491c9c9b64f267521"
+    },
+    {
+      "path": "metadata/android/en-GB/short_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/short_description.txt",
+      "bytes": 74,
+      "sha256": "755259b49fb119811b8845656494e934e25540f405b0ac26ea61514d7bf8a9a8"
+    },
+    {
+      "path": "metadata/android/en-GB/full_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/full_description.txt",
+      "bytes": 2248,
+      "sha256": "87749de9d3fc3bc0cc30972c7908a559517b42658fbb2245bc7abeaa7c567d7e"
+    },
+    {
+      "path": "metadata/android/en-GB/changelogs/89.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/changelogs/89.txt",
+      "bytes": 320,
+      "sha256": "9d6e870899bc5d6f4aac6f243a61138b7a9205b83b04472d57d5f3d343854898"
+    },
+    {
+      "path": "metadata/android/en-GB/images/icon.png",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/icon.png",
+      "bytes": 19649,
+      "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+      "width": 512,
+      "height": 512,
+      "kind": "App icon (512 × 512 PNG)"
+    },
+    {
+      "path": "metadata/android/en-GB/images/featureGraphic.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/featureGraphic.jpg",
+      "bytes": 66678,
+      "sha256": "c42ace0af87f2d19a134c43c92cb3ef265c6ada7748ab45bd359e12208f4550b",
+      "width": 1024,
+      "height": 500,
+      "kind": "Feature graphic (1024 × 500)",
+      "text": [
+        "Your letters, your move.",
+        "Check · Find the top play · Practise"
+      ]
+    },
+    {
+      "path": "metadata/android/en-GB/images/phoneScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/1_1-top.jpg",
+      "bytes": 181082,
+      "sha256": "ed16405eb7f6d1213ba93229ff369d1bf4146e17aa5659a4602535741c9f7bd1",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "What is the top play?",
+        "Tile values and the 50-point bonus included"
+      ],
+      "raw": "raw/phone/en/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/phoneScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/2_2-check.jpg",
+      "bytes": 153560,
+      "sha256": "2b21de33cefac7e7dad5513899178135fdf447791047ca1d91a2300b506885ce",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "A challenge?",
+        "Playable or not, points and definition"
+      ],
+      "raw": "raw/phone/en/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/phoneScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/3_3-plus1.jpg",
+      "bytes": 180715,
+      "sha256": "f606ef4c2f4e3a43a0d238e29cd515ab08a4fa530163c4a5f8229a0cb8ab64ef",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Practise the 7 + 1",
+        "Blanks, hard letters, 7 and 8 letters too"
+      ],
+      "raw": "raw/phone/en/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/phoneScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/4_4-short.jpg",
+      "bytes": 233426,
+      "sha256": "19a436b646f06ad2f7ca82b691c1c089ee8427bdefb52e5e94d55a7974a07db8",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Today’s two- and three-letter words",
+        "Revise them daily, with definitions"
+      ],
+      "raw": "raw/phone/en/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/phoneScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/5_5-menu.jpg",
+      "bytes": 177364,
+      "sha256": "39ac8de91552a824a45e0043f72f31a1314c6fae61d2d1ead6c93c8d15cdfa6c",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Four ways to play",
+        "Bingo, Find a word, Combinations, Short Words"
+      ],
+      "raw": "raw/phone/en/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/phoneScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/phoneScreenshots/6_6-langs.jpg",
+      "bytes": 225083,
+      "sha256": "c22179879b50119e207760917faebc1e5a8dbb8beed845d4a287819ed05921b4",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Four languages, offline",
+        "English, French, Spanish, Catalan · no ads"
+      ],
+      "raw": "raw/phone/en/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/sevenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/1_1-top.jpg",
+      "bytes": 209659,
+      "sha256": "9f1416ebce94bc5eea33888403aad6b61f1d684a322d132a30a14871bce92b7e",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "What is the top play?",
+        "Tile values and the 50-point bonus included"
+      ],
+      "raw": "raw/tab7/en/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/sevenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/2_2-check.jpg",
+      "bytes": 149478,
+      "sha256": "b352050aa458ad2d73dfd8fbe9ca23d7ba2a064478e0b43446f80ec6e3f48187",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "A challenge?",
+        "Playable or not, points and definition"
+      ],
+      "raw": "raw/tab7/en/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 169663,
+      "sha256": "ea4fa802182b066d0992905b15bcb8907351df7897c20b643dc286f1e34a232c",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Practise the 7 + 1",
+        "Blanks, hard letters, 7 and 8 letters too"
+      ],
+      "raw": "raw/tab7/en/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/sevenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/4_4-short.jpg",
+      "bytes": 212240,
+      "sha256": "b543c4c60bdf140ad65aebfa68184e0f40aa55d64964d380a9c351392b767362",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Today’s two- and three-letter words",
+        "Revise them daily, with definitions"
+      ],
+      "raw": "raw/tab7/en/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/sevenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/5_5-menu.jpg",
+      "bytes": 170052,
+      "sha256": "1ee865af0ac2174a4c13d9832784bdc2a4be6bdb80dcb19c7e9b793a99face03",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Four ways to play",
+        "Bingo, Find a word, Combinations, Short Words"
+      ],
+      "raw": "raw/tab7/en/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/sevenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/sevenInchScreenshots/6_6-langs.jpg",
+      "bytes": 251380,
+      "sha256": "eccb85fa11cec15ae02f7817a357e20283151796e38e909a7328cd1dca13019a",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Four languages, offline",
+        "English, French, Spanish, Catalan · no ads"
+      ],
+      "raw": "raw/tab7/en/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/tenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/1_1-top.jpg",
+      "bytes": 285342,
+      "sha256": "dafb0400d1d34b3c49b6c94a18663e8a9c8ab875adb4578bd39c015ac889f185",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "What is the top play?",
+        "Tile values and the 50-point bonus included"
+      ],
+      "raw": "raw/tab10/en/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/tenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/2_2-check.jpg",
+      "bytes": 205957,
+      "sha256": "9294bb11e51912972c23d7c12e3c31e6baa875b75e820d02542729fe31ba64ea",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "A challenge?",
+        "Playable or not, points and definition"
+      ],
+      "raw": "raw/tab10/en/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/tenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 209519,
+      "sha256": "c0b0d52c68fb6f239fb9438213dee70d10eca608bf3ef6ab7d6c5329143922a0",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Practise the 7 + 1",
+        "Blanks, hard letters, 7 and 8 letters too"
+      ],
+      "raw": "raw/tab10/en/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/tenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/4_4-short.jpg",
+      "bytes": 270256,
+      "sha256": "3c42b4c6ae287de2555bdbf26bc3d26bf5a88db121a50d045fa4e2e2377aca98",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Today’s two- and three-letter words",
+        "Revise them daily, with definitions"
+      ],
+      "raw": "raw/tab10/en/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/tenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/5_5-menu.jpg",
+      "bytes": 230529,
+      "sha256": "05ea5c7c1b935581b525d12b46a1ae7b7d19a3c47a79fb1a932979aff255ea0f",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Four ways to play",
+        "Bingo, Find a word, Combinations, Short Words"
+      ],
+      "raw": "raw/tab10/en/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/en-GB/images/tenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-GB/images/tenInchScreenshots/6_6-langs.jpg",
+      "bytes": 439946,
+      "sha256": "b45583ec6d1d2533c79be24a66202eff8f0f796813412d3d96e74d47f3b1582f",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Four languages, offline",
+        "English, French, Spanish, Catalan · no ads"
+      ],
+      "raw": "raw/tab10/en/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/title.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/title.txt",
+      "bytes": 9,
+      "sha256": "bcc1f292684259f15dcf157e60f68e0c9ff70f0fde31158491c9c9b64f267521"
+    },
+    {
+      "path": "metadata/android/en-US/short_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/short_description.txt",
+      "bytes": 74,
+      "sha256": "6496ff204fa07df1e5613f1840660a137d900b97943fef0d1bf0bce691d4670a"
+    },
+    {
+      "path": "metadata/android/en-US/full_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/full_description.txt",
+      "bytes": 2247,
+      "sha256": "b2b2be4b6bc22fcb83cbaa5d3ddb635d4b5c5e7d7e8d17bce5e95f55df2f8de8"
+    },
+    {
+      "path": "metadata/android/en-US/changelogs/89.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/changelogs/89.txt",
+      "bytes": 320,
+      "sha256": "9d6e870899bc5d6f4aac6f243a61138b7a9205b83b04472d57d5f3d343854898"
+    },
+    {
+      "path": "metadata/android/en-US/images/icon.png",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/icon.png",
+      "bytes": 19649,
+      "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+      "width": 512,
+      "height": 512,
+      "kind": "App icon (512 × 512 PNG)"
+    },
+    {
+      "path": "metadata/android/en-US/images/featureGraphic.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/featureGraphic.jpg",
+      "bytes": 66643,
+      "sha256": "38f019e4ae030b806455708b4b511a2abb0566d72f9bfa90bbcb35341e33352e",
+      "width": 1024,
+      "height": 500,
+      "kind": "Feature graphic (1024 × 500)",
+      "text": [
+        "Your letters, your move.",
+        "Check · Find the top play · Practice"
+      ]
+    },
+    {
+      "path": "metadata/android/en-US/images/phoneScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/1_1-top.jpg",
+      "bytes": 181082,
+      "sha256": "ed16405eb7f6d1213ba93229ff369d1bf4146e17aa5659a4602535741c9f7bd1",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "What is the top play?",
+        "Tile values and the 50-point bonus included"
+      ],
+      "raw": "raw/phone/en/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/phoneScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/2_2-check.jpg",
+      "bytes": 153560,
+      "sha256": "2b21de33cefac7e7dad5513899178135fdf447791047ca1d91a2300b506885ce",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "A challenge?",
+        "Playable or not, points and definition"
+      ],
+      "raw": "raw/phone/en/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/phoneScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/3_3-plus1.jpg",
+      "bytes": 180730,
+      "sha256": "6069d22e3c5b533361c411fce28ba164d7c9b1b06bf920c31b9b4b4156b6a605",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Practice the 7 + 1",
+        "Blanks, hard letters, 7 and 8 letters too"
+      ],
+      "raw": "raw/phone/en/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/phoneScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/4_4-short.jpg",
+      "bytes": 233426,
+      "sha256": "19a436b646f06ad2f7ca82b691c1c089ee8427bdefb52e5e94d55a7974a07db8",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Today’s two- and three-letter words",
+        "Revise them daily, with definitions"
+      ],
+      "raw": "raw/phone/en/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/phoneScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/5_5-menu.jpg",
+      "bytes": 177364,
+      "sha256": "39ac8de91552a824a45e0043f72f31a1314c6fae61d2d1ead6c93c8d15cdfa6c",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Four ways to play",
+        "Bingo, Find a word, Combinations, Short Words"
+      ],
+      "raw": "raw/phone/en/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/phoneScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/phoneScreenshots/6_6-langs.jpg",
+      "bytes": 225083,
+      "sha256": "c22179879b50119e207760917faebc1e5a8dbb8beed845d4a287819ed05921b4",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Four languages, offline",
+        "English, French, Spanish, Catalan · no ads"
+      ],
+      "raw": "raw/phone/en/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/sevenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/1_1-top.jpg",
+      "bytes": 209659,
+      "sha256": "9f1416ebce94bc5eea33888403aad6b61f1d684a322d132a30a14871bce92b7e",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "What is the top play?",
+        "Tile values and the 50-point bonus included"
+      ],
+      "raw": "raw/tab7/en/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/sevenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/2_2-check.jpg",
+      "bytes": 149478,
+      "sha256": "b352050aa458ad2d73dfd8fbe9ca23d7ba2a064478e0b43446f80ec6e3f48187",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "A challenge?",
+        "Playable or not, points and definition"
+      ],
+      "raw": "raw/tab7/en/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 169462,
+      "sha256": "115b0b5a4d41e720c1a6778b9024549a4f1cc46ead60b2604e9d3610a925f49e",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Practice the 7 + 1",
+        "Blanks, hard letters, 7 and 8 letters too"
+      ],
+      "raw": "raw/tab7/en/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/sevenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/4_4-short.jpg",
+      "bytes": 212240,
+      "sha256": "b543c4c60bdf140ad65aebfa68184e0f40aa55d64964d380a9c351392b767362",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Today’s two- and three-letter words",
+        "Revise them daily, with definitions"
+      ],
+      "raw": "raw/tab7/en/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/sevenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/5_5-menu.jpg",
+      "bytes": 170052,
+      "sha256": "1ee865af0ac2174a4c13d9832784bdc2a4be6bdb80dcb19c7e9b793a99face03",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Four ways to play",
+        "Bingo, Find a word, Combinations, Short Words"
+      ],
+      "raw": "raw/tab7/en/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/sevenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/sevenInchScreenshots/6_6-langs.jpg",
+      "bytes": 251380,
+      "sha256": "eccb85fa11cec15ae02f7817a357e20283151796e38e909a7328cd1dca13019a",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Four languages, offline",
+        "English, French, Spanish, Catalan · no ads"
+      ],
+      "raw": "raw/tab7/en/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/tenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/1_1-top.jpg",
+      "bytes": 285342,
+      "sha256": "dafb0400d1d34b3c49b6c94a18663e8a9c8ab875adb4578bd39c015ac889f185",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "What is the top play?",
+        "Tile values and the 50-point bonus included"
+      ],
+      "raw": "raw/tab10/en/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/tenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/2_2-check.jpg",
+      "bytes": 205957,
+      "sha256": "9294bb11e51912972c23d7c12e3c31e6baa875b75e820d02542729fe31ba64ea",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "A challenge?",
+        "Playable or not, points and definition"
+      ],
+      "raw": "raw/tab10/en/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/tenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 209433,
+      "sha256": "b736310017a99daa668e3fde0769a896d43c1c73ea08c84467bf22a79c10db50",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Practice the 7 + 1",
+        "Blanks, hard letters, 7 and 8 letters too"
+      ],
+      "raw": "raw/tab10/en/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/tenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/4_4-short.jpg",
+      "bytes": 270256,
+      "sha256": "3c42b4c6ae287de2555bdbf26bc3d26bf5a88db121a50d045fa4e2e2377aca98",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Today’s two- and three-letter words",
+        "Revise them daily, with definitions"
+      ],
+      "raw": "raw/tab10/en/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/tenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/5_5-menu.jpg",
+      "bytes": 230529,
+      "sha256": "05ea5c7c1b935581b525d12b46a1ae7b7d19a3c47a79fb1a932979aff255ea0f",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Four ways to play",
+        "Bingo, Find a word, Combinations, Short Words"
+      ],
+      "raw": "raw/tab10/en/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/en-US/images/tenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/en-US/images/tenInchScreenshots/6_6-langs.jpg",
+      "bytes": 439946,
+      "sha256": "b45583ec6d1d2533c79be24a66202eff8f0f796813412d3d96e74d47f3b1582f",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Four languages, offline",
+        "English, French, Spanish, Catalan · no ads"
+      ],
+      "raw": "raw/tab10/en/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/title.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/title.txt",
+      "bytes": 9,
+      "sha256": "bcc1f292684259f15dcf157e60f68e0c9ff70f0fde31158491c9c9b64f267521"
+    },
+    {
+      "path": "metadata/android/es-ES/short_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/short_description.txt",
+      "bytes": 82,
+      "sha256": "ad5c03f93465ded0d8933db79178ea121214e59851c11eb208a556961ecaf408"
+    },
+    {
+      "path": "metadata/android/es-ES/full_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/full_description.txt",
+      "bytes": 2442,
+      "sha256": "aff8f80828866cc0d0bb8d29fc46da8dd89841882b01212c328f6f9f8844858a"
+    },
+    {
+      "path": "metadata/android/es-ES/changelogs/89.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/changelogs/89.txt",
+      "bytes": 373,
+      "sha256": "34082dba20d221b0fdff1a8b46af2031ca7eccd283b25576a5e04fbf575062d2"
+    },
+    {
+      "path": "metadata/android/es-ES/images/icon.png",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/icon.png",
+      "bytes": 19649,
+      "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+      "width": 512,
+      "height": 512,
+      "kind": "App icon (512 × 512 PNG)"
+    },
+    {
+      "path": "metadata/android/es-ES/images/featureGraphic.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/featureGraphic.jpg",
+      "bytes": 68673,
+      "sha256": "8271ff1a00c841610315040602e01daa56424264d8da6f67a9c75625cbb27910",
+      "width": 1024,
+      "height": 500,
+      "kind": "Feature graphic (1024 × 500)",
+      "text": [
+        "Las palabras, su jugada.",
+        "Comprobar · La mejor jugada · Entrenar"
+      ]
+    },
+    {
+      "path": "metadata/android/es-ES/images/phoneScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/1_1-top.jpg",
+      "bytes": 191950,
+      "sha256": "a668753dce40aac7224c66eab5a2ebc143dc5ac6c236978ebefe52c511d55fda",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "¿Cuál es la mejor jugada?",
+        "Con el valor de las fichas y la bonificación de 50"
+      ],
+      "raw": "raw/phone/es/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/phoneScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/2_2-check.jpg",
+      "bytes": 159082,
+      "sha256": "4ac094cd1ad05931476764fa4485c8d17bcdbe9d7ddfe5de103f2081c97aab39",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "¿Duda en la partida?",
+        "Válida o no, puntos y definición"
+      ],
+      "raw": "raw/phone/es/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/phoneScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/3_3-plus1.jpg",
+      "bytes": 183911,
+      "sha256": "2802404bc17127df6e989db10e62c8b68dd0800a48326dd493b6edb50ccc34e3",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Entrene el 7 + 1",
+        "Y el comodín, las fichas caras, 7 y 8 letras"
+      ],
+      "raw": "raw/phone/es/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/phoneScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/4_4-short.jpg",
+      "bytes": 238195,
+      "sha256": "9d45865421d53370d2a307b92ba9120c721b9c3405ea2d078491b49f7ff47813",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Las palabras cortas del día",
+        "De 2 y 3 letras, para repasar con su definición"
+      ],
+      "raw": "raw/phone/es/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/phoneScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/5_5-menu.jpg",
+      "bytes": 191036,
+      "sha256": "616225d03a8313c0bad1d222ec7654aa0ea982495b9d3549284cd29543828a09",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Cuatro formas de jugar",
+        "Bingo, Palabra oculta, Combinaciones, Palabras Cortas"
+      ],
+      "raw": "raw/phone/es/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/phoneScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/phoneScreenshots/6_6-langs.jpg",
+      "bytes": 235078,
+      "sha256": "f8a80993d63abe8268c724bd6f41c543ba5565ceda7676be307a2ace3e99cf45",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Cuatro idiomas, sin conexión",
+        "Español, francés, inglés, catalán · sin anuncios"
+      ],
+      "raw": "raw/phone/es/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/sevenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/1_1-top.jpg",
+      "bytes": 211726,
+      "sha256": "e3e637e6dfb64537bdf4c2f6fa452e154b6bca16ac150cf32a42576b3a798f87",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "¿Cuál es la mejor jugada?",
+        "Con el valor de las fichas y la bonificación de 50"
+      ],
+      "raw": "raw/tab7/es/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/sevenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/2_2-check.jpg",
+      "bytes": 154910,
+      "sha256": "c775ade4279f2474abddc3c2415577e73d287ff1e2d2e1d54f10bf460deaa6c2",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "¿Duda en la partida?",
+        "Válida o no, puntos y definición"
+      ],
+      "raw": "raw/tab7/es/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 176877,
+      "sha256": "8e0d751b4c190daf5142416004aa3c6897f0f213a88fd2f8bd5f93dde5376a52",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Entrene el 7 + 1",
+        "Y el comodín, las fichas caras, 7 y 8 letras"
+      ],
+      "raw": "raw/tab7/es/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/sevenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/4_4-short.jpg",
+      "bytes": 217597,
+      "sha256": "ec39d14d0f2bb20bb46097bbcc09f70ac8a33919fbe2a616ff8794f856a8ec73",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Las palabras cortas del día",
+        "De 2 y 3 letras, para repasar con su definición"
+      ],
+      "raw": "raw/tab7/es/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/sevenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/5_5-menu.jpg",
+      "bytes": 181151,
+      "sha256": "4e6154542b20902bdfe204186a922ae0a23fac45840f8e9c23fec7d1e6f01b7a",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Cuatro formas de jugar",
+        "Bingo, Palabra oculta, Combinaciones, Palabras Cortas"
+      ],
+      "raw": "raw/tab7/es/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/sevenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/sevenInchScreenshots/6_6-langs.jpg",
+      "bytes": 269852,
+      "sha256": "043eaba1deca3fbded25e9a7547793403579a4f67ec80b7f31196af7e21fc5d6",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Cuatro idiomas, sin conexión",
+        "Español, francés, inglés, catalán · sin anuncios"
+      ],
+      "raw": "raw/tab7/es/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/tenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/1_1-top.jpg",
+      "bytes": 283146,
+      "sha256": "f7db79cd1caffd4def10dbb93c3124dc4d0c2f9ac941d43681202593ac314538",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "¿Cuál es la mejor jugada?",
+        "Con el valor de las fichas y la bonificación de 50"
+      ],
+      "raw": "raw/tab10/es/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/tenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/2_2-check.jpg",
+      "bytes": 211451,
+      "sha256": "527873c0f1eb5777f84e123541e6e525af4b29d8e65e26d77f89f22ca2345b37",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "¿Duda en la partida?",
+        "Válida o no, puntos y definición"
+      ],
+      "raw": "raw/tab10/es/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/tenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 252442,
+      "sha256": "2595de89296c9ce72b4098495164e20ce9d4866e82d450de38e0037ab99a889b",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Entrene el 7 + 1",
+        "Y el comodín, las fichas caras, 7 y 8 letras"
+      ],
+      "raw": "raw/tab10/es/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/tenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/4_4-short.jpg",
+      "bytes": 279704,
+      "sha256": "b70b0d67a2c5fe2223a9094777a83e48593d3911b9c44d4b04af1f268c70929c",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Las palabras cortas del día",
+        "De 2 y 3 letras, para repasar con su definición"
+      ],
+      "raw": "raw/tab10/es/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/tenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/5_5-menu.jpg",
+      "bytes": 244736,
+      "sha256": "d9a7d895ddc2dc57c407070ea7107027bb5508b8780b2580dff4b39281e79cb7",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Cuatro formas de jugar",
+        "Bingo, Palabra oculta, Combinaciones, Palabras Cortas"
+      ],
+      "raw": "raw/tab10/es/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/es-ES/images/tenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/es-ES/images/tenInchScreenshots/6_6-langs.jpg",
+      "bytes": 444630,
+      "sha256": "54f7240c9f871af330c2f6e0bf290d74c189204f8de0605ff2d02fc18dafb4c7",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Cuatro idiomas, sin conexión",
+        "Español, francés, inglés, catalán · sin anuncios"
+      ],
+      "raw": "raw/tab10/es/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/ca/title.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/title.txt",
+      "bytes": 9,
+      "sha256": "bcc1f292684259f15dcf157e60f68e0c9ff70f0fde31158491c9c9b64f267521"
+    },
+    {
+      "path": "metadata/android/ca/short_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/short_description.txt",
+      "bytes": 74,
+      "sha256": "2b12bea0b009882d216ac98bc5fcf39a0b2acecaa6a8a40cd75242f2bf7d4446"
+    },
+    {
+      "path": "metadata/android/ca/full_description.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/full_description.txt",
+      "bytes": 2459,
+      "sha256": "da702a286275ae3dc0b0f9f0443545720fce1ec5923f857d4622be74c94828c0"
+    },
+    {
+      "path": "metadata/android/ca/changelogs/89.txt",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/changelogs/89.txt",
+      "bytes": 352,
+      "sha256": "9a4ef27d9c9df526debca6210d763dfe9f57d6028acdc7f28a2a3134dee49f6f"
+    },
+    {
+      "path": "metadata/android/ca/images/icon.png",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/icon.png",
+      "bytes": 19649,
+      "sha256": "3e401a3adbf0ad0b064e3bb731271b021c7eaecb572516b7739a6a876b140676",
+      "width": 512,
+      "height": 512,
+      "kind": "App icon (512 × 512 PNG)"
+    },
+    {
+      "path": "metadata/android/ca/images/featureGraphic.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/featureGraphic.jpg",
+      "bytes": 69850,
+      "sha256": "3fe1e6b20f82897c839fcd9d54bafa8678273251e771b538a73b93b533c62d4e",
+      "width": 1024,
+      "height": 500,
+      "kind": "Feature graphic (1024 × 500)",
+      "text": [
+        "Les paraules, la teva jugada.",
+        "Comprovar · La millor jugada · Entrenar"
+      ]
+    },
+    {
+      "path": "metadata/android/ca/images/phoneScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/1_1-top.jpg",
+      "bytes": 193394,
+      "sha256": "4326bc6ca9f80284e299c6fcf53b2fd804881a2c3b13a547644118acfeab4641",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Quina és la millor jugada?",
+        "Amb el valor de les fitxes i la bonificació de 50"
+      ],
+      "raw": "raw/phone/ca/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/phoneScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/2_2-check.jpg",
+      "bytes": 172362,
+      "sha256": "70b3977d6e28ad4b3566ed2b6e86688d38ccd172884fca15e209d519df1261e8",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Dubte a la partida?",
+        "Vàlida o no, punts i definició"
+      ],
+      "raw": "raw/phone/ca/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/phoneScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/3_3-plus1.jpg",
+      "bytes": 180867,
+      "sha256": "62767cfc026ec85fe0062800efd303e394d1f6dfbcb715a53433aae139a82aea",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Entrena el 7 + 1",
+        "I l’escarràs, les fitxes cares, 7 i 8 fitxes"
+      ],
+      "raw": "raw/phone/ca/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/phoneScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/4_4-short.jpg",
+      "bytes": 244239,
+      "sha256": "b0f2416d5e1c8a185b8877147296979a9a2ea590e40cf348cae2b9fa4ff1d056",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Les paraules curtes del dia",
+        "De 2 i 3 fitxes, per repassar amb la definició"
+      ],
+      "raw": "raw/phone/ca/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/phoneScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/5_5-menu.jpg",
+      "bytes": 188102,
+      "sha256": "63d022b60e12db158bd1e0b2ee9234f86160e298e1da5807aee7a179f2e45e03",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Quatre maneres de jugar",
+        "Bingo, Paraula oculta, Combinacions, Paraules Curtes"
+      ],
+      "raw": "raw/phone/ca/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/phoneScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/phoneScreenshots/6_6-langs.jpg",
+      "bytes": 228810,
+      "sha256": "79e88add8cfedecbd09519e98a18def7323fe9b4fa5b591d9a0307d9031bc708",
+      "width": 1080,
+      "height": 1920,
+      "caption": [
+        "Quatre llengües, sense connexió",
+        "Català, francès, anglès, castellà · sense anuncis"
+      ],
+      "raw": "raw/phone/ca/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/sevenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/1_1-top.jpg",
+      "bytes": 204083,
+      "sha256": "f879d1e62274796ebb5f419f9a0b535a1af90b77f8c4bad75f1ea4902fdd7fca",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Quina és la millor jugada?",
+        "Amb el valor de les fitxes i la bonificació de 50"
+      ],
+      "raw": "raw/tab7/ca/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/sevenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/2_2-check.jpg",
+      "bytes": 160789,
+      "sha256": "200d8e336e6c479acb159056172a0d8907cb3590086ca24537bbb49eb3bd57f9",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Dubte a la partida?",
+        "Vàlida o no, punts i definició"
+      ],
+      "raw": "raw/tab7/ca/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 176905,
+      "sha256": "8120f7c75698591d58468d6a21a2a6e105742fce5c9316b01a529800070df564",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Entrena el 7 + 1",
+        "I l’escarràs, les fitxes cares, 7 i 8 fitxes"
+      ],
+      "raw": "raw/tab7/ca/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/sevenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/4_4-short.jpg",
+      "bytes": 220582,
+      "sha256": "73627e25bc61b503e16dccf2fa667a104d4e45b056859ef28fc57a1f0c374394",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Les paraules curtes del dia",
+        "De 2 i 3 fitxes, per repassar amb la definició"
+      ],
+      "raw": "raw/tab7/ca/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/sevenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/5_5-menu.jpg",
+      "bytes": 181382,
+      "sha256": "2ee0187c8d51cd2dbbfaaa936bf5acdc1f3f2174baacee8d413bdfbdb5c9af04",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Quatre maneres de jugar",
+        "Bingo, Paraula oculta, Combinacions, Paraules Curtes"
+      ],
+      "raw": "raw/tab7/ca/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/sevenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/sevenInchScreenshots/6_6-langs.jpg",
+      "bytes": 271170,
+      "sha256": "bc8bd7ebd56d12e10cf6317e136bbadfafb7ccf7697d1bf4332897670ea98721",
+      "width": 1200,
+      "height": 1920,
+      "caption": [
+        "Quatre llengües, sense connexió",
+        "Català, francès, anglès, castellà · sense anuncis"
+      ],
+      "raw": "raw/tab7/ca/6-langs.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/tenInchScreenshots/1_1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/1_1-top.jpg",
+      "bytes": 272983,
+      "sha256": "44e7d665f7cae8f9a4864c5b90462cbfa9d722445801770d099753264386aad5",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Quina és la millor jugada?",
+        "Amb el valor de les fitxes i la bonificació de 50"
+      ],
+      "raw": "raw/tab10/ca/1-top.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/tenInchScreenshots/2_2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/2_2-check.jpg",
+      "bytes": 217672,
+      "sha256": "1220fe07ad7b2fb1b5579be0f2fa01088af590e5992001989e0848d7762aabcd",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Dubte a la partida?",
+        "Vàlida o no, punts i definició"
+      ],
+      "raw": "raw/tab10/ca/2-check.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/tenInchScreenshots/3_3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/3_3-plus1.jpg",
+      "bytes": 238679,
+      "sha256": "41a13941f9556b80286cf0feeab5887e4aa61f0f500b6a1affc0f480de2f350d",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Entrena el 7 + 1",
+        "I l’escarràs, les fitxes cares, 7 i 8 fitxes"
+      ],
+      "raw": "raw/tab10/ca/3-plus1.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/tenInchScreenshots/4_4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/4_4-short.jpg",
+      "bytes": 281100,
+      "sha256": "89488bc065773a43edc83efd6e5d70f858224fb44e816abb416f5da780843690",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Les paraules curtes del dia",
+        "De 2 i 3 fitxes, per repassar amb la definició"
+      ],
+      "raw": "raw/tab10/ca/4-short.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/tenInchScreenshots/5_5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/5_5-menu.jpg",
+      "bytes": 246404,
+      "sha256": "c18946c91c7f5eefcad2f6e70250a655645a309590f94921806c1ff5f516fbeb",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Quatre maneres de jugar",
+        "Bingo, Paraula oculta, Combinacions, Paraules Curtes"
+      ],
+      "raw": "raw/tab10/ca/5-menu.jpg"
+    },
+    {
+      "path": "metadata/android/ca/images/tenInchScreenshots/6_6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/metadata/android/ca/images/tenInchScreenshots/6_6-langs.jpg",
+      "bytes": 444223,
+      "sha256": "b0284a4cd3a6508e2ecf53a00faf8c6b21e8cd4bfeffb3b5f707465f25575a8e",
+      "width": 1600,
+      "height": 2560,
+      "caption": [
+        "Quatre llengües, sense connexió",
+        "Català, francès, anglès, castellà · sense anuncis"
+      ],
+      "raw": "raw/tab10/ca/6-langs.jpg"
+    },
+    {
+      "path": "raw/phone/ca/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/ca/1-top.jpg",
+      "bytes": 161111,
+      "sha256": "7ae11002e40cdc9918f3fbae89fa09a4d51c90bd1979454b91b3264b1bdfb79c",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/ca/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/ca/2-check.jpg",
+      "bytes": 148067,
+      "sha256": "6bf798447ccaee0908415b60cd1e765c7e79a8c14a5179294d0ebd4e8d9bede7",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/ca/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/ca/3-plus1.jpg",
+      "bytes": 172411,
+      "sha256": "412d3cfc22e48f9f2c5ba72e694404e7581e527c228386d95f81b58073a4b1d3",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/ca/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/ca/4-short.jpg",
+      "bytes": 251623,
+      "sha256": "e9f727d46ee8ba3e8157e4f36ffa379d95bec839c455b724dd38245096ff0aa0",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/ca/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/ca/5-menu.jpg",
+      "bytes": 146525,
+      "sha256": "d485bb8fafc9e3041672fcf35bbb136f06a6c5d5cbd39cbca6ffda7da63421dd",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/ca/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/ca/6-langs.jpg",
+      "bytes": 210744,
+      "sha256": "064c3e2e7589e85b17c06e35c39ccb659b3b2fbbcbb4ed52ba89965d141e168d",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/en/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/en/1-top.jpg",
+      "bytes": 150689,
+      "sha256": "0e41cdd5752ac3f4dece017c09033a58133f4a62dc7140f18adb0782fb71fea6",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/en/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/en/2-check.jpg",
+      "bytes": 125014,
+      "sha256": "e44df0bcb2014ec34251425cffb993a51a6ed882f85e1461928accde5bf5a74a",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/en/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/en/3-plus1.jpg",
+      "bytes": 171060,
+      "sha256": "e8ff1fb5af6b09f85aeb162b36a1abea5426310836b135c087b5e6cd5b11dbba",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/en/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/en/4-short.jpg",
+      "bytes": 238602,
+      "sha256": "66d18dd65ad0e134ea92abd8833199913eebae29a3c48c9d17281a8ef71eb706",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/en/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/en/5-menu.jpg",
+      "bytes": 141390,
+      "sha256": "681483b7378e86b91a6deeaf00084c269bcb7bab693a936d299d601aa6443390",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/en/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/en/6-langs.jpg",
+      "bytes": 210214,
+      "sha256": "5159de00ceea31d4adfabfdd07f8617042bb557d1de229234c57cddc9633382a",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/es/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/es/1-top.jpg",
+      "bytes": 159154,
+      "sha256": "e5b5fbfde6eefe1557370a293c2ad16da47f97ada4a30515c9e41dfa7aae3cb6",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/es/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/es/2-check.jpg",
+      "bytes": 128942,
+      "sha256": "5b5a3fd1fa697558315d968619d7c3634ffe31c69af77cce22cb3d084f8ef83e",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/es/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/es/3-plus1.jpg",
+      "bytes": 176967,
+      "sha256": "5a184b59a83fd72a7cb570ea7a2bab8998fd1a061c82e2811758aa6c7f1931e2",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/es/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/es/4-short.jpg",
+      "bytes": 241180,
+      "sha256": "88166e7cc240b70dd14716708961b080e8c6daa8a242db73b9f343db80baa248",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/es/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/es/5-menu.jpg",
+      "bytes": 151519,
+      "sha256": "65506e5b2cb8af887dc7a842c861ad44f5efe770a1540b4b90344810c5feda2a",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/es/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/es/6-langs.jpg",
+      "bytes": 217019,
+      "sha256": "26b51c39bf1340782c19cd45895af000340bbc3d34aa672fb6d7a53ab6c4d8f9",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/fr/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/fr/1-top.jpg",
+      "bytes": 156389,
+      "sha256": "6f9d08cee3c64f456be58b119da8bf7230db187403bff3e15de2ab15cb81fb07",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/fr/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/fr/2-check.jpg",
+      "bytes": 125733,
+      "sha256": "78c1ee37ed27c2402128426c95981a6126fc2535174058886f7dd0d6053159d1",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/fr/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/fr/3-plus1.jpg",
+      "bytes": 166764,
+      "sha256": "1a137c73f4706265c903e54c072bca8fdaffa36ae30ec6ad34eefc09756a9e52",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/fr/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/fr/4-short.jpg",
+      "bytes": 235044,
+      "sha256": "5153cd2ab8d2f9a2b45e967d984d9b528b897409e22eda30b14e0b6f59c2b3bd",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/fr/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/fr/5-menu.jpg",
+      "bytes": 144390,
+      "sha256": "8fbeae3855d9c31981ff6669c64e9aab400fcf6deba3eebfd4afa9a8070954a9",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/phone/fr/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/phone/fr/6-langs.jpg",
+      "bytes": 214197,
+      "sha256": "a053e64c098a3125ff22d7f1ed41d884036f4c9026a7097653f75dacceff2953",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/ca/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/ca/1-top.jpg",
+      "bytes": 166448,
+      "sha256": "ab3d6d53346cbdd46cfe2c85d809847c8acdac769c3b6a0bfee1e3d9df75c8e0",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/ca/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/ca/2-check.jpg",
+      "bytes": 119648,
+      "sha256": "3f5761d064c08ac62760e88dfe755981db9f129185b02b5eff172a315d450b7e",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/ca/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/ca/3-plus1.jpg",
+      "bytes": 149052,
+      "sha256": "018fea70fd338d15f09c555554cdbeabe4348360cc84b2319a54f527c5f7ca28",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/ca/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/ca/4-short.jpg",
+      "bytes": 194232,
+      "sha256": "4a9e7d4ed47769d5a0ff3305dcc02d571ce9a3de7fdaad220bf0e16a437b22f5",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/ca/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/ca/5-menu.jpg",
+      "bytes": 120289,
+      "sha256": "8b8eb4b474ad3ec211e485c036bedee8bde69108550087b0cd84a276751284d4",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/ca/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/ca/6-langs.jpg",
+      "bytes": 250362,
+      "sha256": "f380b3090b151375f33bde0b003a96d607f133a4272cb51c3664e66aed953623",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/en/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/en/1-top.jpg",
+      "bytes": 182156,
+      "sha256": "6f5f246ae0d51ae2782749a2f9573aa421b503e9d8b5a4b627fcc69f21eb3ff3",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/en/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/en/2-check.jpg",
+      "bytes": 103584,
+      "sha256": "0b1fd1551793ed93011beedb670211950845b12712b1acc303909f9e1ae31caf",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/en/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/en/3-plus1.jpg",
+      "bytes": 132579,
+      "sha256": "a2354d8f4311f43d12eb81a96c1e3f29bb43aa0b59046774e66cc8a70435be11",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/en/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/en/4-short.jpg",
+      "bytes": 185331,
+      "sha256": "0b381451b079e7122e9a91bc2a3fdc08803bc2e07c55ae109302af6e4a2f4849",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/en/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/en/5-menu.jpg",
+      "bytes": 116596,
+      "sha256": "7d5019e7740d7953f5de86190dc514ad3ead2227e1c7ba29f16cc30c2a25f98d",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/en/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/en/6-langs.jpg",
+      "bytes": 230702,
+      "sha256": "1241a247c14288c75059bbcd9dffdd0ad27a4eb111d9d8fcde5ca50c6a3e164d",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/es/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/es/1-top.jpg",
+      "bytes": 177848,
+      "sha256": "55b31905452667c551d522e93c067fc4bb3237ce8fa45fdde6662f89b86ada1b",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/es/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/es/2-check.jpg",
+      "bytes": 105779,
+      "sha256": "4648a57d2205fe9bc2926146cd8a0929440bc37cc52a386896063a2dec82af75",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/es/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/es/3-plus1.jpg",
+      "bytes": 147517,
+      "sha256": "b5d3cad7dc770ef53d0f1f4e7603f45186f9745a38469c9bc89c8a6fe1970a50",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/es/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/es/4-short.jpg",
+      "bytes": 186767,
+      "sha256": "b34c93c82258a8283bc750c17a568066c055b0c5d75546fb8dcd3d9d7d9ab3cb",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/es/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/es/5-menu.jpg",
+      "bytes": 123771,
+      "sha256": "803ee2f1bdf0066f787a53c09a5f4ccd1092b6a90886cc75c8a8c3ef1e9de05d",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/es/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/es/6-langs.jpg",
+      "bytes": 255873,
+      "sha256": "1fa26a98cb3fe787fdcd5d5a013980aacb9336c1ec27ab12969051ce8d603de8",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/fr/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/fr/1-top.jpg",
+      "bytes": 175833,
+      "sha256": "f74361721b5730eada650388db2df2b9a70ebd193a200fb2c14573458620680f",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/fr/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/fr/2-check.jpg",
+      "bytes": 104120,
+      "sha256": "6dfb7a13e9ea7b188d284b47033c1e3aaccf09639352b21b838981efffe80440",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/fr/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/fr/3-plus1.jpg",
+      "bytes": 143991,
+      "sha256": "8bbf8897be03fa67521d00587cb411459452e39245408f7f22caf47b38952faf",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/fr/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/fr/4-short.jpg",
+      "bytes": 183091,
+      "sha256": "c26f2b223ce9f1a638b6d71d68073cdfd6b45d4f95555a713104b994c72b7570",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/fr/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/fr/5-menu.jpg",
+      "bytes": 118782,
+      "sha256": "a73b944397aed1f035b52af0111d24581807cdba9f28b376f47dd4703fd2006b",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab7/fr/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab7/fr/6-langs.jpg",
+      "bytes": 241234,
+      "sha256": "bf73bdc43d95cf53362fb5bc492b899a928a6871bf3445d7f4a148659522970f",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/ca/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/ca/1-top.jpg",
+      "bytes": 200721,
+      "sha256": "a9de1c0466370cd6e2b4855f56db678996a896723453b6e5b4e5462575d7aad1",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/ca/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/ca/2-check.jpg",
+      "bytes": 146790,
+      "sha256": "5fa32be689852482b8638fcfbb3f0ae7fc4d460955b04f7c7d206c530c81eaca",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/ca/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/ca/3-plus1.jpg",
+      "bytes": 191020,
+      "sha256": "61d30426e5bb13bff8687eca81b62cc58516fef316f7ea088688f3dd00ee9062",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/ca/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/ca/4-short.jpg",
+      "bytes": 221286,
+      "sha256": "ff4b13182fb79750c3bb2eda27bff5bdc13a5c99902047b30697538cd16acf2b",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/ca/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/ca/5-menu.jpg",
+      "bytes": 148205,
+      "sha256": "e88a388158044ce1f79514dfcbe42f064ce9bde17c73b9c6560d2fcd6d4d22a7",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/ca/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/ca/6-langs.jpg",
+      "bytes": 422506,
+      "sha256": "0c033eec2504530fc29da81b8692f1d00d0eb5964922ab0058c71170ce54c02f",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/en/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/en/1-top.jpg",
+      "bytes": 234372,
+      "sha256": "bc973d8573d3c8985a529270a1b067ef250f348dd6551dda90eec1290c61756e",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/en/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/en/2-check.jpg",
+      "bytes": 129573,
+      "sha256": "4c4b684dadc32c51f72c0c1d680dd4b4fdada19898cf9127d4e89eef6f6a43ec",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/en/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/en/3-plus1.jpg",
+      "bytes": 137590,
+      "sha256": "0f74523ef031b11531d56be6729c4aa3a7ee1db034432d6a51b308f8cd41e665",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/en/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/en/4-short.jpg",
+      "bytes": 212421,
+      "sha256": "d160739c821e8135b301ffec8f045458c872e19945d6209836872c629758e332",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/en/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/en/5-menu.jpg",
+      "bytes": 144282,
+      "sha256": "03ca43921a6b0e3db015f320dc2d961f71d0993989158a3f1201d072e2cd7f97",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/en/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/en/6-langs.jpg",
+      "bytes": 440784,
+      "sha256": "70d1616b8d54024e10d51106bf95effe0959f82831e07955cb2066cbe5889e7a",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/es/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/es/1-top.jpg",
+      "bytes": 214613,
+      "sha256": "4967c644ddd0a862207e286980ecb53e34c74240d0d065bc3ea06999f6f4c6fa",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/es/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/es/2-check.jpg",
+      "bytes": 131834,
+      "sha256": "b9da516a52069d8566f0d397972f83f36802ebaa10040fc70633bb5202efee39",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/es/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/es/3-plus1.jpg",
+      "bytes": 210477,
+      "sha256": "5f2ee52565b178c791d3b00ad1a01f7f5674590dbeac14638b0e9bbcabb59bc0",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/es/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/es/4-short.jpg",
+      "bytes": 213937,
+      "sha256": "3740815134b8a90099b4e9a14d2749853bc7294af69a889c77d54dac757ac5ae",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/es/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/es/5-menu.jpg",
+      "bytes": 152070,
+      "sha256": "a4bf30681b0e14f082ddcdcc7384d741e9976057aa4e4b8682f0ddd89a3c7118",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/es/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/es/6-langs.jpg",
+      "bytes": 436752,
+      "sha256": "ce3e4e33227429bb40549bf6a06195014f76be939c105c6fbef3d9816ab4af41",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/fr/1-top.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/fr/1-top.jpg",
+      "bytes": 209668,
+      "sha256": "12d7045d0b4e34fdb16b903bd14db8198cd0663eb2730bf216dca7567bdb6b31",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/fr/2-check.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/fr/2-check.jpg",
+      "bytes": 130147,
+      "sha256": "059f9df887052485eb391054a22f451606aaf0d26d59789e736f00768a8b7253",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/fr/3-plus1.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/fr/3-plus1.jpg",
+      "bytes": 191154,
+      "sha256": "df414c373615574810246396f5221c4d976696bf7401a5a811819e95dc037ed7",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/fr/4-short.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/fr/4-short.jpg",
+      "bytes": 210252,
+      "sha256": "e621347ba9bbe0ce2c054a5ba67acb73ffb08c9136a2d7e41b097b0dd8862dc4",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/fr/5-menu.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/fr/5-menu.jpg",
+      "bytes": 146738,
+      "sha256": "4a2d8a80b218dd8fff242ab6e6af211fae5bb3df954e60adcc047c66eb06b362",
+      "kind": "raw screen, no caption, status bar cropped"
+    },
+    {
+      "path": "raw/tab10/fr/6-langs.jpg",
+      "url": "https://verimots.pfa87.cc/promo/play/raw/tab10/fr/6-langs.jpg",
+      "bytes": 417747,
+      "sha256": "0f2ae6930eeba4644572627fec54b2b37050121387ea75e514a1fadd0b09b5e9",
+      "kind": "raw screen, no caption, status bar cropped"
+    }
+  ]
+}

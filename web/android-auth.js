@@ -107,7 +107,7 @@ if (typeof document !== 'undefined') {
           } catch { status.textContent = copy[3]; retry.hidden = false }
         } })
         google.accounts.id.renderButton(document.getElementById('google-btn'), {
-          theme: 'filled_blue', size: 'large', text: 'signin_with', locale: lang,
+          theme: 'filled_black', shape: 'pill', size: 'large', text: 'signin_with', locale: lang,
         })
         status.textContent = ''
       } catch { status.textContent = copy[3]; retry.hidden = false }

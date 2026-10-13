@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Révisions: a clock with a return arrow (same path as the web menu icon). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp" android:height="22dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="@color/gold"
+        android:pathData="M12,4a8,8 0,0 1,7.75 6h-2.08A6,6 0,1 0,18 14h2.06A8,8 0,1 1,12 4zM19,3v6h-6l2.2,-2.2A6,6 0,0 0,12 6V4a8,8 0,0 1,4.62 1.47z" />
+    <path android:fillColor="@color/gold"
+        android:pathData="M11,8h2v4.4l3,1.8 -1,1.7 -4,-2.4z" />
+</vector>

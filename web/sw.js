@@ -1,30 +1,33 @@
-const CACHE = 'verimots-v163'
+const CACHE = 'verimots-v175'
 const SHELL = [
   './',
   './index.html',
   './leaderboard.html',
   './leaderboard',
-  './leaderboard.js?v=20260921-filters',
-  './icons.js?v=161',
-  './activity.js?v=161',
-  './app.css?v=20260921-filters',
-  './analytics.js?v=161',
-  './app.js?v=20260921-filters',
-  './competitive.js?v=161',
-  './game.js?v=161',
-  './flags.js?v=161',
-  './favorites.js?v=161',
-  './history.js?v=161',
-  './i18n.js?v=161',
-  './worker.js?v=161',
-  './tiles.js?v=161',
+  './leaderboard.js?v=20261013-v1',
+  './icons.js?v=163',
+  './activity.js?v=163',
+  './app.css?v=20261013-v1',
+  './analytics.js?v=163',
+  './site-status.js?v=2',
+  './app.js?v=20261013-v1',
+  './competitive.js?v=163',
+  './game.js?v=163',
+  './flags.js?v=163',
+  './favorites.js?v=163',
+  './history.js?v=163',
+  './review.js?v=163',
+  './review-core.js?v=163',
+  './i18n.js?v=163',
+  './worker.js?v=163',
+  './tiles.js?v=163',
   './fonts/verimots-tiles.woff2',
-  './kids.js?v=161',
-  './favicon.svg?v=161',
+  './kids.js?v=163',
+  './favicon.svg?v=163',
   './apple-touch-icon.png',
   './icon-192.png',
   './icon-512.png',
-  './manifest.webmanifest?v=161',
+  './manifest.webmanifest?v=163',
   './data/meta.json',
   './data/dicts.json',
   './data/meta-en.json',
@@ -76,7 +79,8 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return
-  if (url.pathname.startsWith('/api/')) {
+  // Edge endpoints (visitor counts, feedback) are live answers, never shell.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/__pfa87/')) {
     event.respondWith(fetch(req))
     return
   }

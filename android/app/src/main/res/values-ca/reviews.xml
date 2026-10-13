@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Révisions (ReviewScreen): same wording as dashboard/s/i18n.js rev_* keys. -->
+<resources>
+    <string name="menu_review">Repàs</string>
+    <string name="rev_menu_empty">Els faristols que falles tornen aquí</string>
+    <string name="rev_menu_due_one">1 faristol per repassar</string>
+    <string name="rev_menu_due">%1$d faristols per repassar</string>
+    <string name="rev_menu_next">Proper repàs %1$s</string>
+    <string name="rev_menu_clear">Tot dominat</string>
+    <string name="rev_how_title">Com funciona?</string>
+    <string name="rev_how">Quan se t’escapa la millor paraula (Bingo, Paraula oculta) o et falten paraules (Combinacions), el faristol arriba aquí. Torna a trobar les paraules sense ajuda: torna demà, després d’aquí a 3, 7 i 21 dies, i queda dominat.</string>
+    <string name="rev_stat_due">Per repassar</string>
+    <string name="rev_stat_later">Més tard</string>
+    <string name="rev_stat_mastered">Dominats</string>
+    <string name="rev_start_one">Repassa el faristol</string>
+    <string name="rev_start">Repassa %1$d faristols</string>
+    <string name="rev_none_due">Res per repassar ara mateix.</string>
+    <string name="rev_none_due_next">Res per repassar ara mateix · proper repàs %1$s.</string>
+    <string name="rev_empty">Encara no hi ha cap faristol. Juga al Bingo, a Paraula oculta o a Combinacions: cada faristol fallat arribarà aquí.</string>
+    <string name="rev_other_dicts_one">1 faristol espera en un altre diccionari.</string>
+    <string name="rev_other_dicts">%1$d faristols esperen en altres diccionaris.</string>
+    <string name="rev_synced">Sincronitzat amb el teu compte</string>
+    <string name="rev_sync_failed">No es pot sincronitzar ara · la teva llista es queda en aquest dispositiu</string>
+    <string name="rev_syncing">Sincronitzant…</string>
+    <string name="rev_local">En aquest dispositiu · inicia la sessió per tenir-los a tot arreu</string>
+    <string name="rev_game_bingo">Bingo</string>
+    <string name="rev_game_find">Paraula oculta</string>
+    <string name="rev_game_combi">Combinacions</string>
+    <string name="rev_targets_best" formatted="true">Millor paraula: %1$d fitxes · %2$d pts</string>
+    <string name="rev_targets_combi_one">1 paraula fallada</string>
+    <string name="rev_targets_combi">%1$d paraules fallades</string>
+    <string name="rev_missed_on">fallat el %1$s</string>
+    <string name="rev_mastered_short">dominat</string>
+    <string name="rev_when_now">per repassar</string>
+    <string name="rev_when_tomorrow">demà</string>
+    <string name="rev_when_days">d’aquí a %1$d dies</string>
+    <string name="rev_play">Torna a jugar</string>
+    <string name="rev_delete">Treu</string>
+    <string name="rev_delete_aria">Treu aquest faristol del repàs</string>
+    <string name="rev_deleted">Faristol tret.</string>
+    <string name="rev_undo">Desfés</string>
+    <string name="rev_progress" formatted="true">%1$d de %2$d</string>
+    <string name="rev_goal_best">Torna a trobar la millor paraula</string>
+    <string name="rev_goal_best_any">Troba una de les %1$d millors paraules</string>
+    <string name="rev_goal_combi_one">Troba la paraula que se t’ha escapat</string>
+    <string name="rev_goal_combi">Troba les %1$d paraules que se t’han escapat</string>
+    <string name="rev_hint">Pista</string>
+    <string name="rev_show">Mostra la resposta</string>
+    <string name="rev_hint_first">Comença per %1$s.</string>
+    <string name="rev_hint_len">%1$d fitxes</string>
+    <string name="rev_found">%1$s: trobada!</string>
+    <string name="rev_already">%1$s ja està trobada.</string>
+    <string name="rev_not_target" formatted="true">%1$s és vàlida (%2$d pts), però no és una paraula per trobar.</string>
+    <string name="rev_done_ok">Trobada sense ajuda.</string>
+    <string name="rev_done_help">Trobada amb una pista.</string>
+    <string name="rev_done_miss">Aquesta vegada no.</string>
+    <string name="rev_plan_next">Proper repàs %1$s.</string>
+    <string name="rev_plan_tomorrow">Torna demà.</string>
+    <string name="rev_plan_mastered">Dominat: ja no tornarà.</string>
+    <string name="rev_plan_early">Jugat abans d’hora: el repàs previst %1$s no canvia.</string>
+    <string name="rev_played_was" formatted="true">Aquell dia vas jugar %1$s (%2$d pts).</string>
+    <string name="rev_finish">Acaba</string>
+    <string name="rev_next">Següent</string>
+    <string name="rev_session_done" formatted="true">Sessió acabada: %1$d de %2$d trobades sense ajuda.</string>
+    <string name="rev_saved">Afegit al teu repàs</string>
+</resources>
