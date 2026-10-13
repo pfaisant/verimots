@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Technical log (DiagLog) and the sign-in way out after a failed attempt. -->
+<resources>
+    <string name="diag_title">Registro técnico</string>
+    <string name="diag_help">Versión instalada, pasos del inicio de sesión y errores en segundo plano. Se queda en este teléfono: sin token ni correo electrónico. Cópialo o compártelo para informar de un problema.</string>
+    <string name="diag_empty">Todavía no hay nada registrado.</string>
+    <string name="diag_copy">Copiar</string>
+    <string name="diag_copied">Registro copiado</string>
+    <string name="diag_clear">Borrar</string>
+    <string name="diag_close">Cerrar</string>
+    <string name="sign_in_failed">El inicio de sesión con Google no terminó. Prueba en el navegador o abre el registro para ver por qué.</string>
+    <string name="auth_browser">Iniciar sesión en el navegador</string>
+    <string name="google_browser_fallback">Google rechazó el inicio de sesión en la aplicación; continúa en el navegador.</string>
+</resources>

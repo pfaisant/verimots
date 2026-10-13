@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Technical log (DiagLog) and the sign-in way out after a failed attempt. -->
+<resources>
+    <string name="diag_title">Technical log</string>
+    <string name="diag_help">Installed version, sign-in steps and background errors. It stays on this phone: no token or email address. Copy or share it to report a problem.</string>
+    <string name="diag_empty">Nothing recorded yet.</string>
+    <string name="diag_copy">Copy</string>
+    <string name="diag_copied">Log copied</string>
+    <string name="diag_clear">Clear</string>
+    <string name="diag_close">Close</string>
+    <string name="sign_in_failed">Google sign-in did not finish. Try the browser, or open the log to see why.</string>
+    <string name="auth_browser">Sign in with the browser</string>
+    <string name="google_browser_fallback">Google refused sign-in inside the app, so it continues in the browser.</string>
+</resources>

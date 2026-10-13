@@ -1,0 +1,17 @@
+Verimots 5.0.0 (85)
+Package: cc.pfa87.verimots
+AAB: https://s.pfa87.cc/verimots-5.0.0-85.aab
+APK: https://s.pfa87.cc/verimots-5.0.0.apk
+
+<fr-FR>
+Nouveau classement : filtres Catégorie, Langue et Période, avec les 7 et 30 derniers jours, drapeaux, médailles et détail par activité, comme sur le site. Même mot du jour que sur le web. Tirage et réponse réunis dans une carte, design harmonisé avec le site.
+</fr-FR>
+<en-GB>
+New leaderboard: Category, Language and Period filters, including the last 7 and 30 days, with flags, medals and a per-activity breakdown, as on the website. Same word of the day as the web. Rack and answer share one card, and the design matches the website.
+</en-GB>
+<es-ES>
+Nueva clasificación: filtros Categoría, Idioma y Periodo, con los últimos 7 y 30 días, banderas, medallas y detalle por actividad, como en la web. Misma palabra del día que en la web. Atril y respuesta en una sola tarjeta y diseño alineado con la web.
+</es-ES>
+<ca>
+Nova classificació: filtres Categoria, Llengua i Període, amb els últims 7 i 30 dies, banderes, medalles i detall per activitat, com al web. La mateixa paraula del dia que al web. Faristol i resposta en una sola targeta i disseny coherent amb el web.
+</ca>

@@ -1,12 +1,13 @@
-import { flagSvg } from './flags.js?v=161'
-import { icon } from './icons.js?v=161'
+import { flagSvg } from './flags.js?v=162'
+import { icon } from './icons.js?v=162'
 const LANGS = ['fr', 'en', 'es', 'ca']
 const SECTIONS = ['any', ...LANGS]
-const SCOPES = ['day', 'week', '7d', '30d', 'all']
+const SCOPES = ['day', '3d', 'week', '7d', '30d', 'all']
     const I18N = {
       fr: {
         kicker: 'Classement', title: 'Classement complet', back: 'Retour', play: 'Jouer à Verimots',
-        day: 'Jour', week: 'Semaine', '7d': '7 derniers jours', '30d': '30 derniers jours', all: 'Général',
+        day: 'Jour', week: 'Semaine', '3d': '3 derniers jours', '7d': '7 derniers jours', '30d': '30 derniers jours', all: 'Général',
+        rule_3d: 'Scores sur les 3 derniers jours, aujourd’hui inclus (fuseau de Paris).',
         rule_7d: 'Scores sur les 7 derniers jours, aujourd’hui inclus (fuseau de Paris).',
         rule_30d: 'Scores sur les 30 derniers jours, aujourd’hui inclus (fuseau de Paris).',
         rule_day: 'Les scores du jour (fuseau de Paris), toutes les entrées publiées.',
@@ -21,12 +22,13 @@ const SCOPES = ['day', 'week', '7d', '30d', 'all']
         week_of: (id) => `Semaine ${id}`,
         any_short: 'Toutes',
         help: 'Aide', privacy: 'Confidentialité', privacy_href: '/confidentialite.html',
-        lang_filter: 'Langue du classement', scope_filter: 'Période',
+        lang_filter: 'Langue', scope_filter: 'Période',
         me: (rank, pts) => `Ta place : <b>${rank}</b> · ${pts} pts`,
       },
       en: {
         kicker: 'Leaderboard', title: 'Full leaderboard', back: 'Back', play: 'Play Verimots',
-        day: 'Day', week: 'Week', '7d': 'Last 7 days', '30d': 'Last 30 days', all: 'All-time',
+        day: 'Day', week: 'Week', '3d': 'Last 3 days', '7d': 'Last 7 days', '30d': 'Last 30 days', all: 'All-time',
+        rule_3d: 'Scores over the last 3 days, including today (Paris time).',
         rule_7d: 'Scores over the last 7 days, including today (Paris time).',
         rule_30d: 'Scores over the last 30 days, including today (Paris time).',
         rule_day: 'Today’s scores (Paris time), every published entry.',
@@ -41,12 +43,13 @@ const SCOPES = ['day', 'week', '7d', '30d', 'all']
         week_of: (id) => `Week ${id}`,
         any_short: 'All',
         help: 'Help', privacy: 'Privacy', privacy_href: '/privacy.html',
-        lang_filter: 'Board language', scope_filter: 'Period',
+        lang_filter: 'Language', scope_filter: 'Period',
         me: (rank, pts) => `Your place: <b>${rank}</b> · ${pts} pts`,
       },
       es: {
         kicker: 'Clasificación', title: 'Clasificación completa', back: 'Volver', play: 'Jugar a Verimots',
-        day: 'Día', week: 'Semana', '7d': 'Últimos 7 días', '30d': 'Últimos 30 días', all: 'General',
+        day: 'Día', week: 'Semana', '3d': 'Últimos 3 días', '7d': 'Últimos 7 días', '30d': 'Últimos 30 días', all: 'General',
+        rule_3d: 'Puntuaciones de los últimos 3 días, incluido hoy (hora de París).',
         rule_7d: 'Puntuaciones de los últimos 7 días, incluido hoy (hora de París).',
         rule_30d: 'Puntuaciones de los últimos 30 días, incluido hoy (hora de París).',
         rule_day: 'Las puntuaciones de hoy (hora de París), todas las entradas publicadas.',
@@ -61,12 +64,13 @@ const SCOPES = ['day', 'week', '7d', '30d', 'all']
         week_of: (id) => `Semana ${id}`,
         any_short: 'Todos',
         help: 'Ayuda', privacy: 'Privacidad', privacy_href: '/privacidad.html',
-        lang_filter: 'Idioma de la clasificación', scope_filter: 'Periodo',
+        lang_filter: 'Idioma', scope_filter: 'Periodo',
         me: (rank, pts) => `Tu puesto: <b>${rank}</b> · ${pts} ptos`,
       },
       ca: {
         kicker: 'Classificació', title: 'Classificació completa', back: 'Torna', play: 'Juga a Verimots',
-        day: 'Dia', week: 'Setmana', '7d': 'Últims 7 dies', '30d': 'Últims 30 dies', all: 'General',
+        day: 'Dia', week: 'Setmana', '3d': 'Últims 3 dies', '7d': 'Últims 7 dies', '30d': 'Últims 30 dies', all: 'General',
+        rule_3d: 'Puntuacions dels últims 3 dies, inclòs avui (hora de París).',
         rule_7d: 'Puntuacions dels últims 7 dies, inclòs avui (hora de París).',
         rule_30d: 'Puntuacions dels últims 30 dies, inclòs avui (hora de París).',
         rule_day: 'Les puntuacions d’avui (hora de París), totes les entrades publicades.',
@@ -81,7 +85,7 @@ const SCOPES = ['day', 'week', '7d', '30d', 'all']
         week_of: (id) => `Setmana ${id}`,
         any_short: 'Totes',
         help: 'Ajuda', privacy: 'Privadesa', privacy_href: '/privadesa.html',
-        lang_filter: 'Llengua de la classificació', scope_filter: 'Període',
+        lang_filter: 'Llengua', scope_filter: 'Període',
         me: (rank, pts) => `La teva posició: <b>${rank}</b> · ${pts} punts`,
       },
     }
@@ -118,8 +122,8 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
       <button type="button" class="lb-refresh" id="lb-refresh"><span aria-hidden="true">↻</span><span id="lb-refresh-label"></span></button>
     </div>
     <div class="lb-filters">
+      <label class="lb-filter lb-filter-category"><span id="lb-category-label"></span><select id="lb-category-select"></select></label>
       <label class="lb-filter"><span id="lb-board-label"></span><select id="lb-board-select"></select></label>
-      <label class="lb-filter"><span id="lb-category-label"></span><select id="lb-category-select"></select></label>
       <label class="lb-filter"><span id="lb-scope-label"></span><select id="lb-scope-select"></select></label>
     </div>
     <p class="board-rule" id="lb-rule"></p>
@@ -129,14 +133,19 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   const find = id => root.querySelector(`#${id}`)
   const nf = new Intl.NumberFormat(ui)
   const CATEGORIES = ['combined', 'checks', 'bingo', 'kids', 'find', 'training']
-  let category = CATEGORIES.includes(params.get('category')) ? params.get('category') : 'combined'
-  let scope = SCOPES.includes(params.get('scope')) ? params.get('scope') : '7d'
-  let board = SECTIONS.includes(params.get('board')) ? params.get('board') : 'any'
+  // The URL wins, then the filters last used on this device (the APK keeps
+  // them too), then the inclusive defaults.
+  const saved = (() => { try { return JSON.parse(localStorage.getItem('verimots-lb') || '{}') || {} } catch { return {} } })()
+  const pick = (key, choices, fallback) => choices.includes(params.get(key)) ? params.get(key) : choices.includes(saved[key]) ? saved[key] : fallback
+  let category = pick('category', CATEGORIES, 'combined')
+  let scope = pick('scope', SCOPES, '7d')
+  let board = pick('board', SECTIONS, 'any')
   let request = 0
   let controller
   let page = 0
   let currentData = null
-  const pageSize = () => media.matches ? 3 : 6
+  // Fill the phone screen instead of a fixed three rows (~64 px per row).
+  const pageSize = () => media.matches ? Math.max(3, Math.min(8, Math.floor((innerHeight - 470) / 64))) : 6
   const countMode = () => ['checks', 'find', 'training', 'combined'].includes(category)
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
   const num = n => Math.max(0, Math.round(Number(n) || 0))
@@ -162,6 +171,7 @@ export function mountLeaderboard(root, { lang, standalone = false, onPlay } = {}
   }
 
   function syncUrl() {
+    try { localStorage.setItem('verimots-lb', JSON.stringify({ category, scope, board })) } catch {}
     if (!standalone) return
     const next = new URLSearchParams({lang: ui, category, scope, board})
     history.replaceState(null, '', `${location.pathname}?${next}`)

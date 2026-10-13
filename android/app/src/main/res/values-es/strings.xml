@@ -191,7 +191,7 @@
     <string name="hist_word">Palabra</string>
     <string name="hist_pts">Ptos</string>
     <string name="hist_empty">Aún no hay palabras.</string>
-    <string name="feedback">Feedback</string>
+    <string name="feedback">Opinión</string>
     <string name="feedback_title">Un comentario</string>
     <string name="feedback_help">Una palabra, un error o una idea — llega a mi buzón.</string>
     <string name="feedback_placeholder">Tu mensaje</string>

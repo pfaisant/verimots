@@ -1,0 +1,34 @@
+Verimots acompanya els jugadors de paraules: comprovar una paraula en un segon, trobar la millor jugada d’un faristol i entrenar les combinacions. Les llistes de paraules són dins l’aplicació i funcionen sense connexió.
+
+COMPROVAR UNA PARAULA
+• Un dubte a la partida? Escriu la paraula: vàlida o no, el seu valor en punts i, amb connexió, la definició (Viccionari).
+• Català: la llista DISC, 584 095 paraules de 2 a 15 fitxes, amb NY, QU i L·L com a fitxa única.
+• Mode avançat: cerca al faristol amb escarrassos (?), paraules que comencen, acaben o contenen certes lletres.
+• Preferits i historial.
+
+LA MILLOR JUGADA
+• Paraula oculta: un faristol de lletres, busca la paraula que puntua més. El resultat és el percentatge de la millor jugada; després apareixen les millors paraules del faristol amb la definició.
+• Els punts segueixen el valor de les fitxes, amb 50 punts de bonificació per una paraula de 7 fitxes.
+
+ENTRENAR
+• Combinacions: Totes, 7 fitxes, 8 fitxes, 7 + 1, Escarràs, Difícils i Paraules curtes.
+• Paraules Curtes: cada dia, 10 paraules de 2 fitxes i 12 de 3 fitxes per repassar, amb la definició, i un mode repte.
+• Repàs: un faristol on se t’ha escapat la millor paraula, o una combinació sense acabar, es desa sol. Torna a trobar les paraules sense ajuda: torna l’endemà i després als 3, 7 i 21 dies. Pistes: primera lletra i després la definició.
+• Nivell Principiant o Avançat.
+
+COMPETIR
+• Bingo: set lletres, una sola paraula, guanya la que puntua més. Classificació setmanal.
+• Classificacions per categoria, llengua i període: dia, 3 dies, setmana, 7 dies, 30 dies, tot.
+• Compte de Google opcional, per conservar el perfil i les classificacions al web i al mòbil.
+
+QUATRE LLENGÜES
+Català, francès (407 128 paraules), anglès (llista propera al CSW, o WOW24) i castellà (RLA-ES).
+
+SENSE PUBLICITAT
+Gratuït, sense publicitat i sense compres integrades. Internet només serveix per a les definicions, les classificacions, el compte i compartir; tota la resta funciona sense connexió.
+
+CAL SABER
+Les llistes de francès, anglès i castellà són comunitàries: no són les obres oficials i en poden diferir. El DISC és el diccionari lliure del joc en català, reproduït tal qual. Verimots és un projecte independent, sense relació amb cap editor, federació, Mattel ni Hasbro.
+
+Privadesa: https://s.pfa87.cc/privadesa.html
+Ajuda: https://s.pfa87.cc/support.html

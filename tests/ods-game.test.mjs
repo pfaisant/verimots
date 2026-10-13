@@ -47,7 +47,7 @@ import { loadHistory, rememberWord, historyLabel, historyDayLabel, clearHistory 
 import { kidsWords, kidsLong } from '../web/kids.js'
 import { tileCount, encodeTiles, decodeRack } from '../web/tiles.js'
 import { competeAccepted, fetchLeaderboard } from '../web/competitive.js'
-import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=161'
+import { setLang, setDict, getDict, getLang, defaultDictFor, dictLabel, t } from '../web/i18n.js?v=162'
 
 test('rack tile usage assigns unmatched letters to blanks', () => {
   assert.deepEqual([...usedTiles('A?O', 'AÑO')].sort((a, b) => a - b), [0, 1, 2])
@@ -229,28 +229,41 @@ test('each language names its source and links concise copy to full dictionary n
   assert.match(t('dict_blurb_wow24'), /WGPO \(Official Words 2024\)/)
   assert.match(t('dict_blurb_rla'), /RLA-ES/)
   assert.match(t('dict_blurb_rla'), /Not the official FILE/)
-  assert.match(t('about_p3'), /Dictionaries/)
+  // The trademark notice lives on the Dictionaries pages since 16 Sep 2026;
+  // About points there (checked page by page below).
+  assert.match(t('about_p3'), /See Dictionaries/)
   setLang('fr')
   assert.match(t('dict_blurb_ods'), /communautaire/)
   assert.match(t('dict_blurb_ods'), /pas l’Officiel du Scrabble/)
   assert.match(t('dict_blurb_wow24'), /Official Words 2024/)
-  assert.match(t('about_p3'), /Dictionnaires/)
+  assert.match(t('about_p3'), /détaillées dans Dictionnaires/)
   setLang('es')
   assert.match(t('dict_blurb_ods'), /comunitaria/)
-  assert.match(t('about_p3'), /Diccionaris|Diccionarios/)
+  assert.match(t('about_p3'), /en Diccionarios/)
   setLang('ca')
   assert.equal(t('dict_name_disc'), 'DISC')
   assert.match(t('dict_blurb_disc'), /DISC/)
   assert.match(t('dict_blurb_disc'), /Joan Montané/)
   assert.match(t('dict_blurb_ods'), /comunitària/)
-  assert.match(t('about_p3'), /Diccionaris|Diccionarios/)
-  // Catalan is the only language whose list is a real Scrabble dictionary, so
-  // it names its source instead of disclaiming an official one.
-  const notices = await readFile(new URL('../web/dictionaries.html', import.meta.url), 'utf8')
-  assert.match(notices, /SCRABBLE is a trademark/)
-  assert.match(notices, /Joan Montané/)
+  assert.match(t('about_p3'), /a Diccionaris/)
   setLang('fr')
   assert.match(t('dict_blurb_disc'), /catalan/)
+})
+
+test('every Dictionaries page carries the trademark notice', async () => {
+  const pages = {
+    'dictionaries.html': /SCRABBLE is a trademark of Mattel/,
+    'dictionnaires.html': /SCRABBLE est une marque déposée de Mattel/,
+    'diccionarios.html': /SCRABBLE es una marca registrada de Mattel/,
+    'diccionaris.html': /SCRABBLE és una marca registrada de Mattel/,
+  }
+  for (const [page, notice] of Object.entries(pages)) {
+    const html = await readFile(new URL(`../web/${page}`, import.meta.url), 'utf8')
+    assert.match(html, notice, page)
+  }
+  // Catalan is the only language whose list is a real Scrabble dictionary, so
+  // it names its source instead of disclaiming an official one.
+  assert.match(await readFile(new URL('../web/diccionaris.html', import.meta.url), 'utf8'), /Joan Montané/)
 })
 
 test('English defaults to WGPO WOW24 and names the list everywhere', () => {

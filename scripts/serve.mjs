@@ -15,6 +15,7 @@ if (IS_MAIN) {
   const files = {
     ODS9_GAME_FILE: 'game.json', ODS9_TRAIL_SALT_FILE: 'trail-salt.txt',
     ODS9_LEADERBOARD_FILE: 'leaderboard.json', ODS9_AUTH_DB_FILE: 'auth.json',
+    ODS9_REVIEWS_DIR: 'reviews', ODS9_PLAYERS_FILE: 'players.json',
     ODS9_FEEDBACK_FILE: 'feedback.jsonl', ODS9_SIGNUP_FILE: 'signup.jsonl',
     ODS9_SESSION_SECRET_FILE: 'session-secret',
   }

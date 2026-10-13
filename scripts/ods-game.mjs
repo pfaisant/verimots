@@ -7,6 +7,7 @@
 //   POST /api/game/compete — { percent, word, lang } ranked score (requires login)
 //   POST /api/game/activity — verified checks / words found, with retry-safe ids
 //   GET|POST|DELETE /api/game/history — synced word history
+//   GET|POST /api/game/reviews — Révisions (missed draws), Google accounts only
 //   POST /api/auth/google — Google Sign-In
 //   GET /api/auth/me — current session
 //   POST /api/auth/logout — end session
@@ -17,7 +18,7 @@
 
 import { readFile, writeFile, mkdir, appendFile, rename, rm } from 'node:fs/promises'
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
-import { homedir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createHash, randomBytes, createHmac, timingSafeEqual } from 'node:crypto'
@@ -27,6 +28,11 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { OAuth2Client } from 'google-auth-library'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
+const reviewCorePath = ['../web/review-core.js', '../dashboard/s/review-core.js']
+  .map((rel) => join(SCRIPT_DIR, rel))
+  .find((p) => existsSync(p))
+if (!reviewCorePath) throw new Error('review-core.js not found next to ods-game.mjs')
+const { mergeReviews, cleanReviews, REVIEW_LIMIT, REVIEW_TOMBSTONES } = await import(pathToFileURL(reviewCorePath).href)
 const kidsPath = ['../web/kids.js', '../dashboard/s/kids.js']
   .map((rel) => join(SCRIPT_DIR, rel))
   .find((p) => existsSync(p))
@@ -62,6 +68,16 @@ let AUTH_DB_FILE =
   process.env.ODS9_AUTH_DB_FILE ||
   join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-auth.json')
 
+// Révisions: one file per Google account (name = hash of the account id),
+// so a save rewrites only that player's list. Delete it with the account.
+let REVIEWS_DIR =
+  process.env.ODS9_REVIEWS_DIR ||
+  join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-reviews')
+
+let PLAYERS_FILE =
+  process.env.ODS9_PLAYERS_FILE ||
+  join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-players.json')
+
 let FEEDBACK_FILE =
   process.env.ODS9_FEEDBACK_FILE ||
   join(homedir(), '.local', 'state', 'aiconglomerate', 'ods9-feedback.jsonl')
@@ -88,6 +104,7 @@ const allowActivityRate = createRateLimiter(120, 60_000)
 const allowCompeteRate = createRateLimiter(30, 60_000)
 const allowAuthRate = createRateLimiter(20, 60_000)
 const allowHistoryRate = createRateLimiter(120, 60_000)
+const allowReviewRate = createRateLimiter(60, 60_000)
 let state = { version: 1, plays: 0, sumPercent: 0, updatedAt: null }
 let loaded = false
 let loadPromise = null
@@ -1516,7 +1533,7 @@ async function recordActivity(sub, event) {
 // Calendar-day windows use Paris dates and UTC date arithmetic so DST does
 // not turn a seven-day range into six or eight calendar dates.
 export function boardDateRange(scope, now = new Date()) {
-  const days = scope === '7d' ? 7 : scope === '30d' ? 30 : 0
+  const days = scope === '3d' ? 3 : scope === '7d' ? 7 : scope === '30d' ? 30 : 0
   if (!days) return null
   const end = parisDateString(now)
   const start = new Date(`${end}T12:00:00Z`)
@@ -2066,7 +2083,144 @@ export function sessionCookieForTests(sub) {
   return 'ods9_session=' + signSession(sub)
 }
 
+// ========== Unique players ==========
+// A player is one Verimots identity: a Google account, or the guest minted per
+// APK install / browser. A signed-in person on the APK and the web is ONE
+// player; two guests on two devices stay two. The ledger keeps, per Paris day,
+// which identities played (a lookup, a find/training word or a Bingo play) and
+// from where: the APK (HttpURLConnection sends "Dalvik/…"), a phone browser or a
+// desktop browser. Only counts leave this module.
+const PLAYER_PLATFORMS = ['apk', 'mobile', 'desktop']
+const PLAYER_RETAIN_DAYS = 400
+let playersDb = null
+let playersSave = Promise.resolve()
+let playersTimer = null
+
+export function playerPlatform(req) {
+  const ua = String(req?.headers?.['user-agent'] || '')
+  if (/Dalvik\//.test(ua)) return 'apk'
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? 'mobile' : 'desktop'
+}
+
+async function loadPlayers() {
+  if (playersDb) return playersDb
+  try {
+    const raw = JSON.parse(await readFile(PLAYERS_FILE, 'utf8'))
+    if (raw?.version !== 1 || !raw.days || typeof raw.days !== 'object' || Array.isArray(raw.days)) throw new Error('Invalid players file')
+    playersDb = raw
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('Players ledger unreadable, starting a new one:', err.message)
+    playersDb = { version: 1, since: parisDateString(), days: {} }
+  }
+  return playersDb
+}
+
+function schedulePlayersSave() {
+  if (playersTimer) return
+  playersTimer = setTimeout(() => {
+    playersTimer = null
+    const snapshot = structuredClone(playersDb)
+    playersSave = playersSave.then(() => writeJsonAtomic(PLAYERS_FILE, snapshot)).catch((err) => console.error('Players ledger save failed:', err?.message || err))
+  }, 1000)
+  playersTimer.unref?.()
+}
+
+/** Remember that `sub` played today from `platform`. Never throws. */
+export async function notePlayer(sub, platform) {
+  try {
+    if (typeof sub !== 'string' || !sub || !PLAYER_PLATFORMS.includes(platform)) return
+    const db = await loadPlayers()
+    const day = parisDateString()
+    const row = (db.days[day] ||= {})
+    const seen = (row[sub] ||= [])
+    if (seen.includes(platform)) return
+    seen.push(platform)
+    const oldDay = parisDateString(new Date(Date.now() - PLAYER_RETAIN_DAYS * 86400_000))
+    for (const key of Object.keys(db.days)) if (key < oldDay) delete db.days[key]
+    schedulePlayersSave()
+  } catch (err) {
+    console.error('Player note failed:', err?.message || err)
+  }
+}
+
+/** Unique players today, over 7 days and since records began, with the platform split. */
+export async function playerCounts(now = new Date()) {
+  await loadAuthDb()
+  await loadLeaderboards()
+  const db = await loadPlayers()
+  const today = parisDateString(now)
+  const weekStart = parisDateString(new Date(now.getTime() - 6 * 86400_000))
+  const windows = { '1d': today, '7d': weekStart, all: '' }
+  const players = { '1d': new Set(), '7d': new Set(), all: new Set() }
+  const split = {}
+  for (const key of Object.keys(windows)) split[key] = Object.fromEntries(PLAYER_PLATFORMS.map((p) => [p, new Set()]))
+  let since = ''
+  const seen = (sub, day, platforms = []) => {
+    if (typeof sub !== 'string' || !sub || !/^\d{4}-\d{2}-\d{2}$/.test(day) || day > today) return
+    if (!since || day < since) since = day
+    for (const [key, start] of Object.entries(windows)) {
+      if (day < start) continue
+      players[key].add(sub)
+      for (const p of platforms) split[key][p]?.add(sub)
+    }
+  }
+  // History from before the ledger: lookups/finds and Bingo plays already
+  // carry the identity and the day, just not the platform.
+  for (const [sub, user] of Object.entries(authDb.users || {})) {
+    for (const day of Object.keys(user?.activity?.days || {})) seen(sub, day)
+  }
+  for (const board of Object.values(leaderboards || {})) {
+    for (const entry of board?.entries || []) {
+      const days = Object.keys(entry?.days || {})
+      if (days.length) for (const day of days) seen(entry.sub, day)
+      else if (typeof entry?.timestamp === 'string') seen(entry.sub, parisDateString(new Date(entry.timestamp)))
+    }
+  }
+  for (const [day, row] of Object.entries(db.days || {})) {
+    for (const [sub, platforms] of Object.entries(row || {})) seen(sub, day, Array.isArray(platforms) ? platforms : [])
+  }
+  const periods = {}
+  for (const key of Object.keys(windows)) {
+    periods[key] = { players: players[key].size, ...Object.fromEntries(PLAYER_PLATFORMS.map((p) => [p, split[key][p].size])) }
+  }
+  return { ok: true, today, since: since || null, platformSince: db.since || null, periods }
+}
+
 // ========== Handler ==========
+// ========== Révisions ==========
+const reviewLocks = new Map()
+
+export function reviewFileFor(sub) {
+  return join(REVIEWS_DIR, createHash('sha256').update(`verimots-reviews|${sub}`).digest('hex').slice(0, 40) + '.json')
+}
+
+async function withReviewLock(sub, fn) {
+  const prev = reviewLocks.get(sub) || Promise.resolve()
+  let release
+  const mine = new Promise((resolve) => { release = resolve })
+  const chain = prev.then(() => mine)
+  reviewLocks.set(sub, chain)
+  await prev
+  try {
+    return await fn()
+  } finally {
+    release()
+    if (reviewLocks.get(sub) === chain) reviewLocks.delete(sub)
+  }
+}
+
+/** A missing file is an empty list; an unreadable one is an error, never overwritten. */
+async function loadUserReviews(sub) {
+  let raw
+  try {
+    raw = await readFile(reviewFileFor(sub), 'utf8')
+  } catch (err) {
+    if (err.code === 'ENOENT') return []
+    throw err
+  }
+  return cleanReviews(JSON.parse(raw)?.items)
+}
+
 export async function handleOdsGame(req, res, url, helpers) {
   const { json } = helpers
   const path = url.pathname.replace(/\/$/, '') || url.pathname
@@ -2082,6 +2236,20 @@ export async function handleOdsGame(req, res, url, helpers) {
       return true
     }
     json(res, 200, await gameStats(), { 'Cache-Control': 'no-store' }, req.method)
+    return true
+  }
+
+  if (path === '/api/game/players') {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      json(res, 405, { ok: false, error: 'GET only' }, {}, req.method)
+      return true
+    }
+    try {
+      json(res, 200, await playerCounts(), { 'Cache-Control': 'public, max-age=60' }, req.method)
+    } catch (err) {
+      console.error('Player counts failed:', err?.message || err)
+      json(res, 503, { ok: false, error: 'players_unavailable' }, { 'Cache-Control': 'no-store' }, req.method)
+    }
     return true
   }
 
@@ -2156,12 +2324,12 @@ export async function handleOdsGame(req, res, url, helpers) {
     const sessionSub = await getSessionFromRequest(req)
     const scope = String(url.searchParams.get('scope') || '').toLowerCase()
     if (category === 'combined') {
-      const board = await getCombinedBoard(lang, ['all', 'day', '7d', '30d'].includes(scope) ? scope : 'week', sessionSub)
+      const board = await getCombinedBoard(lang, ['all', 'day', '3d', '7d', '30d'].includes(scope) ? scope : 'week', sessionSub)
       json(res, 200, board, { 'Cache-Control': 'no-store' }, req.method)
       return true
     }
     if (ACTIVITY_CATEGORIES.includes(category)) {
-      const board = await getActivityBoard(category, lang, ['all', 'day', '7d', '30d'].includes(scope) ? scope : 'week', sessionSub)
+      const board = await getActivityBoard(category, lang, ['all', 'day', '3d', '7d', '30d'].includes(scope) ? scope : 'week', sessionSub)
       json(res, 200, board, { 'Cache-Control': 'no-store' }, req.method)
       return true
     }
@@ -2232,6 +2400,7 @@ export async function handleOdsGame(req, res, url, helpers) {
         return true
       }
       const result = await recordActivity(sub, event)
+      if (!result.error) await notePlayer(sub, playerPlatform(req))
       const { status = 200, ...payload } = result
       json(res, status, { ok: !result.error, ...payload }, { 'Cache-Control': 'no-store' }, req.method)
     } catch (err) {
@@ -2291,6 +2460,7 @@ export async function handleOdsGame(req, res, url, helpers) {
       }
       const pseudo = user.name || 'Anonyme'
       const result = await recordCompete(trailId, sessionSub, pseudo, scored)
+      if (result.ok) await notePlayer(sessionSub, playerPlatform(req))
       json(
         res,
         result.ok ? 200 : 400,
@@ -2386,6 +2556,58 @@ export async function handleOdsGame(req, res, url, helpers) {
       return true
     }
     json(res, 200, { ok: true, user }, { 'Cache-Control': 'no-store' }, req.method)
+    return true
+  }
+
+  // Révisions sync: the device sends its whole list, the server keeps the
+  // merge (latest change per draw, deletions included) and returns it.
+  if (path === '/api/game/reviews') {
+    if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
+      json(res, 405, { ok: false, error: 'GET or POST' }, {}, req.method)
+      return true
+    }
+    const sessionSub = await getSessionFromRequest(req)
+    if (!sessionSub) {
+      json(res, 401, { ok: false, error: 'login_required' }, {}, req.method)
+      return true
+    }
+    if (isGuestSub(sessionSub)) {
+      json(res, 403, { ok: false, error: 'google_required' }, {}, req.method)
+      return true
+    }
+    if (req.method === 'POST' && !allowReviewRate(sessionSub)) {
+      json(res, 429, { ok: false, error: 'Too many requests' }, { 'Retry-After': '60' }, req.method)
+      return true
+    }
+    let body = null
+    if (req.method === 'POST') {
+      try {
+        body = await readJson(req, 400_000)
+      } catch {
+        json(res, 400, { ok: false, error: 'invalid_reviews' }, {}, req.method)
+        return true
+      }
+      if (body?.owner && body.owner !== sessionSub) {
+        json(res, 409, { ok: false, error: 'session_changed' }, {}, req.method)
+        return true
+      }
+    }
+    try {
+      const items = await withReviewLock(sessionSub, async () => {
+        const stored = await loadUserReviews(sessionSub)
+        if (req.method !== 'POST') return stored
+        const incoming = Array.isArray(body?.items) ? body.items.slice(0, REVIEW_LIMIT + REVIEW_TOMBSTONES) : []
+        const merged = mergeReviews(stored, incoming)
+        if (JSON.stringify(merged) !== JSON.stringify(stored)) {
+          await writeJsonAtomic(reviewFileFor(sessionSub), { version: 1, updatedAt: new Date().toISOString(), items: merged })
+        }
+        return merged
+      })
+      json(res, 200, { ok: true, items }, { 'Cache-Control': 'no-store' }, req.method)
+    } catch (err) {
+      console.error('Reviews request failed:', err?.code || err?.message || 'Error')
+      json(res, 500, { ok: false, error: 'reviews_unavailable' }, {}, req.method)
+    }
     return true
   }
 
@@ -2597,10 +2819,19 @@ export function resetGameStatsForTests(file, saltFile = null, leaderboardFile = 
   allowCompeteRate.clear()
   allowAuthRate.clear()
   allowHistoryRate.clear()
+  allowReviewRate.clear()
+  reviewLocks.clear()
+  // Tests never write the live review files.
+  REVIEWS_DIR = file ? String(file).replace(/\.json$/i, '-reviews') : join(tmpdir(), `ods9-reviews-test-${process.pid}`)
   saveChain = Promise.resolve()
   loadPromise = null
   trailSaltPromise = null
   skipFeedbackMail = true
+  playersDb = { version: 1, since: parisDateString(), days: {} }
+  if (playersTimer) clearTimeout(playersTimer)
+  playersTimer = null
+  // Tests never touch the live ledger, even when they pass no file.
+  PLAYERS_FILE = file ? String(file).replace(/\.json$/i, '-players.json') : join(tmpdir(), `ods9-players-test-${process.pid}.json`)
   if (file) {
     FEEDBACK_FILE = String(file).replace(/\.json$/i, '.jsonl')
     SIGNUP_FILE = String(file).replace(/\.json$/i, '-signup.jsonl')

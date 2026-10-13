@@ -129,6 +129,7 @@ final class RemoteApi {
                 String lemma = o.optString("lemma", "");
                 post(() -> cb.ok(pos, def, url, lemma));
             } catch (Exception e) {
+                DiagLog.error("net", "define", e);
                 post(() -> cb.empty("offline"));
             }
         });
@@ -147,6 +148,7 @@ final class RemoteApi {
                     post(() -> cb.ok(true, avg));
                 } else post(() -> cb.ok(false, 0));
             } catch (Exception e) {
+                DiagLog.error("net", "fetchAverage", e);
                 post(() -> cb.ok(false, 0));
             }
         });
@@ -192,6 +194,7 @@ final class RemoteApi {
                 }
                 post(cb::ok);
             } catch (Exception e) {
+                DiagLog.error("net", "sendFeedback", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -231,7 +234,9 @@ final class RemoteApi {
     }
 
     private static String read(HttpURLConnection c) throws Exception {
-        try (InputStream in = c.getResponseCode() >= 400 ? c.getErrorStream() : c.getInputStream()) {
+        int status = c.getResponseCode();
+        if (status >= 400) DiagLog.w("net", c.getURL().getPath() + " answered HTTP " + status);
+        try (InputStream in = status >= 400 ? c.getErrorStream() : c.getInputStream()) {
             if (in == null) return "{}";
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             byte[] buf = new byte[4096];
@@ -268,6 +273,7 @@ final class RemoteApi {
                     post(() -> cb.ok(trailId, category, rack, seed));
                 } else post(() -> cb.error("Trail non disponible"));
             } catch (Exception e) {
+                DiagLog.error("net", "fetchTrail", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -301,6 +307,7 @@ final class RemoteApi {
                     post(() -> cb.ok(top, me));
                 } else post(() -> cb.error("Classement non disponible"));
             } catch (Exception e) {
+                DiagLog.error("net", "fetchBoard", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -324,6 +331,36 @@ final class RemoteApi {
                 JSONObject me = response.optJSONObject("me");
                 post(() -> cb.ok(top == null ? new JSONArray() : top, me));
             } catch (Exception e) {
+                DiagLog.error("net", "fetchCategoryBoard", e);
+                post(() -> cb.error("offline"));
+            }
+        });
+    }
+
+    interface LeaderboardCb {
+        void ok(JSONObject response);
+        void error(String message);
+    }
+
+    /** The web leaderboard request: board is a language or "any" (all languages). */
+    static void fetchLeaderboard(String category, String board, String scope, LeaderboardCb cb) {
+        IO.execute(() -> {
+            try {
+                String lang = "any".equals(board) || Lang.supported(board) ? board : "any";
+                String query = "?category=" + URLEncoder.encode(category, "UTF-8")
+                        + "&lang=" + lang + "&scope=" + URLEncoder.encode(scope, "UTF-8");
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/board" + query).openConnection();
+                auth(c);
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(12000);
+                JSONObject response = new JSONObject(read(c));
+                if (!response.optBoolean("ok")) {
+                    post(() -> cb.error("offline"));
+                    return;
+                }
+                post(() -> cb.ok(response));
+            } catch (Exception e) {
+                DiagLog.error("net", "fetchLeaderboard", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -351,6 +388,7 @@ final class RemoteApi {
                 if (status < 400 && response.optBoolean("ok")) post(cb::ok);
                 else post(() -> cb.error(status >= 500 || status == 429 || status == 401 ? "retry" : "invalid"));
             } catch (Exception e) {
+                DiagLog.error("net", "recordActivity", e);
                 post(() -> cb.error("retry"));
             }
         });
@@ -373,6 +411,7 @@ final class RemoteApi {
                     post(() -> cb.ok(user, requestedToken));
                 } else post(() -> cb.error("offline"));
             } catch (Exception e) {
+                DiagLog.error("net", "fetchMe", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -416,6 +455,7 @@ final class RemoteApi {
                     post(() -> cb.ok(user, token));
                 } else post(() -> cb.error(o.optString("error", "guest_failed")));
             } catch (Exception e) {
+                DiagLog.error("net", "guest", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -449,6 +489,7 @@ final class RemoteApi {
                     } else post(() -> cb.error("Pas de données utilisateur"));
                 } else post(() -> cb.error(o.optString("error", "Échec de l'authentification")));
             } catch (Exception e) {
+                DiagLog.error("net", "authGoogle", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -468,6 +509,7 @@ final class RemoteApi {
                     post(() -> cb.ok(history != null ? history : new JSONArray(), o.optJSONObject("stats")));
                 } else post(() -> cb.error(o.optString("error", "historique indisponible")));
             } catch (Exception e) {
+                DiagLog.error("net", "fetchHistory", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -488,6 +530,41 @@ final class RemoteApi {
                     post(() -> cb.ok(history != null ? history : new JSONArray(), o.optJSONObject("stats")));
                 } else post(() -> cb.error(o.optString("error", "historique indisponible")));
             } catch (Exception e) {
+                DiagLog.error("net", "clearHistory", e);
+                post(() -> cb.error("offline"));
+            }
+        });
+    }
+
+    interface ReviewsCb {
+        void ok(JSONArray items);
+        void error(String message);
+    }
+
+    /** Révisions sync: sends the whole list, gets the server's merge back. */
+    static void syncReviews(String owner, JSONArray items, ReviewsCb cb) {
+        final String requestSession = sessionToken;
+        IO.execute(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(HOST + "/api/game/reviews").openConnection();
+                auth(c, requestSession);
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(12000);
+                c.setDoOutput(true);
+                c.setRequestMethod("POST");
+                c.setRequestProperty("Content-Type", "application/json");
+                JSONObject payload = new JSONObject();
+                payload.put("owner", owner);
+                payload.put("items", items);
+                try (OutputStream os = c.getOutputStream()) {
+                    os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+                }
+                JSONObject o = new JSONObject(read(c));
+                JSONArray back = o.optJSONArray("items");
+                if (o.optBoolean("ok") && back != null) post(() -> cb.ok(back));
+                else post(() -> cb.error(o.optString("error", "reviews_unavailable")));
+            } catch (Exception e) {
+                DiagLog.error("net", "syncReviews", e);
                 post(() -> cb.error("offline"));
             }
         });
@@ -567,6 +644,7 @@ final class RemoteApi {
                 else if ("already_submitted".equals(o.optString("error"))) post(() -> cb.alreadySubmitted());
                 else post(() -> cb.error(o.optString("error", "offline")));
             } catch (Exception e) {
+                DiagLog.error("net", "compete", e);
                 post(() -> cb.error("offline"));
             }
         });

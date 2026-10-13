@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Révisions (ReviewScreen): same wording as dashboard/s/i18n.js rev_* keys. -->
+<resources>
+    <string name="menu_review">Révisions</string>
+    <string name="rev_menu_empty">Les tirages que tu rates reviennent ici</string>
+    <string name="rev_menu_due_one">1 tirage à revoir</string>
+    <string name="rev_menu_due">%1$d tirages à revoir</string>
+    <string name="rev_menu_next">Prochaine révision %1$s</string>
+    <string name="rev_menu_clear">Tout est maîtrisé</string>
+    <string name="rev_how_title">Comment ça marche ?</string>
+    <string name="rev_how">Quand le meilleur mot t’échappe (Bingo, Trouver un mot) ou qu’il te manque des mots (Combinaisons), le tirage arrive ici. Retrouve les mots sans aide : il revient demain, puis dans 3, 7 et 21 jours, et il est maîtrisé.</string>
+    <string name="rev_stat_due">À revoir</string>
+    <string name="rev_stat_later">Plus tard</string>
+    <string name="rev_stat_mastered">Maîtrisés</string>
+    <string name="rev_start_one">Réviser le tirage</string>
+    <string name="rev_start">Réviser les %1$d tirages</string>
+    <string name="rev_none_due">Rien à revoir pour l’instant.</string>
+    <string name="rev_none_due_next">Rien à revoir pour l’instant · prochaine révision %1$s.</string>
+    <string name="rev_empty">Aucun tirage pour l’instant. Joue au Bingo, à Trouver un mot ou aux Combinaisons : chaque tirage raté arrivera ici.</string>
+    <string name="rev_other_dicts_one">1 tirage attend dans un autre dictionnaire.</string>
+    <string name="rev_other_dicts">%1$d tirages attendent dans d’autres dictionnaires.</string>
+    <string name="rev_synced">Synchronisé avec ton compte</string>
+    <string name="rev_sync_failed">Synchronisation impossible pour le moment · ta liste reste sur cet appareil</string>
+    <string name="rev_syncing">Synchronisation…</string>
+    <string name="rev_local">Sur cet appareil · connecte-toi pour les retrouver partout</string>
+    <string name="rev_game_bingo">Bingo</string>
+    <string name="rev_game_find">Trouver un mot</string>
+    <string name="rev_game_combi">Combinaisons</string>
+    <string name="rev_targets_best" formatted="true">Meilleur mot : %1$d lettres · %2$d pts</string>
+    <string name="rev_targets_combi_one">1 mot manqué</string>
+    <string name="rev_targets_combi">%1$d mots manqués</string>
+    <string name="rev_missed_on">raté le %1$s</string>
+    <string name="rev_mastered_short">maîtrisé</string>
+    <string name="rev_when_now">à revoir</string>
+    <string name="rev_when_tomorrow">demain</string>
+    <string name="rev_when_days">dans %1$d jours</string>
+    <string name="rev_play">Rejouer</string>
+    <string name="rev_delete">Retirer</string>
+    <string name="rev_delete_aria">Retirer ce tirage des révisions</string>
+    <string name="rev_deleted">Tirage retiré.</string>
+    <string name="rev_undo">Annuler</string>
+    <string name="rev_progress" formatted="true">%1$d sur %2$d</string>
+    <string name="rev_goal_best">Retrouve le meilleur mot</string>
+    <string name="rev_goal_best_any">Retrouve l’un des %1$d meilleurs mots</string>
+    <string name="rev_goal_combi_one">Retrouve le mot qui t’a échappé</string>
+    <string name="rev_goal_combi">Retrouve les %1$d mots qui t’ont échappé</string>
+    <string name="rev_hint">Indice</string>
+    <string name="rev_show">Voir la réponse</string>
+    <string name="rev_hint_first">Il commence par %1$s.</string>
+    <string name="rev_hint_len">%1$d lettres</string>
+    <string name="rev_found">%1$s : trouvé !</string>
+    <string name="rev_already">%1$s est déjà trouvé.</string>
+    <string name="rev_not_target" formatted="true">%1$s est valable (%2$d pts), mais ce n’est pas un mot à retrouver.</string>
+    <string name="rev_done_ok">Retrouvé sans aide.</string>
+    <string name="rev_done_help">Retrouvé avec un indice.</string>
+    <string name="rev_done_miss">Pas cette fois.</string>
+    <string name="rev_plan_next">Prochaine révision %1$s.</string>
+    <string name="rev_plan_tomorrow">On le revoit demain.</string>
+    <string name="rev_plan_mastered">Maîtrisé : il ne reviendra plus.</string>
+    <string name="rev_plan_early">Rejoué en avance : la révision prévue %1$s ne change pas.</string>
+    <string name="rev_played_was" formatted="true">Ce jour-là, tu avais joué %1$s (%2$d pts).</string>
+    <string name="rev_finish">Terminer</string>
+    <string name="rev_next">Suivant</string>
+    <string name="rev_session_done" formatted="true">Séance terminée : %1$d sur %2$d retrouvés sans aide.</string>
+    <string name="rev_saved">Ajouté à tes révisions</string>
+</resources>

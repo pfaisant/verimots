@@ -193,7 +193,7 @@
     <string name="hist_word">Mot</string>
     <string name="hist_pts">Pts</string>
     <string name="hist_empty">Aucun mot pour l’instant.</string>
-    <string name="feedback">Feedback</string>
+    <string name="feedback">Avis</string>
     <string name="feedback_title">Un commentaire</string>
     <string name="feedback_help">Un mot, un bug, une idée — ça arrive dans ma boîte mail.</string>
     <string name="feedback_placeholder">Votre message</string>

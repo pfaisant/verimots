@@ -1,12 +1,13 @@
-import { mountLeaderboard } from './leaderboard.js?v=20260921-filters'
-import { polishIcons, icon } from './icons.js?v=161'
-import { activityId, recordActivity } from './activity.js?v=161'
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=161'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=161'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=161'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=161'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=161'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=161'
+import { mountLeaderboard } from './leaderboard.js?v=20261009-v1'
+import { polishIcons, icon } from './icons.js?v=162'
+import { activityId, recordActivity } from './activity.js?v=162'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=162'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=162'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=162'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=162'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=162'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=162'
+import { initReviews } from './review.js?v=162'
 
 function letterValues() {
   return tileValues(getLang())
@@ -66,7 +67,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=161', { type: 'module' })
+const worker = new Worker('worker.js?v=162', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -500,7 +501,7 @@ function recordWords(entries) {
   if (histSheet && !histSheet.hidden) renderHistory()
   const owner = getCurrentUser()?.sub
   if (owner) {
-    import('./competitive.js?v=161').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=162').then(({ saveHistoryWord }) => {
       if (getCurrentUser()?.sub !== owner || clearingHistory) return
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry, { owner })
     }).catch(() => {})
@@ -515,7 +516,7 @@ async function syncCloudHistory() {
   const owner = getCurrentUser().sub
   const revision = historyRevision
   try {
-    const { fetchHistory } = await import('./competitive.js?v=161')
+    const { fetchHistory } = await import('./competitive.js?v=162')
     const remote = await fetchHistory()
     if (!remote.ok || revision !== historyRevision || getCurrentUser()?.sub !== owner) return
     mergeHistory(remote.history)
@@ -657,8 +658,8 @@ function syncChrome() {
   }
   document.title =
     nav === 'game' ? t('doc_game') : nav === 'board' ? t('doc_board') : nav === 'rack' ? t('doc_rack') : t('title')
-  const apk = document.querySelector('.apk-link')
-  if (apk) apk.hidden = inApp
+  const playLink = document.querySelector('.play-link')
+  if (playLink) playLink.hidden = inApp
   document.querySelectorAll('.legal-link').forEach((el) => {
     el.hidden = nav === 'game' || nav === 'board'
     const href = el.getAttribute('href') || ''
@@ -720,22 +721,7 @@ function syncChrome() {
 }
 
 async function paintApkLink() {
-  const apk = document.querySelector('.apk-link')
-  if (!apk) return
-  apk.href = 'verimots.apk'
-  try {
-    const res = await fetch('apk.json', { cache: 'no-store' })
-    const data = await res.json()
-    if (data?.version) {
-      const file = `verimots-${data.version}.apk`
-      apk.textContent = file
-      apk.download = file
-      apk.title = `Télécharger ${file}`
-      if (data.versioned) apk.href = data.versioned
-    }
-  } catch {
-    /* keep the static latest link */
-  }
+  // No-op: Play Store link is now in the HTML
 }
 
 function setNav(name) {
@@ -777,7 +763,7 @@ function mountBoardPage(on) {
       lang: boardLanguage,
       onPlay: async ({ lang, play, view }) => {
         if (LANGS.includes(lang) && lang !== getLang()) await switchLang(lang)
-        if (['bingo', 'kids', 'find', 'training'].includes(play)) linkedGame = play
+        if (['bingo', 'kids', 'find', 'training', 'revisions'].includes(play)) linkedGame = play
         setNav(view === 'check' ? 'check' : 'game')
       },
     })
@@ -791,7 +777,52 @@ function isAccountLinked() {
   return !!user && !user.guest
 }
 
+// Header account button. Strings stay here rather than in i18n.js so the
+// shared module graph keeps its version.
+const ACCOUNT_BUTTON = {
+  fr: { in: 'Se connecter', you: 'Mon compte' },
+  en: { in: 'Sign in', you: 'My account' },
+  es: { in: 'Iniciar sesión', you: 'Mi cuenta' },
+  ca: { in: 'Inicia la sessió', you: 'El meu compte' },
+}
+const accountBtn = document.getElementById('acct-btn')
+
+function paintAccountButton() {
+  if (!accountBtn) return
+  const user = getCurrentUser()
+  const linked = !!user && !user.guest
+  const words = ACCOUNT_BUTTON[getLang()] || ACCOUNT_BUTTON.en
+  const label = linked ? `${words.you}${user.name ? ` · ${user.name}` : ''}` : words.in
+  accountBtn.setAttribute('aria-label', label)
+  accountBtn.title = label
+  accountBtn.classList.toggle('is-linked', linked)
+  const pic = accountBtn.querySelector('.acct-pic')
+  const photo = linked && typeof user.picture === 'string' && /^https:\/\//.test(user.picture) ? user.picture : ''
+  if (pic.getAttribute('src') !== photo) {
+    if (photo) pic.src = photo
+    else pic.removeAttribute('src')
+  }
+  pic.hidden = !photo
+  accountBtn.querySelector('svg').style.display = photo ? 'none' : ''
+}
+
+accountBtn?.querySelector('.acct-pic')?.addEventListener('error', (event) => {
+  event.currentTarget.hidden = true
+  accountBtn.querySelector('svg').style.display = ''
+})
+accountBtn?.addEventListener('click', () => {
+  setNav('info')
+  // The sign-in card mounts its Google button on the Options panel; once it is
+  // painted, bring the card (or the account card when signed in) into view.
+  requestAnimationFrame(() => {
+    const prompt = document.getElementById('login-prompt')
+    const target = prompt && !prompt.hidden ? prompt : document.getElementById('game-user')
+    target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  })
+})
+
 function paintLoginTab() {
+  paintAccountButton()
   const linked = isAccountLinked()
   const button = document.querySelector('#tabs [data-tab="info"]')
   if (!button) return
@@ -1191,6 +1222,10 @@ function renderStudy() {
 const gameMenuEl = document.getElementById('game-menu')
 const gamePlayEl = document.getElementById('game-play')
 const gameStudyEl = document.getElementById('game-study')
+const gameReviewEl = document.getElementById('game-review')
+// Révisions (review.js) and the game's closed state; set once the game engine exists.
+let reviews = null
+let gameClosed = () => false
 
 function getLevel() {
   try {
@@ -1219,6 +1254,10 @@ function showGameView(view = 'menu') {
   if (gameMenuEl) gameMenuEl.hidden = view !== 'menu'
   if (gamePlayEl) gamePlayEl.hidden = view !== 'play'
   if (gameStudyEl) gameStudyEl.hidden = view !== 'study'
+  if (gameReviewEl) gameReviewEl.hidden = view !== 'review'
+  // The review player reuses the play classes; a closed round must not fold it.
+  document.body.classList.toggle('game-closed', view !== 'review' && gameClosed())
+  if (view === 'menu') reviews?.paintMenu()
   const dock = document.getElementById('game-dock')
   if (dock) dock.hidden = view !== 'play'
   const actionsPanel = document.getElementById('game-actions-panel')
@@ -1300,7 +1339,18 @@ document.getElementById('study-def')?.addEventListener('click', async (e) => {
   textEl.innerHTML = `${backBtn(studyHome?.word || '', escapeHtml)}${defBody(resolved.payload, escapeHtml, { asRoot: true })}`
 })
 
+function openReviews() {
+  openedPlayThisSession = true
+  showGameView('review')
+  reviews?.open()
+}
+
 async function enterGame() {
+  if (linkedGame === 'revisions') {
+    linkedGame = null
+    openReviews()
+    return
+  }
   const linkedModes = {bingo: 'competitive', kids: 'kids', find: 'defi', training: 'training'}
   if (Object.hasOwn(linkedModes, linkedGame)) {
     openedPlayThisSession = true
@@ -1322,6 +1372,7 @@ async function enterGame() {
     return
   }
   if (gameStudyEl && !gameStudyEl.hidden) return
+  if (gameReviewEl && !gameReviewEl.hidden) return
   if (!openedPlayThisSession) {
     // First visit lands on the game menu: pick a game before being dealt into Bingo.
     openedPlayThisSession = true
@@ -1340,6 +1391,10 @@ gameMenuEl?.addEventListener('click', async (e) => {
   const picked = e.target.closest('[data-game]')
   if (!picked) return
   const choice = picked.dataset.game
+  if (choice === 'review') {
+    openReviews()
+    return
+  }
   if (choice === 'study') {
     renderStudy()
     showGameView('study')
@@ -1739,7 +1794,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (error) error.hidden = true
   try {
     if (owner) {
-      const { clearCloudHistory } = await import('./competitive.js?v=161')
+      const { clearCloudHistory } = await import('./competitive.js?v=162')
       if (getCurrentUser()?.sub !== owner) return
       const result = await clearCloudHistory({ owner })
       if (!result?.ok || getCurrentUser()?.sub !== owner) throw new Error('clear_failed')
@@ -1962,6 +2017,21 @@ const game = initGame({
   onPlayed({ word, pts }) {
     recordWords([{ word, pts, src: 'defi' }])
   },
+  onMissed: (miss) => reviews?.record(miss),
+})
+
+gameClosed = () => game.isClosed()
+reviews = initReviews({
+  ask,
+  normalize,
+  escapeHtml,
+  tilesHtml,
+  define: loadDefinition,
+  onLeave: () => showGameView('menu'),
+})
+// "Ajouté à tes révisions" under a missed round opens the list.
+document.getElementById('game-result')?.addEventListener('click', (e) => {
+  if (e.target.closest('[data-open-review]')) openReviews()
 })
 
 function metaFile(id = getDict()) {
@@ -1989,6 +2059,7 @@ async function reloadLexicon() {
   ready = true
   setLive(liveCount(result.count))
   paintAboutCount(result.count)
+  reviews?.refresh()
   if (nav === 'check' || nav === 'rack') run()
   else if (nav === 'lists') renderLists()
   else if (nav === 'info') renderStudy()
@@ -2115,7 +2186,7 @@ async function boot() {
 }
 
 if ('serviceWorker' in navigator && !inApp) {
-  navigator.serviceWorker.register('sw.js?v=20260921-filters').catch(() => {})
+  navigator.serviceWorker.register('sw.js?v=20260923-v5').catch(() => {})
 }
 
 window.addEventListener('resize', () => {

@@ -13,3 +13,6 @@
 # Keep line numbers so Play Console crash traces stay readable
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Readable exception names in the in-app technical log (DiagLog)
+-keepnames class * extends java.lang.Throwable

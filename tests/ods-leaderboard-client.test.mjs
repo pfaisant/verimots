@@ -57,6 +57,7 @@ function setup(t, opts = {}) {
   const context = vm.createContext({
     root, opts, document, navigator: { language: 'en' }, window: { matchMedia: () => ({ matches: false, addEventListener() {} }) },
     location: new URL('https://s.pfa87.cc/?lang=en&vue=board'), history: { replaceState: (_, __, url) => urls.push(url) },
+    localStorage: { getItem: key => opts.storage?.get(key) ?? null, setItem: (key, value) => opts.storage?.set(key, value) },
     URL, URLSearchParams, AbortController, setTimeout, clearTimeout, flagSvg, icon,
     fetch: (url, options) => new Promise((resolve, reject) => requests.push({ url, options, resolve, reject })),
   })
@@ -75,6 +76,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve))
 test('the app mounts leaderboard rows directly and escapes public player names', async t => {
   const ui = setup(t, { lang: 'en' })
   assert.doesNotMatch(ui.root.innerHTML, /iframe/i)
+  // Inclusive defaults since 21 Sep 2026: all activities, all languages, last 7 days.
   assert.equal(ui.requests[0].url, '/api/game/board?category=combined&scope=7d&lang=any')
   assert.equal(ui.requests[0].options.credentials, 'include')
   ui.reply(0, { total: 1, top: [{ rank: 1, lang: 'en', count: 12, pseudo: '<img src=x onerror=alert(1)>' }] })
@@ -103,7 +105,20 @@ test('changing filters keeps app navigation and ignores an older response', asyn
   assert.match(ui.requests[2].url, /category=bingo&scope=all&lang=any/)
   ui.reply(2)
   await flush()
+  ui.change('board', 'en')
+  ui.change('scope', '30d')
+  assert.match(ui.requests[4].url, /category=bingo&scope=30d&lang=en/)
   assert.deepEqual(ui.urls, [])
+})
+
+test('filters restore from this device and the period list matches the APK', async t => {
+  const store = new Map([['verimots-lb', JSON.stringify({ category: 'find', scope: '30d', board: 'ca' })]])
+  const ui = setup(t, { lang: 'en', storage: store })
+  assert.equal(ui.requests[0].url, '/api/game/board?category=find&scope=30d&lang=ca')
+  const scopes = [...ui.select('scope').innerHTML.matchAll(/value="([^"]+)"/g)].map(m => m[1])
+  assert.deepEqual(scopes, ['day', '3d', 'week', '7d', '30d', 'all'])
+  ui.change('scope', '7d')
+  assert.deepEqual(JSON.parse(store.get('verimots-lb')), { category: 'find', scope: '7d', board: 'ca' })
 })
 
 test('an unavailable board offers retry and recovers without a fake empty ranking', async t => {

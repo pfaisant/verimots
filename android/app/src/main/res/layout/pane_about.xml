@@ -135,6 +135,48 @@
                 android:textColor="@color/tile_ink"
             android:textSize="14sp" />
 
+            <!-- After an attempt that ended without an account: the browser and the log. -->
+            <LinearLayout
+                android:id="@+id/auth_help_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/auth_browser"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center_vertical"
+                    android:maxLines="2"
+                    android:text="@string/auth_browser"
+                    android:textColor="@color/gold"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/auth_log"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:minHeight="48dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical|end"
+                    android:maxLines="1"
+                    android:text="@string/diag_title"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
             <!-- Signed in: avatar (gold ring) · name · i · Se déconnecter -->
             <LinearLayout
                 android:id="@+id/auth_user_row"
@@ -157,7 +199,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@drawable/bg_avatar_fallback"
-                        android:fontFamily="serif"
+                        android:fontFamily="sans-serif"
                         android:gravity="center"
                         android:includeFontPadding="false"
                         android:textColor="@color/tile_ink"
@@ -612,16 +654,40 @@
             android:paddingVertical="8dp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/about_version"
+            <!-- Version stamp · Technical log -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:maxLines="2"
-                android:textColor="@color/dim"
-                android:textSize="11sp" />
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/about_version"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxLines="2"
+                    android:textColor="@color/dim"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/about_logs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center_vertical|end"
+                    android:maxLines="1"
+                    android:text="@string/diag_title"
+                    android:textColor="@color/gold"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Confidentialité -->

@@ -1,0 +1,9 @@
+I built a free, ad-free tool for letter-game players: challenges, top play on a rack, 7 + 1 practice, offline
+
+30-second demo (in French): https://verimots.pfa87.cc/promo/
+
+Verimots checks a word (with its definition), finds the top play on a rack using tile points and the 50-point bonus for all seven tiles, and has practice modes: 7 + 1, blanks, expensive letters, 7 or 8 letters, a timer, and the two- and three-letter words. French, English, Spanish and Catalan, offline once the lists have loaded.
+
+The French list is a community list, not the official ODS Larousse edition; English offers a CSW-style public list and WOW24. Verimots is independent and not affiliated with Scrabble, Mattel or Hasbro.
+
+https://verimots.pfa87.cc/

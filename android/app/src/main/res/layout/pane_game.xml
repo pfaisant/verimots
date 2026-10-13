@@ -43,17 +43,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                style="@style/Display"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="14dp"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:text="@string/menu_title"
-                android:textSize="19sp"
-                android:textStyle="bold" />
+            <!-- 5.0: no "Les jeux" heading — the Play tab already says where you are, as on the web. -->
+            <Space android:layout_width="match_parent" android:layout_height="8dp" />
 
             <LinearLayout
                 android:id="@+id/menu_comp"
@@ -62,31 +53,53 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:gravity="center_vertical"
+                android:minHeight="76dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:maxLines="1"
-                    android:drawableStart="@drawable/ic_tab_board"
-                    android:drawablePadding="12dp"
-                    android:text="@string/menu_comp"
-                    android:textColor="@color/ink"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_menu_tile"
+                    android:importantForAccessibility="no"
+                    android:paddingHorizontal="9dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="10dp"
+                    android:src="@drawable/ic_tab_board"
+                    android:tint="#3c2c0d" />
 
-                <TextView
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="@string/menu_comp_blurb"
-                    android:textColor="@color/muted"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="@string/menu_comp"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:lineSpacingMultiplier="1.15"
+                        android:maxLines="2"
+                        android:text="@string/menu_comp_blurb"
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -97,31 +110,53 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:gravity="center_vertical"
+                android:minHeight="76dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:maxLines="1"
-                    android:drawableStart="@drawable/ic_tab_check"
-                    android:drawablePadding="12dp"
-                    android:text="@string/menu_find"
-                    android:textColor="@color/ink"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_menu_tile"
+                    android:importantForAccessibility="no"
+                    android:paddingHorizontal="9dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="10dp"
+                    android:src="@drawable/ic_tab_check"
+                    android:tint="#3c2c0d" />
 
-                <TextView
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="@string/menu_find_blurb"
-                    android:textColor="@color/muted"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="@string/menu_find"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:lineSpacingMultiplier="1.15"
+                        android:maxLines="2"
+                        android:text="@string/menu_find_blurb"
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -132,31 +167,53 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:gravity="center_vertical"
+                android:minHeight="76dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:maxLines="1"
-                    android:drawableStart="@drawable/ic_combinations"
-                    android:drawablePadding="12dp"
-                    android:text="@string/menu_training"
-                    android:textColor="@color/ink"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_menu_tile"
+                    android:importantForAccessibility="no"
+                    android:paddingHorizontal="9dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="10dp"
+                    android:src="@drawable/ic_combinations"
+                    android:tint="#3c2c0d" />
 
-                <TextView
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="@string/training_blurb"
-                    android:textColor="@color/muted"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="@string/menu_training"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:lineSpacingMultiplier="1.15"
+                        android:maxLines="2"
+                        android:text="@string/training_blurb"
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -167,31 +224,125 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:gravity="center_vertical"
+                android:minHeight="76dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_menu_tile"
+                    android:importantForAccessibility="no"
+                    android:paddingHorizontal="9dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="10dp"
+                    android:src="@drawable/ic_book"
+                    android:tint="#3c2c0d" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="@string/menu_study"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:lineSpacingMultiplier="1.15"
+                        android:maxLines="2"
+                        android:text="@string/menu_study_blurb"
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Révisions: missed draws on a spaced schedule (ReviewScreen). -->
+            <LinearLayout
+                android:id="@+id/menu_review"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="76dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_menu_tile"
+                    android:importantForAccessibility="no"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_review"
+                    android:tint="#3c2c0d" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="@string/menu_review"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/menu_review_sub"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:lineSpacingMultiplier="1.15"
+                        android:maxLines="2"
+                        android:text="@string/rev_menu_empty"
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
 
                 <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
+                    android:id="@+id/menu_review_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_review_badge"
                     android:fontFamily="sans-serif-medium"
-                    android:maxLines="1"
-                    android:drawableStart="@drawable/ic_book"
-                    android:drawablePadding="12dp"
-                    android:text="@string/menu_study"
-                    android:textColor="@color/ink"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="@string/menu_study_blurb"
-                    android:textColor="@color/muted"
-                    android:textSize="12sp" />
+                    android:gravity="center"
+                    android:minWidth="24dp"
+                    android:paddingHorizontal="7dp"
+                    android:textColor="@color/tile_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -279,6 +430,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:fadingEdgeLength="28dp"
+        android:requiresFadingEdge="vertical"
         android:fillViewport="true"
         android:clipToPadding="true"
         android:overScrollMode="never"
@@ -505,11 +658,21 @@
             android:visibility="gone" />
     </LinearLayout>
 
+    <!-- 5.0: rack, answer and feedback share one card, like .game-stage on the web. -->
+    <LinearLayout
+        android:id="@+id/game_stage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="14dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
         android:clipChildren="true"
         android:clipToPadding="true"
         android:gravity="center_vertical"
@@ -545,7 +708,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="18dp"
         android:gravity="center_vertical">
 
         <FrameLayout
@@ -557,7 +720,7 @@
                 android:id="@+id/game_q"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_input"
+                android:background="@drawable/bg_game_input"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:hint="@string/play_hint"
@@ -620,6 +783,7 @@
             android:textColor="@color/dim"
             android:textSize="13.5sp" />
     </LinearLayout>
+    </LinearLayout>
 
 
 
@@ -671,7 +835,7 @@
             android:padding="12dp" />
         </LinearLayout>
 
-        <TextView
+        <cc.pfa87.ods9.DefTextView
             android:id="@+id/training_def_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -708,6 +872,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:orientation="vertical"
             android:paddingBottom="14dp">
 
@@ -755,6 +920,24 @@
                         android:layout_marginTop="1dp"
                         android:textColor="@color/dim"
                         android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/game_review_saved"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_review"
+                        android:drawablePadding="6dp"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center_vertical"
+                        android:minHeight="36dp"
+                        android:text="@string/rev_saved"
+                        android:textColor="@color/gold"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -802,7 +985,7 @@
             android:padding="12dp" />
                 </LinearLayout>
 
-                <TextView
+                <cc.pfa87.ods9.DefTextView
                     android:id="@+id/game_def"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -982,7 +1165,7 @@
                         <ImageButton android:id="@+id/study_fav" style="@style/IconAction"
                             android:contentDescription="@string/fav_add" android:src="@drawable/ic_star" />
                     </LinearLayout>
-                    <TextView android:id="@+id/study_def_body" style="@style/DefinitionText"
+                    <cc.pfa87.ods9.DefTextView android:id="@+id/study_def_body" style="@style/DefinitionText"
                         android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" />
                     <TextView android:id="@+id/study_def_more" style="@style/DefinitionMore" android:text="@string/definition_more" />
                     <TextView android:id="@+id/study_def_lemma" style="@style/DefinitionLink" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center_vertical" android:visibility="gone" />
@@ -1000,5 +1183,211 @@
             <ImageButton android:id="@+id/game_study_share" style="@style/IconAction"
                 android:layout_marginStart="8dp" android:contentDescription="@string/study_share" android:src="@drawable/ic_share" />
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- Révisions (ReviewScreen.java): the list, then the replay of one draw. -->
+    <LinearLayout
+        android:id="@+id/game_review"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ScrollView
+            android:id="@+id/review_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="12dp"
+            android:scrollbars="none">
+
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+
+            <LinearLayout android:id="@+id/review_home" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium" android:includeFontPadding="false"
+                    android:text="@string/menu_review" android:textColor="@color/ink" android:textSize="22sp"
+                    android:textStyle="bold" />
+                <TextView android:id="@+id/review_sync" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="5dp"
+                    android:textColor="@color/dim" android:textSize="12sp" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:background="@drawable/bg_card" android:gravity="center"
+                        android:orientation="vertical" android:paddingVertical="10dp">
+                        <TextView android:id="@+id/review_due_n" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:fontFamily="sans-serif-medium"
+                            android:includeFontPadding="false" android:text="0" android:textColor="@color/gold"
+                            android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp" android:letterSpacing="0.05" android:maxLines="1"
+                            android:text="@string/rev_stat_due" android:textAllCaps="true" android:textColor="@color/dim"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp" android:layout_weight="1" android:background="@drawable/bg_card"
+                        android:gravity="center" android:orientation="vertical" android:paddingVertical="10dp">
+                        <TextView android:id="@+id/review_later_n" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:fontFamily="sans-serif-medium"
+                            android:includeFontPadding="false" android:text="0" android:textColor="@color/ink"
+                            android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp" android:letterSpacing="0.05" android:maxLines="1"
+                            android:text="@string/rev_stat_later" android:textAllCaps="true" android:textColor="@color/dim"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp" android:layout_weight="1" android:background="@drawable/bg_card"
+                        android:gravity="center" android:orientation="vertical" android:paddingVertical="10dp">
+                        <TextView android:id="@+id/review_mastered_n" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:fontFamily="sans-serif-medium"
+                            android:includeFontPadding="false" android:text="0" android:textColor="@color/ok"
+                            android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp" android:letterSpacing="0.05" android:maxLines="1"
+                            android:text="@string/rev_stat_mastered" android:textAllCaps="true" android:textColor="@color/dim"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView android:id="@+id/review_banner" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_hint_box" android:fontFamily="sans-serif-medium"
+                    android:padding="12dp" android:textColor="@color/ok" android:textSize="13.5sp"
+                    android:visibility="gone" />
+                <TextView android:id="@+id/review_quiet" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                    android:lineSpacingMultiplier="1.15" android:textColor="@color/muted" android:textSize="14sp"
+                    android:visibility="gone" />
+                <TextView android:id="@+id/review_start" style="@style/PrimaryAction"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:textStyle="bold" android:visibility="gone" />
+                <TextView android:id="@+id/review_how_toggle" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                    android:background="?android:attr/selectableItemBackground" android:clickable="true"
+                    android:focusable="true" android:fontFamily="sans-serif-medium" android:gravity="center_vertical"
+                    android:minHeight="44dp" android:text="@string/rev_how_title" android:textColor="@color/muted"
+                    android:textSize="13sp" />
+                <TextView android:id="@+id/review_how" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:lineSpacingMultiplier="1.2"
+                    android:text="@string/rev_how" android:textColor="@color/dim" android:textSize="12.5sp"
+                    android:visibility="gone" />
+                <LinearLayout android:id="@+id/review_list" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                    android:orientation="vertical" />
+                <TextView android:id="@+id/review_others" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                    android:textColor="@color/dim" android:textSize="12sp" android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/review_play" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:id="@+id/review_stage" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:background="@drawable/bg_card"
+                    android:orientation="vertical" android:paddingHorizontal="12dp" android:paddingTop="14dp"
+                    android:paddingBottom="14dp">
+                    <TextView android:id="@+id/review_kicker" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:fontFamily="sans-serif-medium"
+                        android:gravity="center" android:letterSpacing="0.14" android:maxLines="1"
+                        android:textAllCaps="true" android:textColor="@color/gold" android:textSize="11sp" />
+                    <TextView android:id="@+id/review_goal" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                        android:fontFamily="sans-serif-medium" android:gravity="center" android:textColor="@color/ink"
+                        android:textSize="17sp" android:textStyle="bold" />
+                    <cc.pfa87.ods9.FlowLayout android:id="@+id/review_slots" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                        android:gravity="center_horizontal" />
+                    <LinearLayout android:id="@+id/review_rack" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                        android:clipChildren="true" android:clipToPadding="true" android:gravity="center"
+                        android:minHeight="48dp" android:orientation="horizontal" />
+                    <LinearLayout android:id="@+id/review_form" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="14dp"
+                        android:gravity="center_vertical">
+                        <FrameLayout android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1">
+                            <EditText android:id="@+id/review_q" android:layout_width="match_parent"
+                                android:layout_height="match_parent" android:background="@drawable/bg_game_input"
+                                android:fontFamily="sans-serif-medium" android:gravity="center"
+                                android:hint="@string/play_hint" android:imeOptions="actionDone"
+                                android:importantForAutofill="no" android:inputType="textCapCharacters|textNoSuggestions"
+                                android:letterSpacing="0.08" android:maxLength="16" android:paddingStart="14dp"
+                                android:paddingEnd="48dp" android:textColor="@color/ink" android:textColorHint="@color/dim"
+                                android:textSize="20sp" android:textStyle="bold" />
+                            <ImageButton android:id="@+id/review_clear" style="@style/IconAction"
+                                android:layout_gravity="end|center_vertical" android:layout_marginEnd="2dp"
+                                android:contentDescription="@string/clear" android:src="@drawable/ic_clear"
+                                android:visibility="gone" />
+                        </FrameLayout>
+                        <ImageButton android:id="@+id/review_go" android:layout_width="52dp"
+                            android:layout_height="52dp" android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_gold_btn" android:contentDescription="@string/validate"
+                            android:padding="12dp" android:src="@drawable/ic_check" />
+                    </LinearLayout>
+                    <TextView android:id="@+id/review_live" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                        android:fontFamily="sans-serif-medium" android:gravity="center" android:maxLines="3"
+                        android:textColor="@color/dim" android:textSize="13.5sp" android:visibility="gone" />
+                    <LinearLayout android:id="@+id/review_tools" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="10dp" android:gravity="center"
+                        android:orientation="horizontal">
+                        <TextView android:id="@+id/review_hint" android:layout_width="wrap_content"
+                            android:layout_height="44dp" android:background="@drawable/bg_pill_hint"
+                            android:fontFamily="sans-serif-medium" android:gravity="center"
+                            android:paddingHorizontal="16dp" android:text="@string/rev_hint" android:textColor="#f0b35c"
+                            android:textSize="13sp" />
+                        <TextView android:id="@+id/review_show" android:layout_width="wrap_content"
+                            android:layout_height="44dp" android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_pill_warn" android:fontFamily="sans-serif-medium"
+                            android:gravity="center" android:paddingHorizontal="16dp" android:text="@string/rev_show"
+                            android:textColor="@color/no" android:textSize="13sp" />
+                    </LinearLayout>
+                    <TextView android:id="@+id/review_hint_box" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_hint_box" android:lineSpacingMultiplier="1.15"
+                        android:padding="12dp" android:textColor="@color/ink" android:textSize="14sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/review_result" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="vertical"
+                    android:visibility="gone">
+                    <TextView android:id="@+id/review_status" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:lineSpacingMultiplier="1.15"
+                        android:textColor="@color/muted" android:textSize="14.5sp" />
+                    <TextView android:id="@+id/review_played" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@color/dim"
+                        android:textSize="13sp" android:visibility="gone" />
+                    <cc.pfa87.ods9.FlowLayout android:id="@+id/review_answers" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="10dp" />
+                    <LinearLayout android:id="@+id/review_def" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_card" android:orientation="vertical" android:padding="12dp"
+                        android:visibility="gone">
+                        <TextView android:id="@+id/review_def_head" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:fontFamily="sans-serif-medium"
+                            android:textColor="@color/muted" android:textSize="13sp" />
+                        <TextView android:id="@+id/review_def_body" style="@style/DefinitionText"
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView android:id="@+id/review_next" style="@style/PrimaryAction"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal" android:layout_marginTop="14dp"
+                    android:drawableEnd="@drawable/ic_next" android:drawablePadding="8dp"
+                    android:drawableTint="@color/tile_ink" android:minWidth="160dp" android:text="@string/rev_next"
+                    android:textStyle="bold" android:visibility="gone" />
+            </LinearLayout>
+            </FrameLayout>
+        </ScrollView>
     </LinearLayout>
 </FrameLayout>

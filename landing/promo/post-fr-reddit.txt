@@ -1,0 +1,9 @@
+J'ai fait un outil gratuit et sans pub pour les joueurs de lettres : contestations, top du tirage, 7 + 1, hors ligne
+
+Démo de 30 secondes : https://verimots.pfa87.cc/promo/
+
+Verimots vérifie un mot (avec sa définition), trouve le top d'un tirage avec les points des lettres et la prime de 50 pour les 7 lettres, et propose un entraînement : 7 + 1, joker, lettres chères, 7 ou 8 lettres, minuteur, et les mots de 2 et 3 lettres. Français, anglais, espagnol et catalan, hors ligne après le premier chargement des listes.
+
+La liste française est communautaire, ce n'est pas l'édition officielle ODS Larousse. Verimots est indépendant : aucune affiliation avec Scrabble, Mattel ou Hasbro.
+
+https://verimots.pfa87.cc/

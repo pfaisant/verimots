@@ -1,0 +1,34 @@
+Verimots is a companion for word-game players: check a word in a second, find the top play on a rack, practice anagrams. The word lists live inside the app and work offline.
+
+CHECK A WORD
+• A challenge at the table? Type the word: playable or not, its value in points and, when online, its definition (Wiktionary).
+• English lists: a community list following CSW (257,218 words) or WGPO WOW24 (195,383), from 2 to 15 letters.
+• Advanced mode: rack search with blanks (?), words that start with, end with or contain given letters.
+• Favorites and history.
+
+FIND THE TOP PLAY
+• Find a word: a rack of letters, look for the word that scores most. Your score is your percentage of the best play, then the rack’s best words appear with their definitions.
+• Points follow the tile values, with a 50-point bonus for a seven-letter word.
+
+PRACTICE
+• Combinations: All, 7 letters, 8 letters, 7 + 1, Blank, Hard letters (J, K, Q, W, X, Y, Z) and Short words.
+• Short Words: every day, 10 two-letter and 12 three-letter words to revise, with their definitions, plus a challenge mode.
+• Review: a rack where the best word got away, or a combination you did not finish, is saved for you. Find the words again without help: it comes back the next day, then in 3, 7 and 21 days. Hints: first letter, then the definition.
+• Beginner or Confirmed level.
+
+COMPETE
+• Bingo: seven letters, one word, the highest score wins. Weekly leaderboard.
+• Leaderboards by category, language and period: day, 3 days, week, 7 days, 30 days, all time.
+• Optional Google account, to keep your profile and rankings on the web and on your phone.
+
+FOUR LANGUAGES
+English, French (407,128 words), Spanish (RLA-ES, international or North American tiles, with CH, LL and RR as single tiles) and Catalan (DISC).
+
+NO ADS
+Free, no ads, no in-app purchases. The internet is only used for definitions, leaderboards, your account and sharing; everything else works offline.
+
+GOOD TO KNOW
+The lists are community lists: they are not the official publications and may differ from them. Verimots is an independent project, not affiliated with any publisher, federation, Mattel or Hasbro.
+
+Privacy: https://s.pfa87.cc/privacy.html
+Help: https://s.pfa87.cc/support.html

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Technical log (DiagLog) and the sign-in way out after a failed attempt. -->
+<resources>
+    <string name="diag_title">Journal technique</string>
+    <string name="diag_help">Version installée, étapes de connexion et erreurs de fond. Il reste sur ce téléphone : ni jeton ni adresse e-mail. Copie-le ou partage-le pour signaler un problème.</string>
+    <string name="diag_empty">Rien d’enregistré pour l’instant.</string>
+    <string name="diag_copy">Copier</string>
+    <string name="diag_copied">Journal copié</string>
+    <string name="diag_clear">Effacer</string>
+    <string name="diag_close">Fermer</string>
+    <string name="sign_in_failed">La connexion Google n’a pas abouti. Essaie dans le navigateur, ou ouvre le journal pour voir pourquoi.</string>
+    <string name="auth_browser">Se connecter dans le navigateur</string>
+    <string name="google_browser_fallback">Google a refusé la connexion dans l’application : on continue dans le navigateur.</string>
+</resources>

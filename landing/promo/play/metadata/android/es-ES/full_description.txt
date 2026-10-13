@@ -1,0 +1,34 @@
+Verimots acompaña a los jugadores de palabras: comprobar una palabra en un segundo, encontrar la mejor jugada de un atril y entrenar las combinaciones. Las listas de palabras van dentro de la aplicación y funcionan sin conexión.
+
+COMPROBAR UNA PALABRA
+• ¿Una duda en la partida? Escriba la palabra: válida o no, su valor en puntos y, con conexión, su definición (Wikcionario).
+• Español: lista RLA-ES de 608 169 palabras, de 2 a 15 fichas, con fichas internacionales (FISE) o norteamericanas; CH, LL y RR cuentan como una sola ficha.
+• Modo avanzado: búsqueda en el atril con comodines (?), palabras que empiezan, terminan o contienen ciertas letras.
+• Favoritos e historial.
+
+LA MEJOR JUGADA
+• Palabra oculta: un atril de letras, busque la palabra que más puntúa. Su resultado es el porcentaje de la mejor jugada; después aparecen las mejores palabras del atril con su definición.
+• Los puntos siguen el valor de las fichas, con 50 puntos de bonificación por una palabra de 7 fichas.
+
+ENTRENAR
+• Combinaciones: Todas, 7 letras, 8 letras, 7 + 1, Comodín, Difíciles y Palabras cortas.
+• Palabras Cortas: cada día, 10 palabras de 2 letras y 12 de 3 letras para repasar, con su definición, y un modo reto.
+• Repaso: un atril en el que se te escapó la mejor palabra, o una combinación sin terminar, se guarda solo. Vuelve a encontrar las palabras sin ayuda: vuelve al día siguiente y luego a los 3, 7 y 21 días. Pistas: primera letra y después la definición.
+• Nivel Principiante o Confirmado.
+
+COMPETIR
+• Bingo: siete letras, una sola palabra, gana la que más puntúa. Clasificación semanal.
+• Clasificaciones por categoría, idioma y periodo: día, 3 días, semana, 7 días, 30 días, todo.
+• Cuenta de Google opcional, para conservar su perfil y sus clasificaciones en la web y en el móvil.
+
+CUATRO IDIOMAS
+Español, francés (407 128 palabras), inglés (lista cercana al CSW, o WOW24) y catalán (DISC).
+
+SIN PUBLICIDAD
+Gratis, sin publicidad y sin compras integradas. Internet solo se usa para las definiciones, las clasificaciones, la cuenta y compartir; todo lo demás funciona sin conexión.
+
+A TENER EN CUENTA
+Las listas son comunitarias: no son las obras oficiales y pueden diferir de ellas. Verimots es un proyecto independiente, sin relación con ningún editor, federación, Mattel ni Hasbro.
+
+Privacidad: https://s.pfa87.cc/privacidad.html
+Ayuda: https://s.pfa87.cc/support.html
