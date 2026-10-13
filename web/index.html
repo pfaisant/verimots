@@ -11,14 +11,14 @@
   <meta name="apple-mobile-web-app-title" content="Verimots" />
   <meta name="mobile-web-app-capable" content="yes" />
   <link rel="canonical" href="https://s.pfa87.cc/" />
-  <link rel="icon" href="favicon.svg?v=162" type="image/svg+xml" />
+  <link rel="icon" href="favicon.svg?v=163" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="manifest" href="manifest.webmanifest?v=162" />
+  <link rel="manifest" href="manifest.webmanifest?v=163" />
   <meta property="og:title" content="Verimots — Vérificateur de mots" />
   <meta property="og:description" content="Liste de mots maintenue par la communauté. Vérifiez un mot, cherchez dans le tiroir, jouez au défi." />
   <meta property="og:url" content="https://s.pfa87.cc/" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="app.css?v=20261009-v1" />
+  <link rel="stylesheet" href="app.css?v=20261013-v1" />
 </head>
 <body class="simple view-game">
   <a class="skip" href="#main" data-i18n="skip">Aller au contenu</a>
@@ -26,7 +26,7 @@
   <header class="top">
     <div class="brand">
       <a class="brand-home" id="brand-home" href="https://verimots.pfa87.cc/?lang=fr" data-i18n-aria="home" aria-label="Accueil">
-        <img class="mark" src="favicon.svg?v=162" width="44" height="44" alt="" />
+        <img class="mark" src="favicon.svg?v=163" width="44" height="44" alt="" />
         <h1>Verimots</h1>
       </a>
     </div>
@@ -254,12 +254,21 @@
         </p>
       </article>
       <article class="login-card" id="login-prompt" hidden>
-        <p class="login-kicker" data-i18n="login_kicker">Votre espace Verimots</p>
-        <h2 data-i18n="login_title">Gardez vos progrès</h2>
-        <p data-i18n="login_benefit">Retrouvez votre classement et votre historique sur tous vos appareils.</p>
-        <div id="account-signin-btn" class="google-signin-area"></div>
-        <p class="fine login-error" id="login-error" data-i18n="login_unavailable" hidden>Connexion indisponible pour le moment.</p>
-        <button type="button" id="login-retry" data-i18n="login_retry" hidden>Réessayer</button>
+        <div class="login-copy">
+          <p class="login-kicker" data-i18n="login_kicker">Votre espace Verimots</p>
+          <h2 data-i18n="login_title">Gardez vos progrès</h2>
+          <ul class="login-perks">
+            <li data-perk="login_perk_board"><span class="tile login-tile" aria-hidden="true"></span><span><strong data-i18n="login_perk_board">Classement</strong> · <span data-i18n="login_perk_board_sub">votre rang, sur tous vos appareils</span></span></li>
+            <li data-perk="login_perk_history"><span class="tile login-tile" aria-hidden="true"></span><span><strong data-i18n="login_perk_history">Historique</strong> · <span data-i18n="login_perk_history_sub">les mots vérifiés vous suivent</span></span></li>
+            <li data-perk="login_perk_review"><span class="tile login-tile" aria-hidden="true"></span><span><strong data-i18n="login_perk_review">Révisions</strong> · <span data-i18n="login_perk_review_sub">vos tirages à revoir, synchronisés</span></span></li>
+          </ul>
+        </div>
+        <div class="login-action">
+          <div id="account-signin-btn" class="google-signin-area"></div>
+          <p class="login-note" data-i18n="login_note">Sans compte, vous pouvez toujours vérifier et jouer.</p>
+          <p class="fine login-error" id="login-error" data-i18n="login_unavailable" hidden>Connexion indisponible pour le moment.</p>
+          <button type="button" id="login-retry" data-i18n="login_retry" hidden>Réessayer</button>
+        </div>
       </article>
     </section>
 
@@ -592,7 +601,7 @@
   <!-- Visitors for this site, same shape as games.pfa87.cc (site-status.js). -->
   <footer class="site-status" id="site-status" aria-label="Visites de Verimots">
     <div class="site-status-inner">
-      <span class="site-status-brand"><img src="favicon.svg?v=162" alt="" width="16" height="16" />Verimots</span>
+      <span class="site-status-brand"><img src="favicon.svg?v=163" alt="" width="16" height="16" />Verimots</span>
       <div class="site-status-periods" role="group" aria-label="Période">
         <button type="button" data-period="1d" aria-pressed="true">1J</button>
         <button type="button" data-period="7d" aria-pressed="false">7J</button>
@@ -617,9 +626,9 @@
     </div>
   </aside>
 
-  <script src="analytics.js?v=162"></script>
+  <script src="analytics.js?v=163"></script>
   <script src="site-status.js?v=2" defer></script>
-  <script src="app.js?v=20261009-v1" type="module"></script>
+  <script src="app.js?v=20261013-v1" type="module"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>

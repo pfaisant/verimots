@@ -1,5 +1,5 @@
-import { flagSvg } from './flags.js?v=162'
-import { icon } from './icons.js?v=162'
+import { flagSvg } from './flags.js?v=163'
+import { icon } from './icons.js?v=163'
 const LANGS = ['fr', 'en', 'es', 'ca']
 const SECTIONS = ['any', ...LANGS]
 const SCOPES = ['day', '3d', 'week', '7d', '30d', 'all']

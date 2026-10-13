@@ -1,4 +1,4 @@
-import { encodeTiles, decodeRack } from './tiles.js?v=162'
+import { encodeTiles, decodeRack } from './tiles.js?v=163'
 
 const HARD = /[JKÑQWXYZ]/
 // Catalan's own awkward tiles: no K/W/Y exist, and NY/QU/L·L are single tiles.

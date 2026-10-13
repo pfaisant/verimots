@@ -1,4 +1,4 @@
-import { t } from './i18n.js?v=162'
+import { t } from './i18n.js?v=163'
 
 const KEY = 'verimots-favorites-v1'
 const MAX = 200

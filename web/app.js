@@ -1,13 +1,13 @@
-import { mountLeaderboard } from './leaderboard.js?v=20261009-v1'
-import { polishIcons, icon } from './icons.js?v=162'
-import { activityId, recordActivity } from './activity.js?v=162'
-import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=162'
-import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=162'
-import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=162'
-import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=162'
-import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=162'
-import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=162'
-import { initReviews } from './review.js?v=162'
+import { mountLeaderboard } from './leaderboard.js?v=20261013-v1'
+import { polishIcons, icon } from './icons.js?v=163'
+import { activityId, recordActivity } from './activity.js?v=163'
+import { initGame, parseRack, linkifyDef, backBtn, tileValues, letterScore, dailyStudySlice, dailyStudyText, studyListText, studyDateLabel, STUDY_TWOS, STUDY_THREES, lexicalDefinition, defBody, lemmaLine, senseHeader, extractFormOf, isInflectionDef } from './game.js?v=163'
+import { loadHistory, rememberWord, mergeHistory, historyLabel, historyDayLabel, clearHistory } from './history.js?v=163'
+import { loadFavorites, toggleFavorite, favButtonHtml, paintFavStar } from './favorites.js?v=163'
+import { isCompetitive, isKids, isTraining, setGameMode, initGoogleSignIn, checkSession, handleGoogleCallback, logout, getCurrentUser, fetchDailyTrail, fetchLeaderboard, getTrailData } from './competitive.js?v=163'
+import { initLang, setLang, setDict, getLang, getDict, getEsEdition, setEsEdition, dictSpec, dictLabel, t, DICTS, LANGS } from './i18n.js?v=163'
+import { tileSpec, tileGlyph, tileTokens, tileCount, encodeTiles, decodeRack } from './tiles.js?v=163'
+import { initReviews } from './review.js?v=163'
 
 function letterValues() {
   return tileValues(getLang())
@@ -67,7 +67,7 @@ const multiInfinitives = document.getElementById('find-infinitives')
 const multiHideInflections = document.getElementById('find-hide-inflections')
 
 const inApp = new URLSearchParams(location.search).get('app') === '1'
-const worker = new Worker('worker.js?v=162', { type: 'module' })
+const worker = new Worker('worker.js?v=163', { type: 'module' })
 let seq = 0
 const pending = new Map()
 let ready = false
@@ -501,7 +501,7 @@ function recordWords(entries) {
   if (histSheet && !histSheet.hidden) renderHistory()
   const owner = getCurrentUser()?.sub
   if (owner) {
-    import('./competitive.js?v=162').then(({ saveHistoryWord }) => {
+    import('./competitive.js?v=163').then(({ saveHistoryWord }) => {
       if (getCurrentUser()?.sub !== owner || clearingHistory) return
       for (const entry of entries) if (entry?.word) saveHistoryWord(entry, { owner })
     }).catch(() => {})
@@ -516,7 +516,7 @@ async function syncCloudHistory() {
   const owner = getCurrentUser().sub
   const revision = historyRevision
   try {
-    const { fetchHistory } = await import('./competitive.js?v=162')
+    const { fetchHistory } = await import('./competitive.js?v=163')
     const remote = await fetchHistory()
     if (!remote.ok || revision !== historyRevision || getCurrentUser()?.sub !== owner) return
     mergeHistory(remote.history)
@@ -1794,7 +1794,7 @@ document.getElementById('hist-clear')?.addEventListener('click', async () => {
   if (error) error.hidden = true
   try {
     if (owner) {
-      const { clearCloudHistory } = await import('./competitive.js?v=162')
+      const { clearCloudHistory } = await import('./competitive.js?v=163')
       if (getCurrentUser()?.sub !== owner) return
       const result = await clearCloudHistory({ owner })
       if (!result?.ok || getCurrentUser()?.sub !== owner) throw new Error('clear_failed')

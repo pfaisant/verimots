@@ -4954,3 +4954,35 @@ body.game-closed .game-live:not(:empty) { display: block !important; }
   .rev-play-btn, .rev-del-btn { min-height: 44px; }
   .rev-del-btn { width: 44px; height: 44px; }
 }
+
+/* Account card (13 Oct 2026): what an account keeps, each led by its own
+   letter as a rack tile, beside Google's button. That button is a light-scheme
+   iframe; on this dark page Chrome paints an opaque white canvas behind it
+   unless the iframe itself asks for the light scheme. */
+.google-signin-area iframe { color-scheme: light; }
+#login-prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  max-width: none;
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg2);
+}
+#login-prompt[hidden] { display: none; }
+#login-prompt .login-kicker { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: var(--gold); font: 700 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; }
+#login-prompt .login-kicker::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--rim-gold), transparent); }
+#login-prompt h2 { margin: 0 0 16px; font: 650 22px/1.25 var(--sans); letter-spacing: -.02em; }
+.login-perks { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.login-perks li { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.login-perks strong { color: var(--ink); font-weight: 650; }
+.tile.login-tile { flex: none; width: 30px; height: 33px; border-radius: 6px; font-size: 17px; }
+.tile.login-tile small { right: 3px; bottom: 1px; font-size: 8px; }
+.login-action { display: grid; justify-items: start; gap: 10px; width: 352px; margin-left: 40px; padding-left: 32px; border-left: 1px solid var(--line); }
+#login-prompt .login-note { margin: 0; color: var(--dim); font-size: 12.5px; line-height: 1.45; }
+#login-prompt .login-error { margin: 0 !important; }
+@media (max-width: 719px) {
+  #login-prompt { grid-template-columns: 1fr; padding: 20px 16px; }
+  .login-action { width: auto; margin: 16px 0 0; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+}

@@ -76,4 +76,17 @@ Any new host serving web/ must be added there. Check a host with:
 
 200 means the origin is allowed and 403 means it is not.
 
+## Follow-up the same day: account card (AiConglomerate 8ecf613a, PR #195)
+
+The Google sign-in card was redesigned and deployed from AiConglomerate,
+then ported here:
+- The iframe now asks for `color-scheme: light`, which removes the white
+  box behind Google's button.
+- The card lists the leaderboard, history and Révisions, each led by a
+  rack tile.
+- Google's dark pill button replaces the blue default.
+- Modules are pinned to `?v=163`, the app shell to `20261013-v1` and the
+  service worker cache to `verimots-v175`.
+- Tests now pin `?v=163` too.
+
 Checks: `npm test` 265/265.

@@ -3,10 +3,10 @@
 // hand every missed draw to record(); this module keeps the list, deals the
 // due draws again with the missed words as the goal, and syncs the list with
 // a Google account. Schedule and merge rules live in review-core.js.
-import { t, getLang, getDict, getEsEdition, dictLabel } from './i18n.js?v=162'
-import { encodeTiles, tileTokens } from './tiles.js?v=162'
-import { playScore, playPoints, tileAssignments, defBody, extractFormOf, isInflectionDef } from './game.js?v=162'
-import { getCurrentUser } from './competitive.js?v=162'
+import { t, getLang, getDict, getEsEdition, dictLabel } from './i18n.js?v=163'
+import { encodeTiles, tileTokens } from './tiles.js?v=163'
+import { playScore, playPoints, tileAssignments, defBody, extractFormOf, isInflectionDef } from './game.js?v=163'
+import { getCurrentUser } from './competitive.js?v=163'
 import {
   recordMiss,
   gradeReview,
@@ -19,7 +19,7 @@ import {
   cleanReviews,
   REVIEW_STEPS,
   DAY_MS,
-} from './review-core.js?v=162'
+} from './review-core.js?v=163'
 
 const KEY = 'verimots-reviews-v1'
 

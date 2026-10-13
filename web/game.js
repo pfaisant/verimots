@@ -1,9 +1,9 @@
-import { activityId, recordActivity } from './activity.js?v=162'
-import { getCurrentUser } from './competitive.js?v=162'
-import { t, getLang, getDict, getEsEdition, dictLabel, LANGS } from './i18n.js?v=162'
-import { flagSvg } from './flags.js?v=162'
-import { favButtonHtml, paintFavStar } from './favorites.js?v=162'
-import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles, blankTargets, isBlankTile, tileGlyph } from './tiles.js?v=162'
+import { activityId, recordActivity } from './activity.js?v=163'
+import { getCurrentUser } from './competitive.js?v=163'
+import { t, getLang, getDict, getEsEdition, dictLabel, LANGS } from './i18n.js?v=163'
+import { flagSvg } from './flags.js?v=163'
+import { favButtonHtml, paintFavStar } from './favorites.js?v=163'
+import { tileSpec, encodeTiles, decodeRack, tileTokens, tileCount, usesHardTiles, blankTargets, isBlankTile, tileGlyph } from './tiles.js?v=163'
 
 const CAT_KEYS = new Set(['bingo', 'long', 'hard'])
 
@@ -1991,7 +1991,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     if (pending) return pending
     const promise = (async () => {
       const { submitCompete, fetchLeaderboard, getTrailData, competeAccepted } =
-        await import('./competitive.js?v=162')
+        await import('./competitive.js?v=163')
       if (!context.official) return false
       // Finish this one submission even when the player has already moved
       // on. Next never waits for it or retries an uncertain network write.
@@ -2481,17 +2481,31 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
     document.body.classList.toggle('auth-gate', !!on)
   }
 
+  // Each perk on the account card leads with its own first letter as a tile,
+  // scored in the current language's set (Classement C3, Leaderboard L1…).
+  function paintLoginTiles() {
+    document.querySelectorAll('#login-prompt [data-perk]').forEach((row) => {
+      const tile = row.querySelector('.login-tile')
+      const letter = t(row.dataset.perk).charAt(0).toUpperCase()
+      if (!tile || !letter) return
+      const points = document.createElement('small')
+      points.textContent = String(letterScore(letter))
+      tile.replaceChildren(letter, points)
+    })
+  }
+
   // Google's button rendered into `container`; a successful sign-in reloads
   // the ranked mode (the server adopts a guest session's standing on the spot).
   async function mountGoogleSignIn(container, kids, account = false) {
     if (!container) return
+    if (account) paintLoginTiles()
     const error = account ? document.getElementById('login-error') : null
     const retry = account ? document.getElementById('login-retry') : null
     if (error) error.hidden = true
     if (retry) retry.hidden = true
     if (account) container.setAttribute('aria-busy', 'true')
     try {
-      const { initGoogleSignIn, handleGoogleCallback } = await import('./competitive.js?v=162')
+      const { initGoogleSignIn, handleGoogleCallback } = await import('./competitive.js?v=163')
       await initGoogleSignIn()
       if (!window.google?.accounts?.id) throw new Error('Sign-in unavailable')
       window.google.accounts.id.initialize({
@@ -2511,8 +2525,10 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
         }
       })
       container.innerHTML = ''
+      // Google's dark pill sits on the felt; its blue default fought the gold.
       window.google.accounts.id.renderButton(container, {
-        theme: 'filled_blue',
+        theme: 'filled_black',
+        shape: 'pill',
         size: 'large',
         text: 'signin_with',
         locale: getLang(),
@@ -2527,7 +2543,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function initRanked(kids, requestId = modeSeq) {
-    const { checkSession, ensureGuestSession, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=162')
+    const { checkSession, ensureGuestSession, fetchDailyTrail, fetchLeaderboard } = await import('./competitive.js?v=163')
     const lang = getLang()
     const current = () => requestId === modeSeq && activeMode === (kids ? 'kids' : 'competitive') && lang === getLang()
     setAuthGate(false)
@@ -2660,7 +2676,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function loadScopedBoard(kids, scope) {
-    const { fetchLeaderboard } = await import('./competitive.js?v=162')
+    const { fetchLeaderboard } = await import('./competitive.js?v=163')
     const requestedLang = boardRequestLang()
     const data = await fetchLeaderboard(null, requestedLang, { kids, scope })
     if (boardRequestLang() !== requestedLang || data.lang !== requestedLang) return null
@@ -2669,7 +2685,7 @@ export function initGame({ ask, tilesHtml, escapeHtml, normalize, ready, define,
   }
 
   async function refreshBoardPage() {
-    const { fetchLeaderboard } = await import('./competitive.js?v=162')
+    const { fetchLeaderboard } = await import('./competitive.js?v=163')
     const requestedLang = boardRequestLang()
     const [week, kidsWeek] = await Promise.all([
       fetchLeaderboard(null, requestedLang),
